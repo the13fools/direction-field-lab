@@ -1,6 +1,18 @@
 import "./styles.css";
 
-import { TUTORIALS, formatProblem, parseProblem, type Problem } from "./core/problem";
+import {
+  EMBED_DIAGNOSTICS,
+  EMBED_READY,
+  isEmbedLoadProblemMessage,
+  type EmbedOutgoingMessage,
+} from "./core/embed";
+import {
+  TUTORIALS,
+  formatProblem,
+  parseProblem,
+  validateProblem,
+  type Problem,
+} from "./core/problem";
 import { getWorkspace, listWorkspaces, putWorkspace } from "./core/storage";
 import {
   VIEW_SCHEMA,
@@ -35,6 +47,10 @@ let playing = false;
 let stepPending = false;
 
 editor.value = localStorage.getItem("geometry-lab:draft") ?? formatProblem(currentProblem);
+
+function notifyParent(message: EmbedOutgoingMessage): void {
+  if (window.parent !== window) window.parent.postMessage(message, "*");
+}
 
 function setStatus(message: string, kind: "working" | "good" | "bad" = "working"): void {
   status.textContent = message;
@@ -88,6 +104,7 @@ solver.addEventListener("message", ((event: CustomEvent<SolverResponse>) => {
   const response = event.detail;
   if (response.type === "ready") {
     element("#backend").textContent = response.backend;
+    notifyParent({ type: EMBED_READY, applicationVersion: "0.1.0" });
     initialize();
     return;
   }
@@ -109,6 +126,11 @@ solver.addEventListener("message", ((event: CustomEvent<SolverResponse>) => {
       currentProblem.parameters.restLength,
     );
     showDiagnostics(response.diagnostics);
+    notifyParent({
+      type: EMBED_DIAGNOSTICS,
+      problem: currentProblem,
+      diagnostics: response.diagnostics,
+    });
     runButton.disabled = false;
     stepButton.disabled = false;
     playButton.disabled = false;
@@ -120,6 +142,11 @@ solver.addEventListener("message", ((event: CustomEvent<SolverResponse>) => {
     const previousAcceptedIterations = diagnostics?.acceptedIterations ?? -1;
     viewer.update(response.positions);
     showDiagnostics(response.diagnostics);
+    notifyParent({
+      type: EMBED_DIAGNOSTICS,
+      problem: currentProblem,
+      diagnostics: response.diagnostics,
+    });
     stepPending = false;
     stepButton.disabled = false;
     setStatus(`Accepted ${response.diagnostics.acceptedIterations} Newton steps.`, "good");
@@ -151,6 +178,20 @@ playButton.addEventListener("click", () => {
 });
 
 editor.addEventListener("input", () => localStorage.setItem("geometry-lab:draft", editor.value));
+
+window.addEventListener("message", (event: MessageEvent<unknown>) => {
+  if (event.source !== window.parent || !isEmbedLoadProblemMessage(event.data)) return;
+  try {
+    const problem = validateProblem(event.data.problem);
+    editor.value = formatProblem(problem);
+    initialize();
+  } catch (error) {
+    setStatus(
+      `Embedded problem rejected: ${error instanceof Error ? error.message : String(error)}`,
+      "bad",
+    );
+  }
+});
 element<HTMLButtonElement>("#format").addEventListener("click", () => {
   try {
     editor.value = formatProblem(readEditor());

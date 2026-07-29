@@ -41,6 +41,15 @@ The Three.js viewer is the default because it is zero-install and easy to
 publish. Polyscope is optional and consumes `geometry-lab/view@1`. Neither viewer
 owns ground-truth solver state.
 
+## Course embedding boundary
+
+An enclosing course page may send a validated problem through
+`geometry-lab/load-problem@1`. The lab reports readiness and scalar diagnostics
+through `geometry-lab/ready@1` and `geometry-lab/diagnostics@1`. These
+`postMessage` events are the entire embedding API: the parent cannot reach into
+worker or solver state, and the standalone app remains fully usable without a
+parent page.
+
 ## Adding a kernel
 
 Add a discriminated problem type and validator in `src/core/problem.ts`; add a
