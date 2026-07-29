@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f1ede1" />
+    <meta name="description" content="A local-first browser lab for inspectable geometry-processing solvers." />
+    <title>Geometry Processing Lab</title>
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="identity">
+        <div class="mark">GPL</div>
+        <div><h1>Geometry Processing Lab</h1><p>small experiments · inspectable numerics · portable files</p></div>
+      </div>
+      <div class="header-actions">
+        <button id="import-file" class="button dark">Import problem</button>
+        <button id="save-local" class="button dark">Save locally</button>
+        <button id="export-repo" class="button primary">Download experiment repo</button>
+        <input id="file-input" type="file" accept="application/json,.json" hidden>
+      </div>
+    </header>
+    <div class="status-strip"><span id="status">Loading numerical kernels…</span><span id="backend">WebAssembly worker</span></div>
+    <main class="workspace">
+      <aside class="sidebar">
+        <p class="section-label">Guided experiments</p>
+        <p class="sidebar-intro">Change one thing, predict the outcome, then read the solver diagnostics. These are reference problems—not magic buttons.</p>
+        <div id="tutorials"></div>
+        <div class="local-area">
+          <p class="section-label">This browser</p>
+          <select id="workspace-select" aria-label="Saved local workspaces"></select>
+        </div>
+      </aside>
+      <section class="stage">
+        <div id="viewer" aria-label="Interactive result viewer"></div>
+        <div class="transport">
+          <button id="run" class="button primary" disabled>Reset + build</button>
+          <button id="step" class="button" disabled>One step</button>
+          <button id="play" class="button" disabled>Play</button>
+          <span class="spacer"></span>
+          <button id="open-polyscope" class="button" disabled>Open in Polyscope</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><span>Energy</span><strong id="metric-energy">—</strong></div>
+          <div class="metric"><span>‖gradient‖</span><strong id="metric-gradient">—</strong></div>
+          <div class="metric"><span>DOFs</span><strong id="metric-dofs">—</strong></div>
+          <div class="metric"><span>Hessian nnz</span><strong id="metric-nnz">—</strong></div>
+          <div class="metric"><span>Accepted steps</span><strong id="metric-iterations">—</strong></div>
+        </div>
+      </section>
+      <aside class="editor-panel">
+        <div class="editor-head"><h2>Problem definition</h2><div class="editor-tools"><button id="format" class="button">Validate + format</button></div></div>
+        <textarea id="problem-editor" spellcheck="false" aria-label="Editable problem JSON"></textarea>
+        <p class="editor-note">Every run is defined by one versioned JSON file. The numerical kernel runs off the UI thread; edit parameters, then choose <code>Reset + build</code>.</p>
+      </aside>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

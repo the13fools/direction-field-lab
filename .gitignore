@@ -1,0 +1,12 @@
+node_modules/
+dist/
+build/
+.cache/
+.lab-bridge/
+.DS_Store
+*.log
+*.user
+*.pyc
+__pycache__/
+imgui.ini
+.polyscope.ini

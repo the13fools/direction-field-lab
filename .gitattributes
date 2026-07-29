@@ -1,0 +1,4 @@
+*.wasm binary
+*.json text eol=lf
+*.ts text eol=lf
+*.cpp text eol=lf

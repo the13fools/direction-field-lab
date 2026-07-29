@@ -1,0 +1,27 @@
+{
+  "name": "geometry-processing-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "A local-first browser lab for inspectable geometry-processing solvers.",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "build:wasm": "cmake -S cpp -B build/wasm -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake && cmake --build build/wasm -j",
+    "build:native": "cmake -S native/polyscope-viewer -B build/polyscope-viewer -DCMAKE_BUILD_TYPE=Release && cmake --build build/polyscope-viewer -j",
+    "serve:bridge": "python3 tools/polyscope_bridge.py --root dist --port 4174"
+  },
+  "dependencies": {
+    "jszip": "3.10.1",
+    "three": "0.185.1"
+  },
+  "devDependencies": {
+    "@types/three": "0.185.0",
+    "typescript": "7.0.2",
+    "vite": "8.1.5",
+    "vitest": "4.1.10"
+  }
+}

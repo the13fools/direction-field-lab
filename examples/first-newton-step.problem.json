@@ -1,0 +1,16 @@
+{
+  "schema": "geometry-lab/problem@1",
+  "name": "First Newton step",
+  "kernel": "mass-spring",
+  "parameters": {
+    "gridSize": 12,
+    "restLength": 1,
+    "springWeight": 1,
+    "pinWeight": 1000,
+    "jitter": 0.65,
+    "seed": 17
+  },
+  "solver": {
+    "iterationsPerStep": 1
+  }
+}
