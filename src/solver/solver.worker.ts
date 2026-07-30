@@ -1,6 +1,12 @@
 /// <reference lib="webworker" />
 
-import type { HodgeFields, HodgeMetrics, SolverRequest, SolverResponse } from "./messages";
+import type {
+  HodgeFieldLayout,
+  HodgeFields,
+  HodgeMetrics,
+  SolverRequest,
+  SolverResponse,
+} from "./messages";
 
 interface CommonBinding {
   step(iterations: number): void;
@@ -24,9 +30,25 @@ interface HodgeBinding extends CommonBinding {
   getHodgeMetrics(): HodgeMetrics;
 }
 
+interface VertexFieldBinding extends CommonBinding {
+  init(
+    gridSize: number,
+    dataWeight: number,
+    smoothnessWeight: number,
+    lengthWeight: number,
+    targetLength: number,
+    initializationNoise: number,
+    seed: number,
+  ): void;
+  getField(): ArrayLike<number>;
+  getTargetField(): ArrayLike<number>;
+}
+
 interface KernelModule {
   MassSpringSystem: new () => MassSpringBinding;
   HodgeDecompositionSystem: new () => HodgeBinding;
+  FaceHodgeSystem: new () => HodgeBinding;
+  VertexFieldSystem: new () => VertexFieldBinding;
 }
 
 type ModuleFactory = (options: { locateFile(path: string): string }) => Promise<KernelModule>;
@@ -34,6 +56,8 @@ type ModuleFactory = (options: { locateFile(path: string): string }) => Promise<
 const scope = self as DedicatedWorkerGlobalScope;
 let system: CommonBinding | undefined;
 let hodgeSystem: HodgeBinding | undefined;
+let hodgeFieldLayout: HodgeFieldLayout | undefined;
+let vertexFieldSystem: VertexFieldBinding | undefined;
 let acceptedIterations = 0;
 
 function send(message: SolverResponse, transfers: Transferable[] = []): void {
@@ -85,17 +109,42 @@ async function start(wasmBaseUrl: string): Promise<void> {
         if (request.type === "initialize") {
           system?.delete();
           hodgeSystem = undefined;
+          hodgeFieldLayout = undefined;
+          vertexFieldSystem = undefined;
           acceptedIterations = 0;
           if (request.problem.kernel === "mass-spring") {
             const p = request.problem.parameters;
             const binding = new module.MassSpringSystem();
             system = binding;
             binding.init(p.gridSize, p.restLength, p.springWeight, p.pinWeight, p.jitter, p.seed);
+          } else if (request.problem.kernel === "vertex-field") {
+            const p = request.problem.parameters;
+            const objective = p.objective;
+            const binding = new module.VertexFieldSystem();
+            system = binding;
+            vertexFieldSystem = binding;
+            hodgeFieldLayout = "vertex-vector";
+            binding.init(
+              p.gridSize,
+              objective.dataWeight,
+              objective.connectionSmoothnessWeight,
+              objective.lengthWeight,
+              objective.targetLength,
+              p.initializationNoise,
+              p.seed,
+            );
           } else {
             const p = request.problem.parameters;
-            const binding = new module.HodgeDecompositionSystem();
+            const binding = request.problem.kernel === "hodge-face"
+              ? new module.FaceHodgeSystem()
+              : new module.HodgeDecompositionSystem();
             system = binding;
             hodgeSystem = binding;
+            hodgeFieldLayout = request.problem.kernel === "hodge-face"
+              ? "face-vector"
+              : request.problem.parameters.representation === "vertex"
+                ? "vertex-from-edge"
+                : "edge-form";
             binding.init(
               p.gridSize,
               p.exactStrength,
@@ -110,6 +159,12 @@ async function start(wasmBaseUrl: string): Promise<void> {
           const edges = Int32Array.from(system.getEdges());
           const fields = hodgeSystem ? hodgeFields(hodgeSystem) : undefined;
           const hodgeMetrics = hodgeSystem?.getHodgeMetrics();
+          const vectorField = vertexFieldSystem
+            ? new Float64Array(vertexFieldSystem.getField())
+            : undefined;
+          const targetField = vertexFieldSystem
+            ? new Float64Array(vertexFieldSystem.getTargetField())
+            : undefined;
           send(
             {
               type: "initialized",
@@ -117,10 +172,19 @@ async function start(wasmBaseUrl: string): Promise<void> {
               positions,
               edges,
               fields,
+              fieldLayout: hodgeFieldLayout,
+              vectorField,
+              targetField,
               hodgeMetrics,
               diagnostics: diagnostics(system),
             },
-            [positions.buffer, edges.buffer, ...fieldTransfers(fields)],
+            [
+              positions.buffer,
+              edges.buffer,
+              ...fieldTransfers(fields),
+              ...(vectorField ? [vectorField.buffer] : []),
+              ...(targetField ? [targetField.buffer] : []),
+            ],
           );
           return;
         }
@@ -129,16 +193,30 @@ async function start(wasmBaseUrl: string): Promise<void> {
         const positions = new Float64Array(system.getPositions());
         const fields = hodgeSystem ? hodgeFields(hodgeSystem) : undefined;
         const hodgeMetrics = hodgeSystem?.getHodgeMetrics();
+        const vectorField = vertexFieldSystem
+          ? new Float64Array(vertexFieldSystem.getField())
+          : undefined;
+        const targetField = vertexFieldSystem
+          ? new Float64Array(vertexFieldSystem.getTargetField())
+          : undefined;
         send(
           {
             type: "stepped",
             runId: request.runId,
             positions,
             fields,
+            fieldLayout: hodgeFieldLayout,
+            vectorField,
+            targetField,
             hodgeMetrics,
             diagnostics: diagnostics(system),
           },
-          [positions.buffer, ...fieldTransfers(fields)],
+          [
+            positions.buffer,
+            ...fieldTransfers(fields),
+            ...(vectorField ? [vectorField.buffer] : []),
+            ...(targetField ? [targetField.buffer] : []),
+          ],
         );
       } catch (error) {
         send({

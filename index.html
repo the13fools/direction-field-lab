@@ -33,6 +33,13 @@
       </aside>
       <section class="stage">
         <div id="viewer" aria-label="Interactive result viewer"></div>
+        <div id="representation-note" class="representation-note" hidden>
+          <div><span id="representation-kind">Representation</span><strong id="representation-title">—</strong></div>
+          <div class="representation-copy">
+            <p id="representation-description"></p>
+            <ol id="representation-steps"></ol>
+          </div>
+        </div>
         <div id="hodge-report" class="hodge-report" hidden aria-live="polite">
           <span>Harmonic certificate</span>
           <div><small>max |d₁h|</small><strong id="hodge-curl">—</strong></div>
@@ -50,6 +57,10 @@
             <button class="button" type="button" data-field="coexact">Coexact δψ</button>
             <button class="button" type="button" data-field="harmonic">Harmonic h</button>
             <button class="button" type="button" data-field="error">Error</button>
+          </div>
+          <div id="vertex-components" class="component-switcher" hidden aria-label="Displayed vertex field">
+            <button class="button" type="button" data-vertex-field="target">Target</button>
+            <button class="button active" type="button" data-vertex-field="solution">Current solution</button>
           </div>
           <span class="spacer"></span>
           <button id="open-polyscope" class="button" disabled>Open in Polyscope</button>
@@ -69,7 +80,7 @@
         <details id="source-panel" class="source-panel" hidden>
           <summary><span>Actual TinyAD callbacks</span><span id="source-state" data-kind="compiled">compiled source</span></summary>
           <div class="source-explainer">
-            This literal header is compiled into the current Wasm binary. You may edit and export it here; modified C++ requires an Emscripten rebuild and is never silently interpreted as JavaScript.
+            This literal header is compiled into the current Wasm binary. Vertex-objective weights in the problem JSON are passed into these generic callbacks live. Editing the C++ itself still requires an Emscripten rebuild and is never silently interpreted as JavaScript.
           </div>
           <textarea id="callback-editor" spellcheck="false" aria-label="Editable TinyAD C++ callback source"></textarea>
           <div class="source-actions">

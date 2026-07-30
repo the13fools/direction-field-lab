@@ -1,6 +1,8 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
+import type { HodgeFieldLayout } from "../solver/messages";
+
 import {
   periodicGridFaces,
   torusPositions,
@@ -102,71 +104,55 @@ export class WebViewer {
     }
   }
 
-  showEdgeField(values: Float64Array, color: number, label = "Discrete 1-form"): void {
-    if (values.length * 2 !== this.edgeIndices.length) return;
+  showHodgeField(
+    values: Float64Array,
+    color: number,
+    label: string,
+    layout: HodgeFieldLayout,
+  ): void {
     this.removeField();
-    if (this.periodic) {
-      this.showFaceField(values, color, label);
+    if (!this.periodic) return;
+    if (layout === "face-vector") {
+      this.showFaceVectorField(values, color, label);
       return;
     }
-    const maxAbs = Math.max(1e-12, ...Array.from(values, Math.abs));
-    const scale = 0.72 * this.restLength / maxAbs;
-    const period = this.gridSize * this.restLength;
-    const segments = new Float32Array(values.length * 18);
-    for (let edge = 0; edge < values.length; edge += 1) {
-      const tail = this.edgeIndices[edge * 2]!;
-      const head = this.edgeIndices[edge * 2 + 1]!;
-      let x0 = this.positions2d[tail * 2]! - this.center.x;
-      let y0 = this.positions2d[tail * 2 + 1]! - this.center.y;
-      let dx = this.positions2d[head * 2]! - this.positions2d[tail * 2]!;
-      let dy = this.positions2d[head * 2 + 1]! - this.positions2d[tail * 2 + 1]!;
-      if (this.periodic) {
-        if (dx > period * 0.5) dx -= period;
-        if (dx < -period * 0.5) dx += period;
-        if (dy > period * 0.5) dy -= period;
-        if (dy < -period * 0.5) dy += period;
-      }
-      const length = Math.max(1e-12, Math.hypot(dx, dy));
-      let midX = x0 + dx * 0.5;
-      let midY = y0 + dy * 0.5;
-      if (this.periodic) {
-        midX = this.wrap(midX, period);
-        midY = this.wrap(midY, period);
-      }
-      const magnitude = scale * Math.abs(values[edge]!);
-      const sign = Math.sign(values[edge]!) || 1;
-      const ux = sign * dx / length;
-      const uy = sign * dy / length;
-      const tailX = midX - 0.5 * magnitude * ux;
-      const tailY = midY - 0.5 * magnitude * uy;
-      const tipX = midX + 0.5 * magnitude * ux;
-      const tipY = midY + 0.5 * magnitude * uy;
-      const wing = Math.min(0.18 * this.restLength, 0.35 * magnitude);
-      const baseX = tipX - wing * ux;
-      const baseY = tipY - wing * uy;
-      const perpX = -uy * wing * 0.45;
-      const perpY = ux * wing * 0.45;
-      const offset = edge * 18;
-      const writeSegment = (slot: number, ax: number, ay: number, bx: number, by: number) => {
-        const index = offset + slot * 6;
-        segments[index] = ax;
-        segments[index + 1] = ay;
-        segments[index + 2] = 0.025;
-        segments[index + 3] = bx;
-        segments[index + 4] = by;
-        segments[index + 5] = 0.025;
-      };
-      writeSegment(0, tailX, tailY, tipX, tipY);
-      writeSegment(1, tipX, tipY, baseX + perpX, baseY + perpY);
-      writeSegment(2, tipX, tipY, baseX - perpX, baseY - perpY);
+    if (layout === "vertex-vector") {
+      this.showVertexVectorField(values, color, label);
+      return;
     }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.BufferAttribute(segments, 3));
-    this.fieldLines = new THREE.LineSegments(
-      geometry,
-      new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.98 }),
-    );
-    this.scene.add(this.fieldLines);
+    if (values.length * 2 !== this.edgeIndices.length) return;
+    if (layout === "edge-form") {
+      this.showEdgeForm(values, color, label);
+      return;
+    }
+    this.showVertexField(values, color, label);
+  }
+
+  showVertexVectorField(values: Float64Array, color: number, label: string): void {
+    this.removeField();
+    if (!this.periodic || values.length !== this.gridSize * this.gridSize * 2) return;
+    const samples: VectorGlyph[] = [];
+    for (let vertex = 0; vertex < this.gridSize * this.gridSize; vertex += 1) {
+      const x = vertex % this.gridSize;
+      const y = Math.floor(vertex / this.gridSize);
+      const u = 2 * Math.PI * x / this.gridSize;
+      const v = 2 * Math.PI * y / this.gridSize;
+      const tangentU = new THREE.Vector3(-Math.sin(u), Math.cos(u), 0).normalize();
+      const tangentV = new THREE.Vector3(
+        -Math.sin(v) * Math.cos(u),
+        -Math.sin(v) * Math.sin(u),
+        Math.cos(v),
+      ).normalize();
+      const normal = tangentU.clone().cross(tangentV).normalize();
+      const vector = tangentU.multiplyScalar(values[2 * vertex]!)
+        .addScaledVector(tangentV, values[2 * vertex + 1]!);
+      samples.push({
+        position: vectorTuple(vectorAt(this.positions3d, vertex)),
+        normal: vectorTuple(normal),
+        vector: vectorTuple(vector),
+      });
+    }
+    this.renderVectorGlyphs(samples, color, `${label} · native per-vertex tangent vectors`);
   }
 
   currentPositions(): number[] {
@@ -238,17 +224,84 @@ export class WebViewer {
     this.viewerNote.textContent = "vertex tangent field · drag to orbit · scroll to zoom";
   }
 
-  private showFaceField(values: Float64Array, color: number, label: string): void {
+  private showVertexField(values: Float64Array, color: number, label: string): void {
     const samples = vertexFieldFromOneForm(
       this.positions3d,
       this.edgeIndices,
       this.faceIndices,
       values,
     );
-    let maxMagnitude = 1e-12;
-    for (const sample of samples) {
-      maxMagnitude = Math.max(maxMagnitude, Math.hypot(...sample.vector));
+    this.renderVectorGlyphs(samples, color, `${label} · vertex tangent vectors`);
+  }
+
+  private showFaceVectorField(values: Float64Array, color: number, label: string): void {
+    if (values.length !== (this.faceIndices.length / 3) * 2) return;
+    const samples: VectorGlyph[] = [];
+    for (let face = 0; face < this.faceIndices.length / 3; face += 1) {
+      const cell = Math.floor(face / 2);
+      const x = cell % this.gridSize;
+      const y = Math.floor(cell / this.gridSize);
+      const firstTriangle = face % 2 === 0;
+      const u = 2 * Math.PI * (x + (firstTriangle ? 2 / 3 : 1 / 3)) / this.gridSize;
+      const v = 2 * Math.PI * (y + (firstTriangle ? 1 / 3 : 2 / 3)) / this.gridSize;
+      const radius = 2.55 + 1.02 * Math.cos(v);
+      const position = new THREE.Vector3(
+        radius * Math.cos(u),
+        radius * Math.sin(u),
+        1.02 * Math.sin(v),
+      );
+      const tangentU = new THREE.Vector3(-Math.sin(u), Math.cos(u), 0).normalize();
+      const tangentV = new THREE.Vector3(
+        -Math.sin(v) * Math.cos(u),
+        -Math.sin(v) * Math.sin(u),
+        Math.cos(v),
+      ).normalize();
+      const normal = tangentU.clone().cross(tangentV).normalize();
+      const vector = tangentU.multiplyScalar(values[2 * face]!)
+        .addScaledVector(tangentV, values[2 * face + 1]!);
+      samples.push({
+        position: [position.x, position.y, position.z],
+        normal: [normal.x, normal.y, normal.z],
+        vector: [vector.x, vector.y, vector.z],
+      });
     }
+    this.renderVectorGlyphs(samples, color, `${label} · one constant vector per face`);
+  }
+
+  private showEdgeForm(values: Float64Array, color: number, label: string): void {
+    let maxAbsolute = 1e-12;
+    for (const value of values) maxAbsolute = Math.max(maxAbsolute, Math.abs(value));
+    const segments: number[] = [];
+    const maximumLength = 0.68 * (2 * Math.PI * 1.02) / this.gridSize;
+    for (let edge = 0; edge < values.length; edge += 1) {
+      const tailIndex = this.edgeIndices[2 * edge]!;
+      const headIndex = this.edgeIndices[2 * edge + 1]!;
+      const tailPosition = vectorAt(this.positions3d, tailIndex);
+      const headPosition = vectorAt(this.positions3d, headIndex);
+      const chord = headPosition.clone().sub(tailPosition);
+      const chordLength = chord.length();
+      if (chordLength < 1e-12 || Math.abs(values[edge]!) < maxAbsolute * 1e-6) continue;
+      const direction = chord.multiplyScalar((Math.sign(values[edge]!) || 1) / chordLength);
+      const center = tailPosition.clone().add(headPosition).multiplyScalar(0.5);
+      const ringAngle = Math.atan2(center.y, center.x);
+      const normal = center.clone().sub(new THREE.Vector3(
+        2.55 * Math.cos(ringAngle),
+        2.55 * Math.sin(ringAngle),
+        0,
+      )).normalize();
+      center.addScaledVector(normal, 0.05);
+      const length = maximumLength * Math.sqrt(Math.abs(values[edge]!) / maxAbsolute);
+      const arrowTail = center.clone().addScaledVector(direction, -0.5 * length);
+      const arrowTip = center.clone().addScaledVector(direction, 0.5 * length);
+      appendArrow(segments, arrowTail, arrowTip, direction, normal, length);
+    }
+    this.installGlyphGeometry(segments, color);
+    this.viewerNote.textContent = `${label} · signed integrals on oriented edges · drag to orbit`;
+  }
+
+  private renderVectorGlyphs(samples: VectorGlyph[], color: number, note: string): void {
+    let maxMagnitude = 1e-12;
+    for (const sample of samples) maxMagnitude = Math.max(maxMagnitude, Math.hypot(...sample.vector));
 
     const segments: number[] = [];
     const maximumLength = 0.78 * (2 * Math.PI * 1.02) / this.gridSize;
@@ -261,15 +314,14 @@ export class WebViewer {
       const length = maximumLength * Math.sqrt(magnitude / maxMagnitude);
       const tail = center;
       const tip = center.clone().addScaledVector(direction, length);
-      const side = normal.clone().cross(direction).normalize();
-      const wingBase = tip.clone().addScaledVector(direction, -0.24 * length);
-      const wingA = wingBase.clone().addScaledVector(side, 0.13 * length);
-      const wingB = wingBase.clone().addScaledVector(side, -0.13 * length);
-      pushSegment(segments, tail, tip);
-      pushSegment(segments, tip, wingA);
-      pushSegment(segments, tip, wingB);
+      appendArrow(segments, tail, tip, direction, normal, length);
     }
 
+    this.installGlyphGeometry(segments, color);
+    this.viewerNote.textContent = `${note} · drag to orbit`;
+  }
+
+  private installGlyphGeometry(segments: number[], color: number): void {
     const geometry = new THREE.BufferGeometry();
     geometry.setAttribute(
       "position",
@@ -281,7 +333,6 @@ export class WebViewer {
     );
     this.fieldLines.renderOrder = 3;
     this.scene.add(this.fieldLines);
-    this.viewerNote.textContent = `${label} · vertex tangent field · drag to orbit`;
   }
 
   private toXYZ(positions: Float64Array): Float32Array {
@@ -312,11 +363,6 @@ export class WebViewer {
     this.fieldLines = undefined;
   }
 
-  private wrap(value: number, period: number): number {
-    const half = period * 0.5;
-    return ((value + half) % period + period) % period - half;
-  }
-
   private resize(): void {
     const width = Math.max(1, this.container.clientWidth);
     const height = Math.max(1, this.container.clientHeight);
@@ -334,4 +380,39 @@ export class WebViewer {
 
 function pushSegment(target: number[], a: THREE.Vector3, b: THREE.Vector3): void {
   target.push(a.x, a.y, a.z, b.x, b.y, b.z);
+}
+
+interface VectorGlyph {
+  position: [number, number, number];
+  normal: [number, number, number];
+  vector: [number, number, number];
+}
+
+function appendArrow(
+  segments: number[],
+  tail: THREE.Vector3,
+  tip: THREE.Vector3,
+  direction: THREE.Vector3,
+  normal: THREE.Vector3,
+  length: number,
+): void {
+  const side = normal.clone().cross(direction).normalize();
+  const wingBase = tip.clone().addScaledVector(direction, -0.24 * length);
+  const wingA = wingBase.clone().addScaledVector(side, 0.13 * length);
+  const wingB = wingBase.clone().addScaledVector(side, -0.13 * length);
+  pushSegment(segments, tail, tip);
+  pushSegment(segments, tip, wingA);
+  pushSegment(segments, tip, wingB);
+}
+
+function vectorAt(positions: Float32Array<ArrayBufferLike>, index: number): THREE.Vector3 {
+  return new THREE.Vector3(
+    positions[3 * index]!,
+    positions[3 * index + 1]!,
+    positions[3 * index + 2]!,
+  );
+}
+
+function vectorTuple(vector: THREE.Vector3): [number, number, number] {
+  return [vector.x, vector.y, vector.z];
 }

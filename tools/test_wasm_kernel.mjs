@@ -25,3 +25,38 @@ try {
 } finally {
   system.delete();
 }
+
+const faceSystem = new kernels.FaceHodgeSystem();
+try {
+  faceSystem.init(14, 1.2, 0.8, 1.4, -0.7, 0, 17);
+  const before = faceSystem.getHodgeMetrics();
+  faceSystem.step(1);
+  const after = faceSystem.getHodgeMetrics();
+
+  assert.ok(before.reconstructionNorm > 1, "face input should be nontrivial before projection");
+  assert.ok(after.exactNorm > 1, "mixed FEM exact component should be nontrivial");
+  assert.ok(after.coexactNorm > 1, "mixed FEM coexact component should be nontrivial");
+  assert.ok(after.harmonicNorm > 0.1, "mixed FEM harmonic component should be nontrivial");
+  assert.ok(after.reconstructionNorm < 1e-10, "face components should reconstruct the input");
+  assert.ok(after.harmonicDivergenceMax < 1e-6, "face harmonic residual should be divergence-free");
+  assert.ok(after.harmonicCurlMax < 1e-6, "face harmonic residual should be curl-free");
+  assert.ok(after.orthogonalityDefect < 1e-6, "mixed FEM components should be orthogonal");
+  console.log("Face Hodge Wasm kernel: mixed finite-element checks passed.");
+} finally {
+  faceSystem.delete();
+}
+
+const vertexSystem = new kernels.VertexFieldSystem();
+try {
+  vertexSystem.init(16, 1, 0.35, 0.08, 0.85, 0.18, 17);
+  const before = vertexSystem.getDiagnostics();
+  vertexSystem.step(12);
+  const after = vertexSystem.getDiagnostics();
+  assert.equal(vertexSystem.getField().length, 16 * 16 * 2, "vertex field should store two values per vertex");
+  assert.equal(vertexSystem.getTargetField().length, 16 * 16 * 2, "target should store two values per vertex");
+  assert.ok(after.energy < before.energy, "editable vertex objective should decrease");
+  assert.ok(after.gradientNorm < before.gradientNorm, "vertex optimization should reduce its gradient");
+  console.log("Vertex field Wasm kernel: data-driven TinyAD objective checks passed.");
+} finally {
+  vertexSystem.delete();
+}

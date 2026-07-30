@@ -9,6 +9,12 @@ export interface HodgeFields {
   error: Float64Array;
 }
 
+export type HodgeFieldLayout =
+  | "face-vector"
+  | "edge-form"
+  | "vertex-from-edge"
+  | "vertex-vector";
+
 export interface HodgeMetrics {
   inputNorm: number;
   exactNorm: number;
@@ -34,6 +40,9 @@ export type SolverResponse =
       positions: Float64Array;
       edges: Int32Array;
       fields?: HodgeFields;
+      fieldLayout?: HodgeFieldLayout;
+      vectorField?: Float64Array;
+      targetField?: Float64Array;
       hodgeMetrics?: HodgeMetrics;
       diagnostics: SolverDiagnostics;
     }
@@ -42,6 +51,9 @@ export type SolverResponse =
       runId: number;
       positions: Float64Array;
       fields?: HodgeFields;
+      fieldLayout?: HodgeFieldLayout;
+      vectorField?: Float64Array;
+      targetField?: Float64Array;
       hodgeMetrics?: HodgeMetrics;
       diagnostics: SolverDiagnostics;
     }

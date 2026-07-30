@@ -11,11 +11,19 @@ make the architecture and the numerics inspectable before adding larger topics
 such as parameterization, Hodge decomposition, integrable projection, or fluids
 on surfaces.
 
-The second experiment implements a discrete Hodge decomposition of an edge
-1-form on a flat triangulated torus. Students can switch between the input,
-exact, coexact, harmonic, and reconstruction-error fields; inspect numerical
-certificates; and edit the literal TinyAD callback header bundled into the Wasm
-kernel. See [`docs/hodge-experiment.md`](docs/hodge-experiment.md).
+The vector-field sequence now separates four ideas that are often conflated:
+
+1. a mixed finite-element Hodge split of piecewise-constant face vectors;
+2. a DEC Hodge split of signed edge integrals;
+3. reconstruction of an edge 1-form as vertex tangent vectors, including an
+   explicit warning that reconstruction is not a native vertex Hodge complex;
+4. a true per-vertex tangent-field optimization whose objective weights are
+   edited in JSON and passed live into generic TinyAD callbacks.
+
+Students can inspect the literal callback header compiled into each Wasm kernel.
+Changing C++ still requires rebuilding Wasm; changing the vertex objective's
+enabled terms and weights does not. See
+[`docs/vector-field-representations.md`](docs/vector-field-representations.md).
 
 ## Design promises
 
