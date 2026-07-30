@@ -25,6 +25,30 @@ it is the most inspectable representation for these first experiments.
 All quantities are dimensionless in version 1. The seed and complete parameter
 set make initialization reproducible.
 
+The same schema also supports a flat-torus 1-form experiment:
+
+```json
+{
+  "schema": "geometry-lab/problem@1",
+  "name": "Hodge decomposition on a flat torus",
+  "kernel": "hodge-1form",
+  "parameters": {
+    "gridSize": 14,
+    "exactStrength": 1.2,
+    "coexactStrength": 0.8,
+    "harmonicX": 1.4,
+    "harmonicY": -0.7,
+    "noise": 0,
+    "seed": 17
+  },
+  "solver": { "iterationsPerStep": 1 }
+}
+```
+
+The strengths construct a reproducible input 1-form with known exact,
+coexact, and harmonic content. `noise` adds a seeded arbitrary edge form before
+projection.
+
 ## `geometry-lab/view@1`
 
 ```json

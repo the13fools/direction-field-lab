@@ -11,6 +11,12 @@ make the architecture and the numerics inspectable before adding larger topics
 such as parameterization, Hodge decomposition, integrable projection, or fluids
 on surfaces.
 
+The second experiment implements a discrete Hodge decomposition of an edge
+1-form on a flat triangulated torus. Students can switch between the input,
+exact, coexact, harmonic, and reconstruction-error fields; inspect numerical
+certificates; and edit the literal TinyAD callback header bundled into the Wasm
+kernel. See [`docs/hodge-experiment.md`](docs/hodge-experiment.md).
+
 ## Design promises
 
 - **A result is a file, not hidden UI state.** Problems and viewer snapshots have

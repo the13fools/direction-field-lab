@@ -1,0 +1,17 @@
+{
+  "schema": "geometry-lab/problem@1",
+  "name": "Hodge decomposition on a flat torus",
+  "kernel": "hodge-1form",
+  "parameters": {
+    "gridSize": 14,
+    "exactStrength": 1.2,
+    "coexactStrength": 0.8,
+    "harmonicX": 1.4,
+    "harmonicY": -0.7,
+    "noise": 0,
+    "seed": 17
+  },
+  "solver": {
+    "iterationsPerStep": 1
+  }
+}

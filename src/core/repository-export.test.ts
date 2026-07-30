@@ -20,4 +20,13 @@ describe("experiment repository export", () => {
       },
     });
   });
+
+  it("includes edited callback source for a Hodge experiment", async () => {
+    const source = "// edited TinyAD callback\n";
+    const blob = await createExperimentRepository(TUTORIALS[3]!.problem, {
+      "cpp/include/HodgeProjectionCallbacks.hh": source,
+    });
+    const archive = await JSZip.loadAsync(await blob.arrayBuffer());
+    expect(await archive.file("cpp/include/HodgeProjectionCallbacks.hh")!.async("string")).toBe(source);
+  });
 });

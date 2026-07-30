@@ -1,9 +1,8 @@
 /// <reference lib="webworker" />
 
-import type { SolverRequest, SolverResponse } from "./messages";
+import type { HodgeFields, HodgeMetrics, SolverRequest, SolverResponse } from "./messages";
 
-interface MassSpringBinding {
-  init(gridSize: number, restLength: number, springWeight: number, pinWeight: number, jitter: number, seed: number): void;
+interface CommonBinding {
   step(iterations: number): void;
   getPositions(): ArrayLike<number>;
   getEdges(): ArrayLike<number>;
@@ -11,21 +10,37 @@ interface MassSpringBinding {
   delete(): void;
 }
 
+interface MassSpringBinding extends CommonBinding {
+  init(gridSize: number, restLength: number, springWeight: number, pinWeight: number, jitter: number, seed: number): void;
+}
+
+interface HodgeBinding extends CommonBinding {
+  init(gridSize: number, exactStrength: number, coexactStrength: number, harmonicX: number, harmonicY: number, noise: number, seed: number): void;
+  getInputField(): ArrayLike<number>;
+  getExactField(): ArrayLike<number>;
+  getCoexactField(): ArrayLike<number>;
+  getHarmonicField(): ArrayLike<number>;
+  getReconstructionError(): ArrayLike<number>;
+  getHodgeMetrics(): HodgeMetrics;
+}
+
 interface KernelModule {
   MassSpringSystem: new () => MassSpringBinding;
+  HodgeDecompositionSystem: new () => HodgeBinding;
 }
 
 type ModuleFactory = (options: { locateFile(path: string): string }) => Promise<KernelModule>;
 
 const scope = self as DedicatedWorkerGlobalScope;
-let system: MassSpringBinding | undefined;
+let system: CommonBinding | undefined;
+let hodgeSystem: HodgeBinding | undefined;
 let acceptedIterations = 0;
 
 function send(message: SolverResponse, transfers: Transferable[] = []): void {
   scope.postMessage(message, transfers);
 }
 
-function diagnostics(binding: MassSpringBinding) {
+function diagnostics(binding: CommonBinding) {
   const value = binding.getDiagnostics();
   acceptedIterations += value.iterations;
   return {
@@ -36,6 +51,22 @@ function diagnostics(binding: MassSpringBinding) {
     hessianNonzeros: value.hessianNonzeros,
     acceptedIterations,
   };
+}
+
+function hodgeFields(binding: HodgeBinding): HodgeFields {
+  return {
+    input: new Float64Array(binding.getInputField()),
+    exact: new Float64Array(binding.getExactField()),
+    coexact: new Float64Array(binding.getCoexactField()),
+    harmonic: new Float64Array(binding.getHarmonicField()),
+    error: new Float64Array(binding.getReconstructionError()),
+  };
+}
+
+function fieldTransfers(fields: HodgeFields | undefined): Transferable[] {
+  return fields
+    ? [fields.input.buffer, fields.exact.buffer, fields.coexact.buffer, fields.harmonic.buffer, fields.error.buffer]
+    : [];
 }
 
 async function start(wasmBaseUrl: string): Promise<void> {
@@ -53,35 +84,61 @@ async function start(wasmBaseUrl: string): Promise<void> {
         if (request.type === "configure") return;
         if (request.type === "initialize") {
           system?.delete();
-          system = new module.MassSpringSystem();
+          hodgeSystem = undefined;
           acceptedIterations = 0;
-          const p = request.problem.parameters;
-          system.init(p.gridSize, p.restLength, p.springWeight, p.pinWeight, p.jitter, p.seed);
+          if (request.problem.kernel === "mass-spring") {
+            const p = request.problem.parameters;
+            const binding = new module.MassSpringSystem();
+            system = binding;
+            binding.init(p.gridSize, p.restLength, p.springWeight, p.pinWeight, p.jitter, p.seed);
+          } else {
+            const p = request.problem.parameters;
+            const binding = new module.HodgeDecompositionSystem();
+            system = binding;
+            hodgeSystem = binding;
+            binding.init(
+              p.gridSize,
+              p.exactStrength,
+              p.coexactStrength,
+              p.harmonicX,
+              p.harmonicY,
+              p.noise,
+              p.seed,
+            );
+          }
           const positions = new Float64Array(system.getPositions());
           const edges = Int32Array.from(system.getEdges());
+          const fields = hodgeSystem ? hodgeFields(hodgeSystem) : undefined;
+          const hodgeMetrics = hodgeSystem?.getHodgeMetrics();
           send(
             {
               type: "initialized",
               runId: request.runId,
               positions,
               edges,
+              fields,
+              hodgeMetrics,
               diagnostics: diagnostics(system),
             },
-            [positions.buffer, edges.buffer],
+            [positions.buffer, edges.buffer, ...fieldTransfers(fields)],
           );
           return;
         }
         if (!system) throw new Error("Initialize a problem before stepping it.");
         system.step(request.iterations);
         const positions = new Float64Array(system.getPositions());
+        const fields = hodgeSystem ? hodgeFields(hodgeSystem) : undefined;
+        const hodgeMetrics = hodgeSystem?.getHodgeMetrics();
         send(
           {
             type: "stepped",
             runId: request.runId,
             positions,
+            fields,
+            hodgeMetrics,
             diagnostics: diagnostics(system),
           },
-          [positions.buffer],
+          [positions.buffer, ...fieldTransfers(fields)],
         );
       } catch (error) {
         send({

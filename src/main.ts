@@ -1,4 +1,5 @@
 import "./styles.css";
+import compiledHodgeCallback from "../cpp/include/HodgeProjectionCallbacks.hh?raw";
 
 import {
   EMBED_DIAGNOSTICS,
@@ -22,6 +23,8 @@ import {
 } from "./core/snapshot";
 import { SolverClient } from "./solver/client";
 import type { SolverResponse } from "./solver/messages";
+import type { HodgeFields } from "./solver/messages";
+import type { HodgeMetrics } from "./solver/messages";
 import { WebViewer } from "./viewer/web-viewer";
 
 function element<T extends HTMLElement>(selector: string): T {
@@ -40,13 +43,21 @@ const playButton = element<HTMLButtonElement>("#play");
 const polyscopeButton = element<HTMLButtonElement>("#open-polyscope");
 const workspaceSelect = element<HTMLSelectElement>("#workspace-select");
 const fileInput = element<HTMLInputElement>("#file-input");
+const hodgeComponents = element<HTMLDivElement>("#hodge-components");
+const sourcePanel = element<HTMLDetailsElement>("#source-panel");
+const callbackEditor = element<HTMLTextAreaElement>("#callback-editor");
+const sourceState = element("#source-state");
+const hodgeReport = element<HTMLDivElement>("#hodge-report");
 
 let currentProblem: Problem = TUTORIALS[0]!.problem;
 let diagnostics: SolverDiagnostics | undefined;
 let playing = false;
 let stepPending = false;
+let hodgeFields: HodgeFields | undefined;
+let selectedField: keyof HodgeFields = "input";
 
 editor.value = localStorage.getItem("geometry-lab:draft") ?? formatProblem(currentProblem);
+callbackEditor.value = localStorage.getItem("geometry-lab:hodge-callback-draft") ?? compiledHodgeCallback;
 
 function notifyParent(message: EmbedOutgoingMessage): void {
   if (window.parent !== window) window.parent.postMessage(message, "*");
@@ -70,6 +81,39 @@ function showDiagnostics(value: SolverDiagnostics): void {
   metric("metric-iterations", value.acceptedIterations.toLocaleString());
 }
 
+function updateKernelUI(): void {
+  const hodge = currentProblem.kernel === "hodge-1form";
+  hodgeComponents.hidden = !hodge;
+  sourcePanel.hidden = !hodge;
+  hodgeReport.hidden = !hodge;
+  stepButton.textContent = hodge ? "Decompose" : "One step";
+  playButton.hidden = hodge;
+}
+
+function showHodgeMetrics(value: HodgeMetrics | undefined): void {
+  if (!value) return;
+  metric("hodge-curl", value.harmonicCurlMax.toExponential(2));
+  metric("hodge-divergence", value.harmonicDivergenceMax.toExponential(2));
+  metric("hodge-orthogonality", value.orthogonalityDefect.toExponential(2));
+  metric("hodge-reconstruction", value.reconstructionNorm.toExponential(2));
+}
+
+const fieldColors: Record<keyof HodgeFields, number> = {
+  input: 0xffffff,
+  exact: 0x70dcff,
+  coexact: 0xff8b5b,
+  harmonic: 0xdffc5b,
+  error: 0xff3f7f,
+};
+
+function renderSelectedField(): void {
+  if (!hodgeFields) return;
+  viewer.showEdgeField(hodgeFields[selectedField], fieldColors[selectedField]);
+  for (const button of hodgeComponents.querySelectorAll<HTMLButtonElement>("[data-field]")) {
+    button.classList.toggle("active", button.dataset.field === selectedField);
+  }
+}
+
 function readEditor(): Problem {
   const problem = parseProblem(editor.value);
   editor.value = formatProblem(problem);
@@ -80,6 +124,8 @@ function readEditor(): Problem {
 function initialize(): void {
   try {
     currentProblem = readEditor();
+    updateKernelUI();
+    hodgeFields = undefined;
     playing = false;
     playButton.textContent = "Play";
     runButton.disabled = true;
@@ -123,8 +169,12 @@ solver.addEventListener("message", ((event: CustomEvent<SolverResponse>) => {
       response.positions,
       response.edges,
       currentProblem.parameters.gridSize,
-      currentProblem.parameters.restLength,
+      currentProblem.kernel === "mass-spring" ? currentProblem.parameters.restLength : 1,
+      currentProblem.kernel === "hodge-1form",
     );
+    hodgeFields = response.fields;
+    showHodgeMetrics(response.hodgeMetrics);
+    renderSelectedField();
     showDiagnostics(response.diagnostics);
     notifyParent({
       type: EMBED_DIAGNOSTICS,
@@ -135,12 +185,20 @@ solver.addEventListener("message", ((event: CustomEvent<SolverResponse>) => {
     stepButton.disabled = false;
     playButton.disabled = false;
     polyscopeButton.disabled = false;
-    setStatus("Ready. Inspect one Newton step at a time.", "good");
+    setStatus(
+      currentProblem.kernel === "hodge-1form"
+        ? "Input 1-form ready. Decompose it, then inspect each orthogonal component."
+        : "Ready. Inspect one Newton step at a time.",
+      "good",
+    );
     return;
   }
   if (response.type === "stepped") {
     const previousAcceptedIterations = diagnostics?.acceptedIterations ?? -1;
     viewer.update(response.positions);
+    hodgeFields = response.fields;
+    showHodgeMetrics(response.hodgeMetrics);
+    renderSelectedField();
     showDiagnostics(response.diagnostics);
     notifyParent({
       type: EMBED_DIAGNOSTICS,
@@ -150,6 +208,10 @@ solver.addEventListener("message", ((event: CustomEvent<SolverResponse>) => {
     stepPending = false;
     stepButton.disabled = false;
     setStatus(`Accepted ${response.diagnostics.acceptedIterations} Newton steps.`, "good");
+    if (currentProblem.kernel === "hodge-1form") {
+      setStatus("Decomposition complete: ω = dφ + δψ + h. Compare the component views.", "good");
+      return;
+    }
     if (
       playing &&
       response.diagnostics.gradientNorm > 1e-7 &&
@@ -175,6 +237,39 @@ playButton.addEventListener("click", () => {
   playing = !playing;
   playButton.textContent = playing ? "Pause" : "Play";
   if (playing) requestStep();
+});
+
+for (const button of hodgeComponents.querySelectorAll<HTMLButtonElement>("[data-field]")) {
+  button.addEventListener("click", () => {
+    selectedField = button.dataset.field as keyof HodgeFields;
+    renderSelectedField();
+  });
+}
+
+function updateSourceState(): void {
+  const modified = callbackEditor.value !== compiledHodgeCallback;
+  sourceState.textContent = modified ? "modified · rebuild required" : "compiled source";
+  sourceState.dataset.kind = modified ? "modified" : "compiled";
+}
+
+callbackEditor.addEventListener("input", () => {
+  localStorage.setItem("geometry-lab:hodge-callback-draft", callbackEditor.value);
+  updateSourceState();
+});
+
+element<HTMLButtonElement>("#reset-callback").addEventListener("click", () => {
+  callbackEditor.value = compiledHodgeCallback;
+  localStorage.removeItem("geometry-lab:hodge-callback-draft");
+  updateSourceState();
+});
+
+element<HTMLButtonElement>("#download-callback").addEventListener("click", () => {
+  const blob = new Blob([callbackEditor.value], { type: "text/x-c++hdr" });
+  const link = document.createElement("a");
+  link.href = URL.createObjectURL(blob);
+  link.download = "HodgeProjectionCallbacks.hh";
+  link.click();
+  URL.revokeObjectURL(link.href);
 });
 
 editor.addEventListener("input", () => localStorage.setItem("geometry-lab:draft", editor.value));
@@ -243,7 +338,13 @@ workspaceSelect.addEventListener("change", async () => {
 element<HTMLButtonElement>("#export-repo").addEventListener("click", async () => {
   try {
     const { downloadRepositoryArchive } = await import("./core/repository-export");
-    await downloadRepositoryArchive(readEditor());
+    const problem = readEditor();
+    await downloadRepositoryArchive(
+      problem,
+      problem.kernel === "hodge-1form"
+        ? { "cpp/include/HodgeProjectionCallbacks.hh": callbackEditor.value }
+        : {},
+    );
     setStatus("Downloaded a Git-ready experiment repository.", "good");
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), "bad");
@@ -305,3 +406,5 @@ polyscopeButton.addEventListener("click", async () => {
 });
 
 void refreshWorkspaces();
+updateSourceState();
+updateKernelUI();

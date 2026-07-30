@@ -17,7 +17,25 @@ export interface MassSpringProblem {
   };
 }
 
-export type Problem = MassSpringProblem;
+export interface HodgeDecompositionProblem {
+  schema: typeof PROBLEM_SCHEMA;
+  name: string;
+  kernel: "hodge-1form";
+  parameters: {
+    gridSize: number;
+    exactStrength: number;
+    coexactStrength: number;
+    harmonicX: number;
+    harmonicY: number;
+    noise: number;
+    seed: number;
+  };
+  solver: {
+    iterationsPerStep: number;
+  };
+}
+
+export type Problem = MassSpringProblem | HodgeDecompositionProblem;
 
 export interface Tutorial {
   id: string;
@@ -40,9 +58,11 @@ export function validateProblem(value: unknown): Problem {
   }
   const candidate = value as Record<string, unknown>;
   if (candidate.schema !== PROBLEM_SCHEMA) throw new Error(`schema must be ${PROBLEM_SCHEMA}.`);
-  if (candidate.kernel !== "mass-spring") throw new Error(`Unknown kernel ${String(candidate.kernel)}.`);
   if (typeof candidate.name !== "string" || candidate.name.trim() === "") {
     throw new Error("name must be a non-empty string.");
+  }
+  if (candidate.kernel !== "mass-spring" && candidate.kernel !== "hodge-1form") {
+    throw new Error(`Unknown kernel ${String(candidate.kernel)}.`);
   }
   if (!candidate.parameters || typeof candidate.parameters !== "object") {
     throw new Error("parameters must be an object.");
@@ -52,6 +72,26 @@ export function validateProblem(value: unknown): Problem {
   }
   const parameters = candidate.parameters as Record<string, unknown>;
   const solver = candidate.solver as Record<string, unknown>;
+  const iterationsPerStep = Math.round(
+    finiteNumber(solver.iterationsPerStep, "iterationsPerStep", 1, 20),
+  );
+  if (candidate.kernel === "hodge-1form") {
+    return {
+      schema: PROBLEM_SCHEMA,
+      name: candidate.name.trim(),
+      kernel: "hodge-1form",
+      parameters: {
+        gridSize: Math.round(finiteNumber(parameters.gridSize, "gridSize", 4, 48)),
+        exactStrength: finiteNumber(parameters.exactStrength, "exactStrength", -100, 100),
+        coexactStrength: finiteNumber(parameters.coexactStrength, "coexactStrength", -100, 100),
+        harmonicX: finiteNumber(parameters.harmonicX, "harmonicX", -100, 100),
+        harmonicY: finiteNumber(parameters.harmonicY, "harmonicY", -100, 100),
+        noise: finiteNumber(parameters.noise, "noise", 0, 100),
+        seed: Math.round(finiteNumber(parameters.seed, "seed", 1, 2_147_483_647)),
+      },
+      solver: { iterationsPerStep },
+    };
+  }
   return {
     schema: PROBLEM_SCHEMA,
     name: candidate.name.trim(),
@@ -65,9 +105,7 @@ export function validateProblem(value: unknown): Problem {
       seed: Math.round(finiteNumber(parameters.seed, "seed", 1, 2_147_483_647)),
     },
     solver: {
-      iterationsPerStep: Math.round(
-        finiteNumber(solver.iterationsPerStep, "iterationsPerStep", 1, 20),
-      ),
+      iterationsPerStep,
     },
   };
 }
@@ -139,6 +177,26 @@ export const TUTORIALS: readonly Tutorial[] = [
         pinWeight: 1500,
         jitter: 0.9,
         seed: 41,
+      },
+      solver: { iterationsPerStep: 1 },
+    }),
+  },
+  {
+    id: "hodge-one-form",
+    title: "04 · Hodge decomposition",
+    question: "Can sparse least squares separate gradient, curl, and global circulation?",
+    problem: validateProblem({
+      schema: PROBLEM_SCHEMA,
+      name: "Hodge decomposition on a flat torus",
+      kernel: "hodge-1form",
+      parameters: {
+        gridSize: 14,
+        exactStrength: 1.2,
+        coexactStrength: 0.8,
+        harmonicX: 1.4,
+        harmonicY: -0.7,
+        noise: 0,
+        seed: 17,
       },
       solver: { iterationsPerStep: 1 },
     }),

@@ -1,4 +1,4 @@
-import type { MassSpringProblem } from "../core/problem";
+import type { Problem } from "../core/problem";
 import type { SolverRequest, SolverResponse } from "./messages";
 
 export class SolverClient extends EventTarget {
@@ -16,7 +16,7 @@ export class SolverClient extends EventTarget {
     this.post({ type: "configure", wasmBaseUrl: new URL("wasm/", document.baseURI).href });
   }
 
-  initialize(problem: MassSpringProblem): number {
+  initialize(problem: Problem): number {
     this.runId += 1;
     this.post({ type: "initialize", runId: this.runId, problem });
     return this.runId;

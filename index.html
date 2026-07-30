@@ -33,10 +33,24 @@
       </aside>
       <section class="stage">
         <div id="viewer" aria-label="Interactive result viewer"></div>
+        <div id="hodge-report" class="hodge-report" hidden aria-live="polite">
+          <span>Harmonic certificate</span>
+          <div><small>max |d₁h|</small><strong id="hodge-curl">—</strong></div>
+          <div><small>max |d₀ᵀh|</small><strong id="hodge-divergence">—</strong></div>
+          <div><small>orthogonality defect</small><strong id="hodge-orthogonality">—</strong></div>
+          <div><small>reconstruction ‖r‖</small><strong id="hodge-reconstruction">—</strong></div>
+        </div>
         <div class="transport">
           <button id="run" class="button primary" disabled>Reset + build</button>
           <button id="step" class="button" disabled>One step</button>
           <button id="play" class="button" disabled>Play</button>
+          <div id="hodge-components" class="component-switcher" hidden aria-label="Displayed Hodge component">
+            <button class="button active" type="button" data-field="input">Input ω</button>
+            <button class="button" type="button" data-field="exact">Exact dφ</button>
+            <button class="button" type="button" data-field="coexact">Coexact δψ</button>
+            <button class="button" type="button" data-field="harmonic">Harmonic h</button>
+            <button class="button" type="button" data-field="error">Error</button>
+          </div>
           <span class="spacer"></span>
           <button id="open-polyscope" class="button" disabled>Open in Polyscope</button>
         </div>
@@ -52,6 +66,17 @@
         <div class="editor-head"><h2>Problem definition</h2><div class="editor-tools"><button id="format" class="button">Validate + format</button></div></div>
         <textarea id="problem-editor" spellcheck="false" aria-label="Editable problem JSON"></textarea>
         <p class="editor-note">Every run is defined by one versioned JSON file. The numerical kernel runs off the UI thread; edit parameters, then choose <code>Reset + build</code>.</p>
+        <details id="source-panel" class="source-panel" hidden>
+          <summary><span>Actual TinyAD callbacks</span><span id="source-state" data-kind="compiled">compiled source</span></summary>
+          <div class="source-explainer">
+            This literal header is compiled into the current Wasm binary. You may edit and export it here; modified C++ requires an Emscripten rebuild and is never silently interpreted as JavaScript.
+          </div>
+          <textarea id="callback-editor" spellcheck="false" aria-label="Editable TinyAD C++ callback source"></textarea>
+          <div class="source-actions">
+            <button id="reset-callback" class="button" type="button">Restore compiled source</button>
+            <button id="download-callback" class="button primary" type="button">Download edited header</button>
+          </div>
+        </details>
       </aside>
     </main>
     <script type="module" src="/src/main.ts"></script>

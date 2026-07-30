@@ -26,9 +26,13 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tinyad)
 
-add_executable(gp_lab_kernels src/mass_spring.cpp)
+add_executable(gp_lab_kernels
+  src/mass_spring.cpp
+  src/hodge_decomposition.cpp
+)
 target_compile_features(gp_lab_kernels PRIVATE cxx_std_20)
 target_link_libraries(gp_lab_kernels PRIVATE TinyAD)
+target_include_directories(gp_lab_kernels PRIVATE include)
 target_compile_options(gp_lab_kernels PRIVATE -O3 -Wall -Wextra -Wpedantic)
 target_link_options(gp_lab_kernels PRIVATE
   --bind
