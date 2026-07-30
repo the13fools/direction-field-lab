@@ -106,9 +106,21 @@ const fieldColors: Record<keyof HodgeFields, number> = {
   error: 0xff3f7f,
 };
 
+const fieldLabels: Record<keyof HodgeFields, string> = {
+  input: "Input ω",
+  exact: "Exact dφ",
+  coexact: "Coexact δψ",
+  harmonic: "Harmonic h",
+  error: "Reconstruction error",
+};
+
 function renderSelectedField(): void {
   if (!hodgeFields) return;
-  viewer.showEdgeField(hodgeFields[selectedField], fieldColors[selectedField]);
+  viewer.showEdgeField(
+    hodgeFields[selectedField],
+    fieldColors[selectedField],
+    fieldLabels[selectedField],
+  );
   for (const button of hodgeComponents.querySelectorAll<HTMLButtonElement>("[data-field]")) {
     button.classList.toggle("active", button.dataset.field === selectedField);
   }

@@ -88,6 +88,20 @@ button { cursor: pointer; }
 .stage { display: grid; grid-template-rows: minmax(350px, 1fr) auto auto auto; min-height: 0; background: #07120f; }
 #viewer { position: relative; min-height: 0; }
 #viewer canvas { display: block; width: 100%; height: 100%; }
+.viewer-note {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  z-index: 2;
+  padding: 6px 8px;
+  color: #b8cdc5;
+  border: 1px solid #29433a;
+  border-radius: 3px;
+  background: rgba(7, 18, 15, .82);
+  pointer-events: none;
+  font: 9px var(--mono);
+  letter-spacing: .03em;
+}
 .hodge-report { display: grid; grid-template-columns: 1.1fr repeat(4, 1fr); gap: 1px; color: white; border-top: 1px solid #29433a; background: #29433a; }
 .hodge-report[hidden] { display: none; }
 .hodge-report > span, .hodge-report > div { padding: 9px 12px; background: #142820; }

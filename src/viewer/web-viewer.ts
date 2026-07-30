@@ -1,6 +1,12 @@
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 
+import {
+  periodicGridFaces,
+  torusPositions,
+  vertexFieldFromOneForm,
+} from "./hodge-visualization";
+
 export class WebViewer {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.PerspectiveCamera(42, 1, 0.01, 2000);
@@ -9,9 +15,13 @@ export class WebViewer {
   private points?: THREE.Points;
   private lines?: THREE.LineSegments;
   private fieldLines?: THREE.LineSegments;
+  private surface?: THREE.Mesh;
+  private readonly viewerNote = document.createElement("div");
   private center = new THREE.Vector2();
   private positions2d = new Float64Array();
+  private positions3d: Float32Array<ArrayBufferLike> = new Float32Array();
   private edgeIndices = new Int32Array();
+  private faceIndices: Int32Array<ArrayBufferLike> = new Int32Array();
   private gridSize = 0;
   private restLength = 1;
   private periodic = false;
@@ -20,7 +30,15 @@ export class WebViewer {
     this.scene.background = new THREE.Color(0x07120f);
     this.camera.position.set(0, 0, 18);
     this.renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.container.append(this.renderer.domElement);
+    this.viewerNote.className = "viewer-note";
+    this.viewerNote.textContent = "drag to orbit · scroll to zoom";
+    this.container.append(this.viewerNote);
+    this.scene.add(new THREE.HemisphereLight(0xdafcf1, 0x07120f, 1.7));
+    const keyLight = new THREE.DirectionalLight(0xffffff, 2.2);
+    keyLight.position.set(4, -5, 7);
+    this.scene.add(keyLight);
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
     this.controls.enableDamping = true;
     new ResizeObserver(() => this.resize()).observe(this.container);
@@ -41,8 +59,15 @@ export class WebViewer {
     this.gridSize = gridSize;
     this.restLength = restLength;
     this.periodic = periodic;
+
+    if (periodic) {
+      this.initializeTorus(gridSize);
+      return;
+    }
+
     this.center.set(0.5 * (gridSize - 1) * restLength, 0.5 * (gridSize - 1) * restLength);
     const xyz = this.toXYZ(positions);
+    this.positions3d = xyz;
     const pointGeometry = new THREE.BufferGeometry();
     pointGeometry.setAttribute("position", new THREE.BufferAttribute(xyz, 3));
     this.points = new THREE.Points(
@@ -58,11 +83,14 @@ export class WebViewer {
     const extent = Math.max(2, gridSize * restLength);
     this.camera.position.set(0, 0, extent * 1.18);
     this.controls.target.set(0, 0, 0);
+    this.viewerNote.textContent = "drag to orbit · scroll to zoom";
   }
 
   update(positions: Float64Array): void {
     if (!this.points || !this.lines) return;
+    if (this.periodic) return;
     const xyz = this.toXYZ(positions);
+    this.positions3d = xyz;
     this.positions2d = positions.slice();
     const pointPositions = this.points.geometry.getAttribute("position") as THREE.BufferAttribute;
     const linePositions = this.lines.geometry.getAttribute("position") as THREE.BufferAttribute;
@@ -74,9 +102,13 @@ export class WebViewer {
     }
   }
 
-  showEdgeField(values: Float64Array, color: number): void {
+  showEdgeField(values: Float64Array, color: number, label = "Discrete 1-form"): void {
     if (values.length * 2 !== this.edgeIndices.length) return;
     this.removeField();
+    if (this.periodic) {
+      this.showFaceField(values, color, label);
+      return;
+    }
     const maxAbs = Math.max(1e-12, ...Array.from(values, Math.abs));
     const scale = 0.72 * this.restLength / maxAbs;
     const period = this.gridSize * this.restLength;
@@ -147,7 +179,7 @@ export class WebViewer {
   }
 
   clear(): void {
-    for (const object of [this.points, this.lines, this.fieldLines]) {
+    for (const object of [this.points, this.lines, this.fieldLines, this.surface]) {
       if (!object) continue;
       this.scene.remove(object);
       object.geometry.dispose();
@@ -157,6 +189,99 @@ export class WebViewer {
     this.points = undefined;
     this.lines = undefined;
     this.fieldLines = undefined;
+    this.surface = undefined;
+    this.positions3d = new Float32Array();
+    this.faceIndices = new Int32Array();
+  }
+
+  private initializeTorus(gridSize: number): void {
+    this.center.set(0, 0);
+    this.positions3d = torusPositions(gridSize);
+    this.faceIndices = periodicGridFaces(gridSize);
+
+    const surfaceGeometry = new THREE.BufferGeometry();
+    surfaceGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(this.positions3d.slice(), 3),
+    );
+    surfaceGeometry.setIndex(Array.from(this.faceIndices));
+    surfaceGeometry.computeVertexNormals();
+    this.surface = new THREE.Mesh(
+      surfaceGeometry,
+      new THREE.MeshStandardMaterial({
+        color: 0x17463b,
+        emissive: 0x071711,
+        emissiveIntensity: 0.32,
+        metalness: 0.04,
+        roughness: 0.74,
+        side: THREE.DoubleSide,
+      }),
+    );
+
+    const pointGeometry = new THREE.BufferGeometry();
+    pointGeometry.setAttribute(
+      "position",
+      new THREE.BufferAttribute(this.positions3d.slice(), 3),
+    );
+    this.points = new THREE.Points(
+      pointGeometry,
+      new THREE.PointsMaterial({ color: 0xdffc5b, size: 0.062 }),
+    );
+    this.lines = new THREE.LineSegments(
+      this.networkGeometry(this.positions3d, this.edgeIndices),
+      new THREE.LineBasicMaterial({ color: 0xb1d4c8, transparent: true, opacity: 0.22 }),
+    );
+    this.scene.add(this.surface, this.lines, this.points);
+    this.camera.position.set(5.7, -6.9, 4.8);
+    this.controls.target.set(0, 0, 0);
+    this.controls.update();
+    this.viewerNote.textContent = "vertex tangent field · drag to orbit · scroll to zoom";
+  }
+
+  private showFaceField(values: Float64Array, color: number, label: string): void {
+    const samples = vertexFieldFromOneForm(
+      this.positions3d,
+      this.edgeIndices,
+      this.faceIndices,
+      values,
+    );
+    let maxMagnitude = 1e-12;
+    for (const sample of samples) {
+      maxMagnitude = Math.max(maxMagnitude, Math.hypot(...sample.vector));
+    }
+
+    const segments: number[] = [];
+    const maximumLength = 0.78 * (2 * Math.PI * 1.02) / this.gridSize;
+    for (const sample of samples) {
+      const magnitude = Math.hypot(...sample.vector);
+      if (magnitude < maxMagnitude * 1e-6) continue;
+      const direction = new THREE.Vector3(...sample.vector).multiplyScalar(1 / magnitude);
+      const normal = new THREE.Vector3(...sample.normal);
+      const center = new THREE.Vector3(...sample.position).addScaledVector(normal, 0.045);
+      const length = maximumLength * Math.sqrt(magnitude / maxMagnitude);
+      const tail = center;
+      const tip = center.clone().addScaledVector(direction, length);
+      const side = normal.clone().cross(direction).normalize();
+      const wingBase = tip.clone().addScaledVector(direction, -0.24 * length);
+      const wingA = wingBase.clone().addScaledVector(side, 0.13 * length);
+      const wingB = wingBase.clone().addScaledVector(side, -0.13 * length);
+      pushSegment(segments, tail, tip);
+      pushSegment(segments, tip, wingA);
+      pushSegment(segments, tip, wingB);
+    }
+
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute(
+      "position",
+      new THREE.Float32BufferAttribute(segments, 3),
+    );
+    this.fieldLines = new THREE.LineSegments(
+      geometry,
+      new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.98 }),
+    );
+    this.fieldLines.renderOrder = 3;
+    this.scene.add(this.fieldLines);
+    this.viewerNote.textContent = `${label} · vertex tangent field · drag to orbit`;
   }
 
   private toXYZ(positions: Float64Array): Float32Array {
@@ -170,22 +295,8 @@ export class WebViewer {
 
   private networkGeometry(xyz: Float32Array, edges: Int32Array): THREE.BufferGeometry {
     const geometry = new THREE.BufferGeometry();
-    if (!this.periodic) {
-      geometry.setAttribute("position", new THREE.BufferAttribute(xyz.slice(), 3));
-      geometry.setIndex(Array.from(edges));
-      return geometry;
-    }
-    const visible: number[] = [];
-    const cutoff = 1.5 * this.restLength;
-    for (let edge = 0; edge < edges.length / 2; edge += 1) {
-      const a = edges[edge * 2]!;
-      const b = edges[edge * 2 + 1]!;
-      const dx = this.positions2d[a * 2]! - this.positions2d[b * 2]!;
-      const dy = this.positions2d[a * 2 + 1]! - this.positions2d[b * 2 + 1]!;
-      if (Math.hypot(dx, dy) <= cutoff) visible.push(a, b);
-    }
     geometry.setAttribute("position", new THREE.BufferAttribute(xyz.slice(), 3));
-    geometry.setIndex(visible);
+    geometry.setIndex(Array.from(edges));
     return geometry;
   }
 
@@ -219,4 +330,8 @@ export class WebViewer {
     this.controls.update();
     this.renderer.render(this.scene, this.camera);
   };
+}
+
+function pushSegment(target: number[], a: THREE.Vector3, b: THREE.Vector3): void {
+  target.push(a.x, a.y, a.z, b.x, b.y, b.z);
 }
