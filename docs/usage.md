@@ -7,7 +7,8 @@ The repository supports three deliberately different levels of commitment:
 2. **Fork the web lab.** Edit experiment documents and TypeScript locally with
    Node.js.
 3. **Move to native research code.** Keep the same portable result while using
-   Python or C++ and Polyscope instead of the browser viewer.
+   the same shared C++ system with TinyAD and Polyscope instead of the browser
+   viewer.
 
 You do not need Emscripten merely to run the page, and you do not need to put a
 native research iteration through WebAssembly.
@@ -53,6 +54,10 @@ Inside the lab:
 - save locally or use **Download experiment repo** to make a small,
   host-neutral research record.
 
+The current problem and the three editable callback headers autosave in
+IndexedDB. Reloading the page restores that draft. **Save locally** also creates
+a named checkpoint.
+
 Before committing:
 
 ```sh
@@ -63,7 +68,69 @@ npm run build
 `npm test` checks TypeScript formats, Python snapshot parsing, and the compiled
 WebAssembly kernels.
 
-## Edit a C++/TinyAD kernel
+## Edit C++ in the browser, then run it natively
+
+The connected workflow is the shortest path from a browser worksheet to a real
+C++ research loop:
+
+```sh
+npm ci
+npm run build
+npm run serve:bridge
+```
+
+Open <http://127.0.0.1:4174>. Choose **07 · Vertex objective** or **08 · Vertex
+integrability**, expand **Actual TinyAD callbacks**, edit
+`VertexFieldCallbacks.hh`, and press **Build + open in Polyscope**.
+
+The bridge:
+
+1. validates the problem and accepts only the three known callback paths;
+2. writes an atomic project under `.lab-workspace/current`;
+3. configures CMake with that callback directory ahead of the repository
+   defaults;
+4. rebuilds `geometry-lab-vertex-field`;
+5. passes the current problem parameters on the command line and launches
+   Polyscope.
+
+The C++ is not evaluated by the browser. Connected mode deliberately compiles
+and executes it on the local machine, so it must only be used with code the
+student trusts. Static hosting cannot launch a compiler; there the same button
+downloads a Git-ready experiment archive.
+
+TinyAD computes derivatives of the edited callback when the native target is
+rebuilt. The callback still has a fixed element arity; changing the unknown
+layout or mesh operators belongs in the shared C++ system rather than in the
+header alone.
+
+## Build the native reference application directly
+
+Requirements:
+
+- CMake 3.24 or newer;
+- a C++17 compiler;
+- Git and network access for the first dependency fetch.
+
+```sh
+cmake --preset native
+cmake --build --preset native
+ctest --preset native
+./build/native/geometry-lab-vertex-field
+```
+
+The faster headless loop omits Polyscope:
+
+```sh
+cmake --preset native-core
+cmake --build --preset native-core
+ctest --preset native-core
+```
+
+The browser and native application share
+`geometry_lab::VertexFieldSystem`. Emscripten bindings and Polyscope widgets are
+thin adapters around it.
+
+## Rebuild a static C++/TinyAD kernel
 
 Only kernel development needs CMake and Emscripten. Activate an Emscripten SDK
 and make its root available as `EMSDK`:
@@ -77,9 +144,9 @@ npm test
 The build writes `public/wasm/gp_lab_kernels.js` and
 `public/wasm/gp_lab_kernels.wasm`. Reload the Vite page to use them.
 
-The practical research loop is:
+The practical publication loop is:
 
-1. prototype the formulation in native C++ or Python;
+1. prototype the formulation in the connected editor or native C++;
 2. inspect it in Polyscope;
 3. add manufactured-solution and convergence tests;
 4. compile the stable operator to WebAssembly only when it is ready for the
@@ -110,18 +177,14 @@ It understands ambient vectors, vertex/face tangent vectors with explicit basis
 frames, and oriented edge one-forms. By default it watches the file and reloads
 when a solver replaces it. Pass `--no-watch` for a one-time view.
 
-For the browser’s live **Open in Polyscope** button, use two terminals:
+For the browser’s live **Open in Polyscope** snapshot button:
 
 ```sh
-# terminal 1
-npm run dev
-
-# terminal 2
 npm run build
 npm run serve:bridge:python
 ```
 
-The bridge binds only to `127.0.0.1`, writes an atomic snapshot under
+Open <http://127.0.0.1:4174>. The bridge binds only to `127.0.0.1`, writes an atomic snapshot under
 `.lab-bridge`, and launches the Python viewer once. Later browser updates reuse
 the same watched file and camera.
 
@@ -134,7 +197,7 @@ npm run build:native
 ./build/polyscope-viewer/geometry-lab-viewer result.geometry-view.json
 ```
 
-To use it as the browser handoff:
+To use the thin snapshot reader as the browser handoff:
 
 ```sh
 npm run build
@@ -182,3 +245,6 @@ git push
 
 This keeps authentication and repository policy outside the numerical core.
 
+For the intended C++-first development philosophy and the boundary between
+static Wasm and connected native execution, see
+[cpp-first-workflow.md](cpp-first-workflow.md).

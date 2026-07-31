@@ -3,16 +3,21 @@
 The lab is split at data boundaries instead of framework boundaries.
 
 ```text
-problem JSON
-    │ validate
-    ▼
-browser controller ── message ──► Web Worker ── embind ──► C++ kernel
-    │                                                   TinyAD + Eigen
-    │ positions, edges, diagnostics                           │
-    ▼                                                         │
-Three.js viewer ◄─────────────────────────────────────────────┘
-    │
-    └── geometry-lab/view@1 ──► download or local bridge ──► Polyscope
+                         ┌──────── static / publishable ────────┐
+problem JSON ──validate──► browser ─► worker ─► Wasm adapter    │
+callback defaults        │                    │                 │
+                         │                    ▼                 │
+                         │         shared C++ numerical core    │
+                         │              TinyAD + Eigen          │
+                         │                    │                 │
+                         ◄──── diagnostics + mesh/fields ───────┘
+                         │
+                         ├── result artifact ─► download / snapshot viewer
+                         │
+edited callback source ──┴── local bridge ─► native CMake build
+                                                │
+                                                ▼
+                                same shared core + Polyscope UI
 ```
 
 ## Core boundary
@@ -34,6 +39,27 @@ Every kernel should expose:
 3. enough diagnostics to distinguish progress, convergence, and numerical
    failure;
 4. geometry in a format that can be viewed without knowing the kernel.
+
+The reference vertex-field kernel follows this rule at the C++ level:
+`geometry_lab::VertexFieldSystem` owns mesh construction, TinyAD assembly,
+stepping, and diagnostics. The Embind source and the Polyscope application are
+adapters. A new viewer must not copy the objective.
+
+## Editable-source boundary
+
+The static page may change validated runtime parameters and execute the
+committed Wasm. It cannot safely turn arbitrary C++ text into a new WebAssembly
+module. The callback editor therefore has two explicit outcomes:
+
+- on static hosting, save the source in IndexedDB or export it;
+- in trusted connected mode, send only whitelisted callback files to the
+  loopback bridge, rebuild the native target, and launch Polyscope.
+
+The bridge never accepts an output path or shell command from the browser.
+Supporting a broader project later should use a declared project manifest and
+an isolated build directory, not loosen the path whitelist.
+
+See [cpp-first-workflow.md](cpp-first-workflow.md).
 
 ## Viewer boundary
 

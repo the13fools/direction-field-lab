@@ -359,7 +359,7 @@ export const TUTORIALS: readonly Tutorial[] = [
   {
     id: "vertex-field-objective",
     title: "07 · Vertex objective",
-    question: "Can the browser assemble a new per-vertex TinyAD energy without rebuilding Wasm?",
+    question: "How much of one compiled local energy can be recomposed from live term weights?",
     problem: validateProblem({
       schema: PROBLEM_SCHEMA,
       name: "Editable vertex tangent-field objective",

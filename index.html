@@ -88,7 +88,7 @@
         <details id="source-panel" class="source-panel" hidden>
           <summary><span id="source-title">Actual TinyAD callbacks</span><span id="source-state" data-kind="compiled">compiled source</span></summary>
           <div class="source-explainer">
-            This literal header is compiled into the current Wasm binary. Vertex-objective weights—including the local integrability penalty—in the problem JSON are passed into these generic callbacks live. Editing the C++ itself still requires an Emscripten rebuild and is never silently interpreted as JavaScript.
+            This literal header is compiled into the current Wasm binary. Vertex-objective weights—including the local integrability penalty—in the problem JSON are passed into these generic callbacks live. Static mode saves or exports edited C++; connected local mode recompiles it with TinyAD and opens the shared solver in Polyscope. It is never silently interpreted as JavaScript.
           </div>
           <textarea id="callback-editor" spellcheck="false" aria-label="Editable TinyAD C++ callback source"></textarea>
           <div class="source-actions">
