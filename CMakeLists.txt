@@ -5,6 +5,10 @@ include(CTest)
 include(FetchContent)
 
 option(GEOMETRY_LAB_BUILD_POLYSCOPE "Build native Polyscope applications" ON)
+set(
+  GEOMETRY_LAB_CALLBACK_DIR "" CACHE PATH
+  "Optional directory containing browser-edited callback headers"
+)
 
 set(EIGEN_BUILD_TESTING OFF CACHE BOOL "" FORCE)
 set(TINYAD_UNIT_TESTS OFF CACHE BOOL "" FORCE)
@@ -31,6 +35,12 @@ add_library(geometry_lab_core
 add_library(geometry-lab::core ALIAS geometry_lab_core)
 target_compile_features(geometry_lab_core PUBLIC cxx_std_20)
 target_include_directories(geometry_lab_core PUBLIC cpp/include)
+if(GEOMETRY_LAB_CALLBACK_DIR)
+  target_include_directories(
+    geometry_lab_core BEFORE PUBLIC "${GEOMETRY_LAB_CALLBACK_DIR}"
+  )
+  message(STATUS "Using editable callbacks from ${GEOMETRY_LAB_CALLBACK_DIR}")
+endif()
 target_link_libraries(geometry_lab_core PUBLIC TinyAD)
 target_compile_options(geometry_lab_core PRIVATE -Wall -Wextra -Wpedantic)
 

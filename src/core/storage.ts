@@ -6,6 +6,7 @@ export interface WorkspaceRecord {
   id: string;
   name: string;
   source: string;
+  sourceFiles?: Record<string, string>;
   updatedAt: string;
 }
 
@@ -44,11 +45,14 @@ export function getWorkspace(id: string): Promise<WorkspaceRecord | undefined> {
   return request("readonly", (store) => store.get(id));
 }
 
-export async function putWorkspace(record: Omit<WorkspaceRecord, "id" | "updatedAt"> & { id?: string }): Promise<WorkspaceRecord> {
+export async function putWorkspace(
+  record: Omit<WorkspaceRecord, "id" | "updatedAt"> & { id?: string },
+): Promise<WorkspaceRecord> {
   const value: WorkspaceRecord = {
     id: record.id ?? crypto.randomUUID(),
     name: record.name,
     source: record.source,
+    ...(record.sourceFiles ? { sourceFiles: record.sourceFiles } : {}),
     updatedAt: new Date().toISOString(),
   };
   await request("readwrite", (store) => store.put(value));

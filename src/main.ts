@@ -67,6 +67,8 @@ const representationKind = element("#representation-kind");
 const representationTitle = element("#representation-title");
 const representationDescription = element("#representation-description");
 const representationSteps = element<HTMLOListElement>("#representation-steps");
+const persistenceState = element("#persistence-state");
+const buildNativeButton = element<HTMLButtonElement>("#build-native");
 
 let currentProblem: Problem = TUTORIALS[0]!.problem;
 let diagnostics: SolverDiagnostics | undefined;
@@ -86,6 +88,8 @@ const compiledSources: Record<SourceKind, { filename: string; source: string }> 
   "vertex-field": { filename: "VertexFieldCallbacks.hh", source: compiledVertexFieldCallback },
 };
 let sourceKind: SourceKind = "edge-hodge";
+const AUTOSAVE_WORKSPACE_ID = "autosave";
+let autosaveTimer: number | undefined;
 
 editor.value = localStorage.getItem("geometry-lab:draft") ?? formatProblem(currentProblem);
 callbackEditor.value =
@@ -127,6 +131,48 @@ function sourceKindForProblem(problem: Problem): SourceKind {
 
 function sourceStorageKey(kind: SourceKind): string {
   return `geometry-lab:callback-draft:${kind}`;
+}
+
+function currentSourceFiles(): Record<string, string> {
+  return Object.fromEntries(
+    (Object.keys(compiledSources) as SourceKind[]).map((kind) => {
+      const entry = compiledSources[kind];
+      const source =
+        kind === sourceKind
+          ? callbackEditor.value
+          : localStorage.getItem(sourceStorageKey(kind)) ?? entry.source;
+      return [`cpp/include/${entry.filename}`, source];
+    }),
+  );
+}
+
+function restoreSourceFiles(sourceFiles: Record<string, string> | undefined): void {
+  if (!sourceFiles) return;
+  for (const kind of Object.keys(compiledSources) as SourceKind[]) {
+    const entry = compiledSources[kind];
+    const source = sourceFiles[`cpp/include/${entry.filename}`];
+    if (typeof source === "string") {
+      localStorage.setItem(sourceStorageKey(kind), source);
+    }
+  }
+}
+
+function scheduleAutosave(): void {
+  persistenceState.textContent = "saving local draft…";
+  if (autosaveTimer !== undefined) window.clearTimeout(autosaveTimer);
+  autosaveTimer = window.setTimeout(async () => {
+    try {
+      await putWorkspace({
+        id: AUTOSAVE_WORKSPACE_ID,
+        name: "Autosaved browser project",
+        source: editor.value,
+        sourceFiles: currentSourceFiles(),
+      });
+      persistenceState.textContent = "saved in this browser";
+    } catch {
+      persistenceState.textContent = "local save unavailable";
+    }
+  }, 350);
 }
 
 function switchCallbackSource(problem: Problem): void {
@@ -214,6 +260,7 @@ function updateKernelUI(): void {
   vertexIntegrabilityReport.hidden = !vertexDesign;
   sourcePanel.open = vertexDesign;
   editorPanel.classList.toggle("source-visible", vertexDesign);
+  buildNativeButton.hidden = !vertexDesign;
   sourceTitle.textContent = vertexDesign
     ? "Actual vertex integrability + TinyAD callbacks"
     : "Actual TinyAD callbacks";
@@ -458,12 +505,14 @@ function updateSourceState(): void {
 callbackEditor.addEventListener("input", () => {
   localStorage.setItem(sourceStorageKey(sourceKind), callbackEditor.value);
   updateSourceState();
+  scheduleAutosave();
 });
 
 element<HTMLButtonElement>("#reset-callback").addEventListener("click", () => {
   callbackEditor.value = compiledSources[sourceKind].source;
   localStorage.removeItem(sourceStorageKey(sourceKind));
   updateSourceState();
+  scheduleAutosave();
 });
 
 element<HTMLButtonElement>("#download-callback").addEventListener("click", () => {
@@ -475,7 +524,10 @@ element<HTMLButtonElement>("#download-callback").addEventListener("click", () =>
   URL.revokeObjectURL(link.href);
 });
 
-editor.addEventListener("input", () => localStorage.setItem("geometry-lab:draft", editor.value));
+editor.addEventListener("input", () => {
+  localStorage.setItem("geometry-lab:draft", editor.value);
+  scheduleAutosave();
+});
 
 window.addEventListener("message", (event: MessageEvent<unknown>) => {
   if (event.source !== window.parent) return;
@@ -585,6 +637,7 @@ element<HTMLButtonElement>("#save-local").addEventListener("click", async () => 
       id: workspaceSelect.value || undefined,
       name: problem.name,
       source: editor.value,
+      sourceFiles: currentSourceFiles(),
     });
     await refreshWorkspaces(record.id);
     setStatus(`Saved “${problem.name}” in this browser.`, "good");
@@ -596,7 +649,23 @@ element<HTMLButtonElement>("#save-local").addEventListener("click", async () => 
 workspaceSelect.addEventListener("change", async () => {
   if (!workspaceSelect.value) return;
   const record = await getWorkspace(workspaceSelect.value);
-  if (record) editor.value = record.source;
+  if (record) {
+    editor.value = record.source;
+    localStorage.setItem("geometry-lab:draft", record.source);
+    restoreSourceFiles(record.sourceFiles);
+    try {
+      currentProblem = parseProblem(record.source);
+      sourceKind = sourceKindForProblem(currentProblem);
+      callbackEditor.value =
+        localStorage.getItem(sourceStorageKey(sourceKind)) ??
+        compiledSources[sourceKind].source;
+      updateKernelUI();
+      updateSourceState();
+      setStatus(`Loaded “${record.name}”. Choose Reset + build to run it.`, "good");
+    } catch (error) {
+      setStatus(error instanceof Error ? error.message : String(error), "bad");
+    }
+  }
 });
 
 element<HTMLButtonElement>("#export-repo").addEventListener("click", async () => {
@@ -605,9 +674,7 @@ element<HTMLButtonElement>("#export-repo").addEventListener("click", async () =>
     const problem = readEditor();
     await downloadRepositoryArchive(
       problem,
-      problem.kernel !== "mass-spring"
-        ? { [`cpp/include/${compiledSources[sourceKind].filename}`]: callbackEditor.value }
-        : {},
+      currentSourceFiles(),
     );
     setStatus("Downloaded a Git-ready experiment repository.", "good");
   } catch (error) {
@@ -669,6 +736,38 @@ polyscopeButton.addEventListener("click", async () => {
   }
 });
 
+buildNativeButton.addEventListener("click", async () => {
+  try {
+    const problem = readEditor();
+    if (problem.kernel !== "vertex-field") {
+      throw new Error("The first connected native runner supports the vertex-field experiment.");
+    }
+    buildNativeButton.disabled = true;
+    setStatus("Saving C++ and rebuilding the native TinyAD experiment…");
+    const response = await fetch("/api/native-project", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ problem, sourceFiles: currentSourceFiles() }),
+    });
+    if (!response.ok) throw new Error(await response.text());
+    const result = await response.json() as { workspace?: string };
+    setStatus(
+      `Native build complete. Project saved at ${result.workspace ?? ".lab-workspace/current"}.`,
+      "good",
+    );
+  } catch (error) {
+    const { downloadRepositoryArchive } = await import("./core/repository-export");
+    await downloadRepositoryArchive(readEditor(), currentSourceFiles());
+    setStatus(
+      `${error instanceof Error ? error.message : String(error)} Downloaded the project instead.`,
+      "working",
+    );
+  } finally {
+    buildNativeButton.disabled = false;
+  }
+});
+
 void refreshWorkspaces();
 updateSourceState();
 updateKernelUI();
+scheduleAutosave();

@@ -125,7 +125,10 @@ void user_interface() {
 
 void print_usage() {
   std::cout
-      << "geometry-lab-vertex-field [--grid N] [--steps N] [--seed N]\n"
+      << "geometry-lab-vertex-field [options]\n"
+         "  --grid N --steps N --seed N\n"
+         "  --data X --smoothness X --integrability X --length X\n"
+         "  --target-length X --noise X\n"
          "  Opens the native Polyscope form of the browser's vertex-field "
          "experiment.\n";
 }
@@ -141,6 +144,11 @@ int main(int argc, char **argv) {
         throw std::invalid_argument("Missing value after " + option);
       return std::stoi(argv[++argument]);
     };
+    auto next_float = [&]() {
+      if (argument + 1 >= argc)
+        throw std::invalid_argument("Missing value after " + option);
+      return std::stof(argv[++argument]);
+    };
     if (option == "--help" || option == "-h") {
       print_usage();
       return 0;
@@ -151,6 +159,18 @@ int main(int argc, char **argv) {
       controls.seed = next_int();
     else if (option == "--steps")
       initial_steps = next_int();
+    else if (option == "--data")
+      controls.data = next_float();
+    else if (option == "--smoothness")
+      controls.smoothness = next_float();
+    else if (option == "--integrability")
+      controls.integrability = next_float();
+    else if (option == "--length")
+      controls.length = next_float();
+    else if (option == "--target-length")
+      controls.target_length = next_float();
+    else if (option == "--noise")
+      controls.noise = next_float();
     else
       throw std::invalid_argument("Unknown option: " + option);
   }

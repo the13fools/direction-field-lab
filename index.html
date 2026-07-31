@@ -14,6 +14,7 @@
         <div><h1>Geometry Processing Lab</h1><p>small experiments · inspectable numerics · portable files</p></div>
       </div>
       <div class="header-actions">
+        <span id="persistence-state" class="persistence-state">local draft ready</span>
         <button id="import-file" class="button dark">Import problem</button>
         <button id="save-local" class="button dark">Save locally</button>
         <button id="export-repo" class="button primary">Download experiment repo</button>
@@ -93,7 +94,9 @@
           <div class="source-actions">
             <button id="reset-callback" class="button" type="button">Restore compiled source</button>
             <button id="download-callback" class="button primary" type="button">Download edited header</button>
+            <button id="build-native" class="button primary" type="button">Build + open in Polyscope</button>
           </div>
+          <p class="connected-note">Connected mode writes this project to <code>.lab-workspace/current</code>, rebuilds the native target with TinyAD, and opens the same experiment in Polyscope. Without the local bridge, the project archive is downloaded instead.</p>
         </details>
       </aside>
     </main>

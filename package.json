@@ -9,7 +9,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run && npm run test:python && npm run test:wasm",
-    "test:python": "python3 -m unittest tools/test_polyscope_viewer.py",
+    "test:python": "python3 -m unittest tools/test_polyscope_viewer.py tools/test_polyscope_bridge.py",
     "test:wasm": "node tools/test_wasm_kernel.mjs",
     "test:watch": "vitest",
     "build:wasm": "cmake -S cpp -B build/wasm -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake && cmake --build build/wasm -j",
