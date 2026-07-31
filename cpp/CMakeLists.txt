@@ -30,6 +30,7 @@ add_executable(gp_lab_kernels
   src/mass_spring.cpp
   src/hodge_decomposition.cpp
   src/hodge_face_decomposition.cpp
+  src/vertex_field_system.cpp
   src/vertex_field_design.cpp
 )
 target_compile_features(gp_lab_kernels PRIVATE cxx_std_20)
