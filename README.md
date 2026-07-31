@@ -60,6 +60,11 @@ No C++ toolchain is needed for this path: the generated WebAssembly kernel is
 committed. See the complete [usage guide](docs/usage.md) for GitHub Pages,
 forking, native research workflows, and the browser/Polyscope handoff.
 
+A fork owner can also edit a callback through GitHub, run **Recompile kernel
+and publish** from the Actions tab, and receive a Pages deployment containing
+the newly compiled Wasm. This uses the fork's isolated GitHub runner rather than
+a shared compiler operated by the teaching site.
+
 ## Continue in native C++ and Polyscope
 
 Requirements: CMake 3.24+, a C++17 compiler, and Git. The native preset fetches

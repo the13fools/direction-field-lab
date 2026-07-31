@@ -28,6 +28,25 @@ On a fork:
 Do not open `index.html` through a `file://` URL. WebAssembly workers should be
 served over HTTP by Pages, Vite, or another static server.
 
+### Recompile a fork's hosted kernel
+
+The ordinary **Publish website** workflow deploys the committed Wasm artifact.
+To publish an edited C++ callback without installing Emscripten locally:
+
+1. edit and commit the callback in your fork;
+2. open the fork's **Actions** tab;
+3. choose **Recompile kernel and publish**;
+4. choose **Run workflow**;
+5. open the Pages URL reported by the deployment.
+
+That manual workflow installs the pinned Emscripten SDK, rebuilds the kernel,
+runs the numerical tests, and deploys the resulting static site. It has no
+source-text or shell-command inputs and does not run on pull requests.
+
+The runner still executes the fork's repository code. Only run it on a commit
+you trust. GitHub supplies the isolated build machine and accounts its usage to
+the fork, so the course site does not become a multi-tenant compilation server.
+
 ## Fork and run locally
 
 Requirements:

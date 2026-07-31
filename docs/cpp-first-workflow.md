@@ -40,6 +40,19 @@ This supplies the desired beginner loop:
 Because the header is compiled and executed locally, connected mode is for
 trusted source only.
 
+### Fork-hosted mode
+
+The manual **Recompile kernel and publish** GitHub Actions workflow is the
+intermediate option. A student can edit a callback in a fork, ask that fork's
+ephemeral runner to compile it with a pinned Emscripten SDK, and publish the
+result to the fork's Pages site.
+
+This captures the most useful part of a
+[CADHub-style](https://cadhub.xyz/) workflow—source beside a live geometric
+artifact—without initially operating a public C++ compiler. It is slower than a
+dedicated service, but its ownership and security boundary are easy to explain:
+the fork owner runs the fork's code using the fork's CI allowance.
+
 ## One system, two front ends
 
 The reference implementation has three layers:
@@ -132,3 +145,24 @@ small convergence sweeps scriptable without adding browser automation.
 
 The priority order is intentional: make ordinary C++ development excellent,
 then make stable experiments effortless to publish.
+
+## A future one-click hosted compiler
+
+A dedicated service is feasible, but it must be treated as hostile-code
+infrastructure. The acceptable design is:
+
+1. accept a versioned experiment manifest plus a small whitelist of source
+   files, never a CMake project or shell command;
+2. compile in a fresh microVM or hardened container with no network, no secrets,
+   a read-only pinned toolchain, and strict CPU, memory, time, process, and
+   output limits;
+3. never execute the resulting native binary on the service;
+4. return only a Wasm module, loader, diagnostics, and a signed provenance
+   record;
+5. cache by the content hash of sources, compiler, flags, and dependencies;
+6. execute the returned Wasm in a worker in the visitor's browser;
+7. require authentication, rate limits, and abuse controls.
+
+TinyAD and Eigen template compilation makes resource limits especially
+important. Until that service has an owner and an operations budget, the
+fork-hosted workflow and connected local bridge are the maintainable choices.
