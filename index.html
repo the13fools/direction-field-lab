@@ -17,7 +17,7 @@
         <span id="persistence-state" class="persistence-state">local draft ready</span>
         <button id="import-file" class="button dark">Import problem</button>
         <button id="save-local" class="button dark">Save locally</button>
-        <button id="export-repo" class="button primary">Download experiment repo</button>
+        <button id="export-repo" class="button primary">Download experiment files</button>
         <input id="file-input" type="file" accept="application/json,.json" hidden>
       </div>
     </header>
@@ -34,13 +34,16 @@
       </aside>
       <section class="stage">
         <div id="viewer" aria-label="Interactive result viewer"></div>
-        <div id="representation-note" class="representation-note" hidden>
-          <div><span id="representation-kind">Representation</span><strong id="representation-title">—</strong></div>
+        <details id="representation-note" class="representation-note" open hidden>
+          <summary>
+            <div><span id="representation-kind">Representation</span><strong id="representation-title">—</strong></div>
+            <span class="brief-toggle" aria-hidden="true"></span>
+          </summary>
           <div class="representation-copy">
             <p id="representation-description"></p>
             <ol id="representation-steps"></ol>
           </div>
-        </div>
+        </details>
         <div id="hodge-report" class="hodge-report" hidden aria-live="polite">
           <span>Harmonic certificate</span>
           <div><small>max |d₁h|</small><strong id="hodge-curl">—</strong></div>
@@ -88,15 +91,18 @@
         <details id="source-panel" class="source-panel" hidden>
           <summary><span id="source-title">Actual TinyAD callbacks</span><span id="source-state" data-kind="compiled">compiled source</span></summary>
           <div class="source-explainer">
-            This literal header is compiled into the current Wasm binary. Vertex-objective weights—including the local integrability penalty—in the problem JSON are passed into these generic callbacks live. Static mode saves or exports edited C++; connected local mode recompiles it with TinyAD and opens the shared solver in Polyscope. It is never silently interpreted as JavaScript.
+            This is the literal C++ callback behind the experiment. Comments marked <code>LAB NOTE</code> explain what TinyAD differentiates; <code>TRY</code> suggests a safe first change. The hosted lab keeps running its committed Wasm, so download the project to rebuild edited C++ locally.
           </div>
-          <textarea id="callback-editor" spellcheck="false" aria-label="Editable TinyAD C++ callback source"></textarea>
+          <div class="code-editor-shell">
+            <pre id="callback-highlight" aria-hidden="true"></pre>
+            <textarea id="callback-editor" wrap="off" spellcheck="false" aria-label="Editable TinyAD C++ callback source"></textarea>
+          </div>
           <div class="source-actions">
             <button id="reset-callback" class="button" type="button">Restore compiled source</button>
             <button id="download-callback" class="button primary" type="button">Download edited header</button>
-            <button id="build-native" class="button primary" type="button">Build + open in Polyscope</button>
+            <button id="download-rebuild-project" class="button primary" type="button">Download rebuild files</button>
           </div>
-          <p class="connected-note">Connected mode writes this project to <code>.lab-workspace/current</code>, rebuilds the native target with TinyAD, and opens the same experiment in Polyscope. Without the local bridge, the project archive is downloaded instead.</p>
+          <p class="connected-note">To run an edit: download the project, place it in a clone of Geometry Processing Lab, then use <code>npm run build:wasm</code>. Parameter changes in the problem JSON remain live without recompiling.</p>
         </details>
       </aside>
     </main>

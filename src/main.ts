@@ -35,6 +35,7 @@ import type { HodgeFields } from "./solver/messages";
 import type { HodgeFieldLayout } from "./solver/messages";
 import type { HodgeMetrics } from "./solver/messages";
 import type { VertexIntegrabilityMetrics } from "./solver/messages";
+import { highlightCpp } from "./ui/code-highlight";
 import { WebViewer } from "./viewer/web-viewer";
 
 function element<T extends HTMLElement>(selector: string): T {
@@ -58,17 +59,18 @@ const hodgeComponents = element<HTMLDivElement>("#hodge-components");
 const vertexComponents = element<HTMLDivElement>("#vertex-components");
 const sourcePanel = element<HTMLDetailsElement>("#source-panel");
 const callbackEditor = element<HTMLTextAreaElement>("#callback-editor");
+const callbackHighlight = element<HTMLPreElement>("#callback-highlight");
 const sourceState = element("#source-state");
 const hodgeReport = element<HTMLDivElement>("#hodge-report");
 const vertexIntegrabilityReport = element<HTMLDivElement>("#vertex-integrability-report");
 const sourceTitle = element("#source-title");
-const representationNote = element<HTMLDivElement>("#representation-note");
+const representationNote = element<HTMLDetailsElement>("#representation-note");
 const representationKind = element("#representation-kind");
 const representationTitle = element("#representation-title");
 const representationDescription = element("#representation-description");
 const representationSteps = element<HTMLOListElement>("#representation-steps");
 const persistenceState = element("#persistence-state");
-const buildNativeButton = element<HTMLButtonElement>("#build-native");
+const downloadRebuildButton = element<HTMLButtonElement>("#download-rebuild-project");
 
 let currentProblem: Problem = TUTORIALS[0]!.problem;
 let diagnostics: SolverDiagnostics | undefined;
@@ -94,6 +96,9 @@ let autosaveTimer: number | undefined;
 editor.value = localStorage.getItem("geometry-lab:draft") ?? formatProblem(currentProblem);
 callbackEditor.value =
   localStorage.getItem(sourceStorageKey(sourceKind)) ?? compiledSources[sourceKind].source;
+
+const storedBriefState = localStorage.getItem("geometry-lab:experiment-brief-open");
+if (storedBriefState !== null) representationNote.open = storedBriefState === "true";
 
 let parentOrigin = "*";
 
@@ -131,6 +136,14 @@ function sourceKindForProblem(problem: Problem): SourceKind {
 
 function sourceStorageKey(kind: SourceKind): string {
   return `geometry-lab:callback-draft:${kind}`;
+}
+
+function renderCallbackHighlight(): void {
+  // The final newline keeps the overlay height aligned when the source ends on
+  // an otherwise empty line.
+  callbackHighlight.innerHTML = `${highlightCpp(callbackEditor.value)}\n`;
+  callbackHighlight.scrollTop = callbackEditor.scrollTop;
+  callbackHighlight.scrollLeft = callbackEditor.scrollLeft;
 }
 
 function currentSourceFiles(): Record<string, string> {
@@ -181,6 +194,7 @@ function switchCallbackSource(problem: Problem): void {
   sourceKind = nextKind;
   callbackEditor.value =
     localStorage.getItem(sourceStorageKey(sourceKind)) ?? compiledSources[sourceKind].source;
+  renderCallbackHighlight();
   updateSourceState();
 }
 
@@ -260,7 +274,7 @@ function updateKernelUI(): void {
   vertexIntegrabilityReport.hidden = !vertexDesign;
   sourcePanel.open = vertexDesign;
   editorPanel.classList.toggle("source-visible", vertexDesign);
-  buildNativeButton.hidden = !vertexDesign;
+  downloadRebuildButton.hidden = false;
   sourceTitle.textContent = vertexDesign
     ? "Actual vertex integrability + TinyAD callbacks"
     : "Actual TinyAD callbacks";
@@ -495,7 +509,7 @@ for (const button of vertexComponents.querySelectorAll<HTMLButtonElement>("[data
 function updateSourceState(): void {
   const modified = callbackEditor.value !== compiledSources[sourceKind].source;
   sourceState.textContent = modified
-    ? "modified source · export + rebuild"
+    ? "modified source · download + rebuild"
     : currentProblem.kernel === "vertex-field"
       ? "compiled generic terms · JSON is live"
       : "compiled source";
@@ -504,13 +518,33 @@ function updateSourceState(): void {
 
 callbackEditor.addEventListener("input", () => {
   localStorage.setItem(sourceStorageKey(sourceKind), callbackEditor.value);
+  renderCallbackHighlight();
   updateSourceState();
   scheduleAutosave();
+});
+
+callbackEditor.addEventListener("scroll", renderCallbackHighlight);
+
+callbackEditor.addEventListener("keydown", (event) => {
+  if (event.key !== "Tab") return;
+  event.preventDefault();
+  const start = callbackEditor.selectionStart;
+  const end = callbackEditor.selectionEnd;
+  callbackEditor.setRangeText("  ", start, end, "end");
+  callbackEditor.dispatchEvent(new Event("input"));
+});
+
+representationNote.addEventListener("toggle", () => {
+  localStorage.setItem(
+    "geometry-lab:experiment-brief-open",
+    String(representationNote.open),
+  );
 });
 
 element<HTMLButtonElement>("#reset-callback").addEventListener("click", () => {
   callbackEditor.value = compiledSources[sourceKind].source;
   localStorage.removeItem(sourceStorageKey(sourceKind));
+  renderCallbackHighlight();
   updateSourceState();
   scheduleAutosave();
 });
@@ -659,6 +693,7 @@ workspaceSelect.addEventListener("change", async () => {
       callbackEditor.value =
         localStorage.getItem(sourceStorageKey(sourceKind)) ??
         compiledSources[sourceKind].source;
+      renderCallbackHighlight();
       updateKernelUI();
       updateSourceState();
       setStatus(`Loaded “${record.name}”. Choose Reset + build to run it.`, "good");
@@ -676,7 +711,7 @@ element<HTMLButtonElement>("#export-repo").addEventListener("click", async () =>
       problem,
       currentSourceFiles(),
     );
-    setStatus("Downloaded a Git-ready experiment repository.", "good");
+    setStatus("Downloaded experiment files and local rebuild instructions.", "good");
   } catch (error) {
     setStatus(error instanceof Error ? error.message : String(error), "bad");
   }
@@ -736,38 +771,22 @@ polyscopeButton.addEventListener("click", async () => {
   }
 });
 
-buildNativeButton.addEventListener("click", async () => {
+downloadRebuildButton.addEventListener("click", async () => {
   try {
     const problem = readEditor();
-    if (problem.kernel !== "vertex-field") {
-      throw new Error("The first connected native runner supports the vertex-field experiment.");
-    }
-    buildNativeButton.disabled = true;
-    setStatus("Saving C++ and rebuilding the native TinyAD experiment…");
-    const response = await fetch("/api/native-project", {
-      method: "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify({ problem, sourceFiles: currentSourceFiles() }),
-    });
-    if (!response.ok) throw new Error(await response.text());
-    const result = await response.json() as { workspace?: string };
-    setStatus(
-      `Native build complete. Project saved at ${result.workspace ?? ".lab-workspace/current"}.`,
-      "good",
-    );
-  } catch (error) {
+    downloadRebuildButton.disabled = true;
     const { downloadRepositoryArchive } = await import("./core/repository-export");
-    await downloadRepositoryArchive(readEditor(), currentSourceFiles());
-    setStatus(
-      `${error instanceof Error ? error.message : String(error)} Downloaded the project instead.`,
-      "working",
-    );
+    await downloadRepositoryArchive(problem, currentSourceFiles());
+    setStatus("Downloaded the problem and edited callbacks for a local rebuild.", "good");
+  } catch (error) {
+    setStatus(error instanceof Error ? error.message : String(error), "bad");
   } finally {
-    buildNativeButton.disabled = false;
+    downloadRebuildButton.disabled = false;
   }
 });
 
 void refreshWorkspaces();
+renderCallbackHighlight();
 updateSourceState();
 updateKernelUI();
 scheduleAutosave();
