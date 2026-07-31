@@ -6,6 +6,7 @@ import type {
   HodgeMetrics,
   SolverRequest,
   SolverResponse,
+  VertexIntegrabilityMetrics,
 } from "./messages";
 
 interface CommonBinding {
@@ -35,6 +36,7 @@ interface VertexFieldBinding extends CommonBinding {
     gridSize: number,
     dataWeight: number,
     smoothnessWeight: number,
+    integrabilityWeight: number,
     lengthWeight: number,
     targetLength: number,
     initializationNoise: number,
@@ -42,6 +44,7 @@ interface VertexFieldBinding extends CommonBinding {
   ): void;
   getField(): ArrayLike<number>;
   getTargetField(): ArrayLike<number>;
+  getIntegrabilityMetrics(): VertexIntegrabilityMetrics;
 }
 
 interface KernelModule {
@@ -128,6 +131,7 @@ async function start(wasmBaseUrl: string): Promise<void> {
               p.gridSize,
               objective.dataWeight,
               objective.connectionSmoothnessWeight,
+              objective.integrabilityWeight,
               objective.lengthWeight,
               objective.targetLength,
               p.initializationNoise,
@@ -165,6 +169,8 @@ async function start(wasmBaseUrl: string): Promise<void> {
           const targetField = vertexFieldSystem
             ? new Float64Array(vertexFieldSystem.getTargetField())
             : undefined;
+          const vertexIntegrabilityMetrics =
+            vertexFieldSystem?.getIntegrabilityMetrics();
           send(
             {
               type: "initialized",
@@ -176,6 +182,7 @@ async function start(wasmBaseUrl: string): Promise<void> {
               vectorField,
               targetField,
               hodgeMetrics,
+              vertexIntegrabilityMetrics,
               diagnostics: diagnostics(system),
             },
             [
@@ -199,6 +206,8 @@ async function start(wasmBaseUrl: string): Promise<void> {
         const targetField = vertexFieldSystem
           ? new Float64Array(vertexFieldSystem.getTargetField())
           : undefined;
+        const vertexIntegrabilityMetrics =
+          vertexFieldSystem?.getIntegrabilityMetrics();
         send(
           {
             type: "stepped",
@@ -209,6 +218,7 @@ async function start(wasmBaseUrl: string): Promise<void> {
             vectorField,
             targetField,
             hodgeMetrics,
+            vertexIntegrabilityMetrics,
             diagnostics: diagnostics(system),
           },
           [

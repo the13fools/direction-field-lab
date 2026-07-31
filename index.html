@@ -47,6 +47,13 @@
           <div><small>orthogonality defect</small><strong id="hodge-orthogonality">—</strong></div>
           <div><small>reconstruction ‖r‖</small><strong id="hodge-reconstruction">—</strong></div>
         </div>
+        <div id="vertex-integrability-report" class="hodge-report" hidden aria-live="polite">
+          <span>Vertex integrability audit</span>
+          <div><small>area-weighted curl RMS</small><strong id="vertex-curl-rms">—</strong></div>
+          <div><small>max |face curl|</small><strong id="vertex-curl-max">—</strong></div>
+          <div><small>u-cycle period</small><strong id="vertex-period-u">—</strong></div>
+          <div><small>v-cycle period</small><strong id="vertex-period-v">—</strong></div>
+        </div>
         <div class="transport">
           <button id="run" class="button primary" disabled>Reset + build</button>
           <button id="step" class="button" disabled>One step</button>
@@ -78,9 +85,9 @@
         <textarea id="problem-editor" spellcheck="false" aria-label="Editable problem JSON"></textarea>
         <p class="editor-note">Every run is defined by one versioned JSON file. The numerical kernel runs off the UI thread; edit parameters, then choose <code>Reset + build</code>.</p>
         <details id="source-panel" class="source-panel" hidden>
-          <summary><span>Actual TinyAD callbacks</span><span id="source-state" data-kind="compiled">compiled source</span></summary>
+          <summary><span id="source-title">Actual TinyAD callbacks</span><span id="source-state" data-kind="compiled">compiled source</span></summary>
           <div class="source-explainer">
-            This literal header is compiled into the current Wasm binary. Vertex-objective weights in the problem JSON are passed into these generic callbacks live. Editing the C++ itself still requires an Emscripten rebuild and is never silently interpreted as JavaScript.
+            This literal header is compiled into the current Wasm binary. Vertex-objective weights—including the local integrability penalty—in the problem JSON are passed into these generic callbacks live. Editing the C++ itself still requires an Emscripten rebuild and is never silently interpreted as JavaScript.
           </div>
           <textarea id="callback-editor" spellcheck="false" aria-label="Editable TinyAD C++ callback source"></textarea>
           <div class="source-actions">

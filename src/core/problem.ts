@@ -65,6 +65,7 @@ export interface VertexFieldProblem {
     objective: {
       dataWeight: number;
       connectionSmoothnessWeight: number;
+      integrabilityWeight: number;
       lengthWeight: number;
       targetLength: number;
     };
@@ -135,8 +136,19 @@ export function validateProblem(value: unknown): Problem {
       0,
       1e8,
     );
+    const integrabilityWeight = finiteNumber(
+      objective.integrabilityWeight ?? 0,
+      "objective.integrabilityWeight",
+      0,
+      1e8,
+    );
     const lengthWeight = finiteNumber(objective.lengthWeight, "objective.lengthWeight", 0, 1e8);
-    if (dataWeight === 0 && connectionSmoothnessWeight === 0 && lengthWeight === 0) {
+    if (
+      dataWeight === 0 &&
+      connectionSmoothnessWeight === 0 &&
+      integrabilityWeight === 0 &&
+      lengthWeight === 0
+    ) {
       throw new Error("At least one objective term must have positive weight.");
     }
     return {
@@ -155,6 +167,7 @@ export function validateProblem(value: unknown): Problem {
         objective: {
           dataWeight,
           connectionSmoothnessWeight,
+          integrabilityWeight,
           lengthWeight,
           targetLength: finiteNumber(objective.targetLength, "objective.targetLength", 0, 100),
         },
@@ -358,11 +371,35 @@ export const TUTORIALS: readonly Tutorial[] = [
         objective: {
           dataWeight: 1,
           connectionSmoothnessWeight: 0.35,
+          integrabilityWeight: 0,
           lengthWeight: 0.08,
           targetLength: 0.85,
         },
       },
       solver: { iterationsPerStep: 4 },
+    }),
+  },
+  {
+    id: "vertex-field-integrability",
+    title: "08 · Vertex integrability",
+    question: "Can triangle circulation vanish while a torus period remains?",
+    problem: validateProblem({
+      schema: PROBLEM_SCHEMA,
+      name: "Vertex integrability from face circulation",
+      kernel: "vertex-field",
+      parameters: {
+        gridSize: 16,
+        initializationNoise: 0.18,
+        seed: 17,
+        objective: {
+          dataWeight: 1,
+          connectionSmoothnessWeight: 0.35,
+          integrabilityWeight: 4,
+          lengthWeight: 0,
+          targetLength: 0.85,
+        },
+      },
+      solver: { iterationsPerStep: 1 },
     }),
   },
 ] as const;

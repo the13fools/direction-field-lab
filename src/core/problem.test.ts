@@ -12,4 +12,30 @@ describe("problem format", () => {
     const invalid = JSON.stringify({ schema: "geometry-lab/problem@1", name: "x", kernel: "mystery" });
     expect(() => parseProblem(invalid)).toThrow(/Unknown kernel/);
   });
+
+  it("adds a zero integrability weight to older vertex-field problems", () => {
+    const vertex = TUTORIALS.find((tutorial) => tutorial.problem.kernel === "vertex-field")!;
+    const source = JSON.parse(formatProblem(vertex.problem));
+    delete source.parameters.objective.integrabilityWeight;
+    const parsed = parseProblem(JSON.stringify(source));
+    expect(parsed.kernel).toBe("vertex-field");
+    if (parsed.kernel === "vertex-field") {
+      expect(parsed.parameters.objective.integrabilityWeight).toBe(0);
+    }
+  });
+
+  it("allows integrability to be the only enabled vertex term", () => {
+    const vertex = TUTORIALS.find((tutorial) => tutorial.problem.kernel === "vertex-field")!;
+    const source = JSON.parse(formatProblem(vertex.problem));
+    source.parameters.objective = {
+      dataWeight: 0,
+      connectionSmoothnessWeight: 0,
+      integrabilityWeight: 1,
+      lengthWeight: 0,
+      targetLength: 0.85,
+    };
+    expect(parseProblem(JSON.stringify(source))).toMatchObject({
+      parameters: { objective: { integrabilityWeight: 1 } },
+    });
+  });
 });

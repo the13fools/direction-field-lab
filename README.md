@@ -1,9 +1,9 @@
 # Geometry Processing Lab
 
-A local-first, fork-friendly reference implementation for small geometry
-processing experiments in the browser. It combines an editable, versioned
-problem file with C++ numerical kernels compiled to WebAssembly, a WebGL viewer,
-solver diagnostics, and an optional Polyscope desktop viewer.
+A static, fork-friendly reference implementation for small geometry-processing
+experiments. A researcher can try compiled C++/WebAssembly kernels in the
+browser, fork the repository, and then use the same portable results from
+TypeScript, native C++, or Python with Polyscope.
 
 The first reference experiment is intentionally modest: a sparse Newton solve
 for a two-dimensional mass-spring grid using TinyAD and Eigen. Its purpose is to
@@ -11,14 +11,17 @@ make the architecture and the numerics inspectable before adding larger topics
 such as parameterization, Hodge decomposition, integrable projection, or fluids
 on surfaces.
 
-The vector-field sequence now separates four ideas that are often conflated:
+The vector-field sequence now separates five ideas that are often conflated:
 
 1. a mixed finite-element Hodge split of piecewise-constant face vectors;
 2. a DEC Hodge split of signed edge integrals;
 3. reconstruction of an edge 1-form as vertex tangent vectors, including an
    explicit warning that reconstruction is not a native vertex Hodge complex;
 4. a true per-vertex tangent-field optimization whose objective weights are
-   edited in JSON and passed live into generic TinyAD callbacks.
+   edited in JSON and passed live into generic TinyAD callbacks;
+5. a face-circulation penalty on those native vertex unknowns that introduces
+   local integrability without hiding the torus's two global period
+   obstructions.
 
 Students can inspect the literal callback header compiled into each Wasm kernel.
 Changing C++ still requires rebuilding Wasm; changing the vertex objective's
@@ -51,6 +54,10 @@ Open <http://localhost:4173>. Edit the JSON at right, choose **Reset + build**,
 then inspect individual Newton steps. `npm test` validates the portable formats;
 `npm run build` creates the static site in `dist/`.
 
+No C++ toolchain is needed for this path: the generated WebAssembly kernel is
+committed. See the complete [usage guide](docs/usage.md) for GitHub Pages,
+forking, native research workflows, and the browser/Polyscope handoff.
+
 ## Rebuild the WebAssembly kernel
 
 An ordinary user does not need CMake or Emscripten because the generated kernel
@@ -66,7 +73,20 @@ CMake fetches the pinned Eigen and TinyAD revisions. See [`cpp/README.md`](cpp/R
 
 ## Optional Polyscope handoff
 
-Build the desktop viewer:
+The lowest-overhead native viewer is the optional Python package:
+
+```sh
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install -r requirements-polyscope.txt
+npm run view:python -- result.geometry-view.json
+```
+
+It reads both the current curve-network snapshot and the generic `result@2`
+mesh/field artifact. It watches the file by default, preserving the camera as a
+solver writes new results.
+
+Researchers who prefer a compiled viewer can build the thin C++ reader:
 
 ```sh
 npm run build:native
@@ -76,15 +96,19 @@ For a live local handoff, run the site and bridge in separate terminals:
 
 ```sh
 npm run dev
-npm run serve:bridge -- --viewer build/polyscope-viewer/geometry-lab-viewer
+npm run build
+npm run serve:bridge:python
 ```
 
-If the bridge is absent, **Open in Polyscope** downloads the same
-`.geometry-view.json` snapshot instead. It can be opened manually with:
+Replace the final command with the following to launch the C++ viewer:
 
 ```sh
-./build/polyscope-viewer/geometry-lab-viewer result.geometry-view.json
+npm run serve:bridge -- \
+  --viewer build/polyscope-viewer/geometry-lab-viewer
 ```
+
+If the bridge is absent, **Open in Polyscope** downloads the same neutral
+snapshot for manual use.
 
 ## Fork, publish, or keep work private
 
@@ -120,5 +144,6 @@ examples/                 portable problem files
 docs/                     architecture, formats, and extension roadmap
 ```
 
-Read [`docs/architecture.md`](docs/architecture.md) before adding a new solver.
+Start with [`docs/usage.md`](docs/usage.md), then read
+[`docs/architecture.md`](docs/architecture.md) before adding a new solver.
 The project is MIT licensed; exported experiment data defaults to CC0.

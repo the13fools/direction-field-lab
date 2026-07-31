@@ -11,6 +11,8 @@ import subprocess
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
+from polyscope_viewer import normalize_document
+
 
 MAX_BODY = 32 * 1024 * 1024
 
@@ -24,16 +26,9 @@ def parse_args() -> argparse.Namespace:
 
 
 def validate_snapshot(source: object) -> dict:
-    if not isinstance(source, dict) or source.get("schema") != "geometry-lab/view@1":
-        raise ValueError("Expected a geometry-lab/view@1 JSON object")
-    if source.get("primitive") != "curve-network":
-        raise ValueError("Only curve-network snapshots are accepted")
-    positions = source.get("positions")
-    edges = source.get("edges")
-    if not isinstance(positions, list) or not positions or len(positions) % 3:
-        raise ValueError("positions must be a non-empty flat xyz array")
-    if not isinstance(edges, list) or not edges or len(edges) % 2:
-        raise ValueError("edges must be a non-empty flat index-pair array")
+    normalize_document(source)
+    if not isinstance(source, dict):
+        raise ValueError("Expected a Geometry Processing Lab JSON object")
     return source
 
 

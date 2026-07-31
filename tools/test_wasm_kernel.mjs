@@ -48,15 +48,53 @@ try {
 
 const vertexSystem = new kernels.VertexFieldSystem();
 try {
-  vertexSystem.init(16, 1, 0.35, 0.08, 0.85, 0.18, 17);
+  vertexSystem.init(16, 1, 0.35, 0.65, 0.08, 0.85, 0.18, 17);
   const before = vertexSystem.getDiagnostics();
+  const integrabilityBefore = vertexSystem.getIntegrabilityMetrics();
   vertexSystem.step(12);
   const after = vertexSystem.getDiagnostics();
+  const integrabilityAfter = vertexSystem.getIntegrabilityMetrics();
+  const field = Array.from(vertexSystem.getField());
+  const target = Array.from(vertexSystem.getTargetField());
+  const dataEnergyLowerBound = 0.5 * field.reduce(
+    (sum, value, index) => sum + (value - target[index]) ** 2,
+    0,
+  );
   assert.equal(vertexSystem.getField().length, 16 * 16 * 2, "vertex field should store two values per vertex");
   assert.equal(vertexSystem.getTargetField().length, 16 * 16 * 2, "target should store two values per vertex");
+  assert.ok(Number.isFinite(after.energy), "vertex objective energy should remain finite");
   assert.ok(after.energy < before.energy, "editable vertex objective should decrease");
   assert.ok(after.gradientNorm < before.gradientNorm, "vertex optimization should reduce its gradient");
-  console.log("Vertex field Wasm kernel: data-driven TinyAD objective checks passed.");
+  assert.ok(
+    after.energy + 1e-9 >= dataEnergyLowerBound,
+    "reported energy should include the requested data term",
+  );
+  assert.ok(
+    integrabilityAfter.curlRms < integrabilityBefore.curlRms,
+    "the enabled vertex integrability term should reduce local curl",
+  );
+  for (const value of Object.values(integrabilityAfter)) {
+    assert.ok(Number.isFinite(value), "vertex integrability diagnostics should be finite");
+  }
+  console.log("Vertex field Wasm kernel: data-driven objective and integrability checks passed.");
 } finally {
   vertexSystem.delete();
+}
+
+const dataOnlyVertexSystem = new kernels.VertexFieldSystem();
+try {
+  dataOnlyVertexSystem.init(12, 1, 0, 0, 0, 0.85, 0.18, 17);
+  dataOnlyVertexSystem.step(4);
+  const field = Array.from(dataOnlyVertexSystem.getField());
+  const target = Array.from(dataOnlyVertexSystem.getTargetField());
+  const distance = Math.sqrt(field.reduce(
+    (sum, value, index) => sum + (value - target[index]) ** 2,
+    0,
+  ));
+  const diagnostics = dataOnlyVertexSystem.getDiagnostics();
+  assert.ok(distance < 1e-8, "a data-only objective should recover the target field");
+  assert.ok(diagnostics.energy < 1e-12, "a recovered data-only target should have zero energy");
+  console.log("Vertex field Wasm kernel: stored callback weights remain valid after initialization.");
+} finally {
+  dataOnlyVertexSystem.delete();
 }

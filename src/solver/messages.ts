@@ -27,6 +27,13 @@ export interface HodgeMetrics {
   pythagoreanDefect: number;
 }
 
+export interface VertexIntegrabilityMetrics {
+  curlRms: number;
+  maxAbsCurl: number;
+  periodU: number;
+  periodV: number;
+}
+
 export type SolverRequest =
   | { type: "configure"; wasmBaseUrl: string }
   | { type: "initialize"; runId: number; problem: Problem }
@@ -44,6 +51,7 @@ export type SolverResponse =
       vectorField?: Float64Array;
       targetField?: Float64Array;
       hodgeMetrics?: HodgeMetrics;
+      vertexIntegrabilityMetrics?: VertexIntegrabilityMetrics;
       diagnostics: SolverDiagnostics;
     }
   | {
@@ -55,6 +63,7 @@ export type SolverResponse =
       vectorField?: Float64Array;
       targetField?: Float64Array;
       hodgeMetrics?: HodgeMetrics;
+      vertexIntegrabilityMetrics?: VertexIntegrabilityMetrics;
       diagnostics: SolverDiagnostics;
     }
   | { type: "error"; runId?: number; message: string };

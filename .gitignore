@@ -8,5 +8,6 @@ build/
 *.user
 *.pyc
 __pycache__/
+.venv/
 imgui.ini
 .polyscope.ini

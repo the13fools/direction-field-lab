@@ -64,8 +64,32 @@ objective is
 E(u) =
   dataWeight / 2 * sum_v ||u_v - target_v||^2
   + connectionSmoothnessWeight / 2 * sum_ij ||u_j - R_ij u_i||^2
+  + integrabilityWeight / 2 * sum_f circulation_f(u)^2 / area(f)
   + lengthWeight / 2 * sum_v (||u_v||^2 - targetLength^2)^2.
 ```
+
+Exercise 07 sets `integrabilityWeight` to zero so students can first isolate
+the data, connection-smoothing, and length terms.
+
+## 08 - Vertex integrability: triangle circulation
+
+The local integrability row is assembled from the same native vertex unknowns.
+At every oriented triangle `f = (i,j,k)`, endpoint vectors are lifted from
+their tangent frames to ambient coordinates and trapezoid-integrated around
+the boundary:
+
+```text
+circulation_f(u) =
+  1/2 (u_i + u_j) dot (p_j - p_i)
+  + 1/2 (u_j + u_k) dot (p_k - p_j)
+  + 1/2 (u_k + u_i) dot (p_i - p_k).
+```
+
+Dividing by face area estimates scalar curl. Penalizing its area-weighted
+square makes the field locally closed. It does **not** make the field globally
+exact on a torus: the viewer separately reports periods along the two canonical
+cycles. This distinction is the teaching point of the first vertex-based
+integrability operator, not a missing implementation detail.
 
 The callback vocabulary is compiled into WebAssembly, but every coefficient is
 read from the editable problem JSON. **Reset + build** sends the new values
@@ -76,10 +100,13 @@ silently reinterpret edited C++ without recompilation.
 Useful experiments:
 
 - Set `connectionSmoothnessWeight` to zero and predict the data-only result.
+- Raise `integrabilityWeight` and compare local curl before and after solving.
+- Make local curl small, then explain why either torus period can remain.
 - Set `dataWeight` to zero and compare several positive length weights.
 - Set `lengthWeight` to zero and inspect the convex quadratic problem.
 - Increase `gridSize` and compare degrees of freedom with Hessian nonzeros.
 
-The next extension should add divergence, curl, and user-authored constraint
-terms to this same data-driven callback vocabulary. That is a more honest route
-toward a vertex-based Hodge-like projection than relabeling an edge solve.
+The next extension should turn the two reported periods into optional
+constraints, then add user-authored boundary or singularity terms to this same
+data-driven callback vocabulary. That is a more honest route toward a
+vertex-based Hodge-like projection than relabeling an edge solve.

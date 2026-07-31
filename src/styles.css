@@ -147,6 +147,7 @@ button { cursor: pointer; }
 .editor-tools { display: flex; gap: 7px; }
 .editor-tools .button { min-height: 30px; padding: 5px 9px; }
 #problem-editor { flex: 1; width: 100%; min-height: 400px; resize: none; padding: 18px; border: 0; outline: 0; color: #d8e4df; background: #15211d; font: 12px/1.7 var(--mono); tab-size: 2; }
+.editor-panel.source-visible #problem-editor { flex: 0 0 330px; min-height: 330px; resize: vertical; }
 .editor-note { margin: 0; padding: 14px 16px; color: var(--quiet); border-top: 1px solid var(--line); font-size: 11px; line-height: 1.5; }
 .editor-note code { color: var(--ink); font-family: var(--mono); }
 

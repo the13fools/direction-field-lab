@@ -3,12 +3,18 @@ import compiledFaceHodgeCallback from "../cpp/include/HodgeFaceCallbacks.hh?raw"
 import compiledEdgeHodgeCallback from "../cpp/include/HodgeProjectionCallbacks.hh?raw";
 import compiledVertexFieldCallback from "../cpp/include/VertexFieldCallbacks.hh?raw";
 
+import { BUILTIN_CAPABILITIES } from "./core/capabilities";
 import {
+  EMBED_CAPABILITIES_V2,
   EMBED_DIAGNOSTICS,
   EMBED_READY,
+  EMBED_RESULT_V2,
+  isEmbedHelloV2Message,
+  isEmbedLoadExperimentV2Message,
   isEmbedLoadProblemMessage,
   type EmbedOutgoingMessage,
 } from "./core/embed";
+import { validateExperimentSpec, type JsonObject } from "./core/experiment";
 import {
   TUTORIALS,
   formatProblem,
@@ -28,6 +34,7 @@ import type { SolverResponse } from "./solver/messages";
 import type { HodgeFields } from "./solver/messages";
 import type { HodgeFieldLayout } from "./solver/messages";
 import type { HodgeMetrics } from "./solver/messages";
+import type { VertexIntegrabilityMetrics } from "./solver/messages";
 import { WebViewer } from "./viewer/web-viewer";
 
 function element<T extends HTMLElement>(selector: string): T {
@@ -37,6 +44,7 @@ function element<T extends HTMLElement>(selector: string): T {
 }
 
 const editor = element<HTMLTextAreaElement>("#problem-editor");
+const editorPanel = element<HTMLElement>(".editor-panel");
 const viewer = new WebViewer(element("#viewer"));
 const solver = new SolverClient();
 const status = element("#status");
@@ -52,6 +60,8 @@ const sourcePanel = element<HTMLDetailsElement>("#source-panel");
 const callbackEditor = element<HTMLTextAreaElement>("#callback-editor");
 const sourceState = element("#source-state");
 const hodgeReport = element<HTMLDivElement>("#hodge-report");
+const vertexIntegrabilityReport = element<HTMLDivElement>("#vertex-integrability-report");
+const sourceTitle = element("#source-title");
 const representationNote = element<HTMLDivElement>("#representation-note");
 const representationKind = element("#representation-kind");
 const representationTitle = element("#representation-title");
@@ -81,8 +91,10 @@ editor.value = localStorage.getItem("geometry-lab:draft") ?? formatProblem(curre
 callbackEditor.value =
   localStorage.getItem(sourceStorageKey(sourceKind)) ?? compiledSources[sourceKind].source;
 
-function notifyParent(message: EmbedOutgoingMessage): void {
-  if (window.parent !== window) window.parent.postMessage(message, "*");
+let parentOrigin = "*";
+
+function notifyParent(message: EmbedOutgoingMessage, targetOrigin = parentOrigin): void {
+  if (window.parent !== window) window.parent.postMessage(message, targetOrigin);
 }
 
 function setStatus(message: string, kind: "working" | "good" | "bad" = "working"): void {
@@ -162,15 +174,28 @@ function showRepresentationNote(): void {
       "Use exercise 07 to replace reconstruction with native vertex unknowns.",
     ];
   } else if (currentProblem.kernel === "vertex-field") {
-    representationKind.textContent = "Native vertex field · editable TinyAD objective";
-    representationTitle.textContent = "2 tangent components per vertex · connection-aware smoothing";
-    representationDescription.textContent =
-      "Edit objective.dataWeight, connectionSmoothnessWeight, or lengthWeight in the JSON, then Reset + build. The browser passes the term weights into the compiled generic TinyAD callbacks—no Wasm rebuild is needed.";
-    steps = [
-      "Optimize, then switch between Target and Current solution.",
-      "Set connectionSmoothnessWeight to 0; predict the data-only solution.",
-      "Set dataWeight to 0 and raise lengthWeight; diagnose the resulting non-convex problem.",
-    ];
+    const integrabilityEnabled = currentProblem.parameters.objective.integrabilityWeight > 0;
+    if (integrabilityEnabled) {
+      representationKind.textContent = "Native vertex field · local integrability operator";
+      representationTitle.textContent = "2 tangent components per vertex · circulation measured per face";
+      representationDescription.textContent =
+        "The compiled C++ converts endpoint vectors to ambient coordinates, integrates them around each triangle, and penalizes squared circulation. Edit objective.integrabilityWeight in the JSON, then Reset + build.";
+      steps = [
+        "Compare Target and Current solution before and after optimization.",
+        "Raise integrabilityWeight and predict the face-curl readings.",
+        "Notice that small local curl does not force the two torus periods to vanish.",
+      ];
+    } else {
+      representationKind.textContent = "Native vertex field · editable TinyAD objective";
+      representationTitle.textContent = "2 tangent components per vertex · connection-aware smoothing";
+      representationDescription.textContent =
+        "Exercise 07 keeps integrabilityWeight at zero. First isolate the data, connection-smoothing, and length terms; exercise 08 then adds the face-circulation operator using the same unknowns.";
+      steps = [
+        "Optimize, then switch between Target and Current solution.",
+        "Set connectionSmoothnessWeight to zero and predict the data-only solution.",
+        "Continue to exercise 08 to enable the visible integrability callback.",
+      ];
+    }
   }
   representationSteps.replaceChildren(...steps.map((text) => {
     const item = document.createElement("li");
@@ -186,14 +211,30 @@ function updateKernelUI(): void {
   vertexComponents.hidden = !vertexDesign;
   sourcePanel.hidden = !(hodge || vertexDesign);
   hodgeReport.hidden = !hodge;
+  vertexIntegrabilityReport.hidden = !vertexDesign;
+  sourcePanel.open = vertexDesign;
+  editorPanel.classList.toggle("source-visible", vertexDesign);
+  sourceTitle.textContent = vertexDesign
+    ? "Actual vertex integrability + TinyAD callbacks"
+    : "Actual TinyAD callbacks";
   stepButton.textContent = hodge
     ? "Decompose"
     : vertexDesign
-      ? `Optimize ${currentProblem.solver.iterationsPerStep} steps`
+    ? `Optimize ${currentProblem.solver.iterationsPerStep} ${currentProblem.solver.iterationsPerStep === 1 ? "step" : "steps"}`
       : "One step";
   playButton.hidden = hodge;
   switchCallbackSource(currentProblem);
   showRepresentationNote();
+}
+
+function showVertexIntegrabilityMetrics(
+  value: VertexIntegrabilityMetrics | undefined,
+): void {
+  if (!value) return;
+  metric("vertex-curl-rms", value.curlRms.toExponential(2));
+  metric("vertex-curl-max", value.maxAbsCurl.toExponential(2));
+  metric("vertex-period-u", value.periodU.toExponential(2));
+  metric("vertex-period-v", value.periodV.toExponential(2));
 }
 
 function showHodgeMetrics(value: HodgeMetrics | undefined): void {
@@ -312,6 +353,7 @@ solver.addEventListener("message", ((event: CustomEvent<SolverResponse>) => {
     vertexField = response.vectorField;
     targetField = response.targetField;
     showHodgeMetrics(response.hodgeMetrics);
+    showVertexIntegrabilityMetrics(response.vertexIntegrabilityMetrics);
     renderSelectedField();
     renderSelectedVertexField();
     showDiagnostics(response.diagnostics);
@@ -332,7 +374,7 @@ solver.addEventListener("message", ((event: CustomEvent<SolverResponse>) => {
             ? "Edge 1-form ready. Decompose it, then inspect each orthogonal component."
             : "Vertex reconstruction ready. Decompose the source 1-form, then audit what survives reconstruction."
           : currentProblem.kernel === "vertex-field"
-            ? "Vertex objective assembled in TinyAD. Edit its JSON weights or take optimization steps."
+            ? "Vertex circulation operator assembled in TinyAD. Edit its JSON weight or inspect the compiled callback."
             : "Ready. Inspect one Newton step at a time.",
       "good",
     );
@@ -346,6 +388,7 @@ solver.addEventListener("message", ((event: CustomEvent<SolverResponse>) => {
     vertexField = response.vectorField;
     targetField = response.targetField ?? targetField;
     showHodgeMetrics(response.hodgeMetrics);
+    showVertexIntegrabilityMetrics(response.vertexIntegrabilityMetrics);
     renderSelectedField();
     renderSelectedVertexField();
     showDiagnostics(response.diagnostics);
@@ -435,7 +478,68 @@ element<HTMLButtonElement>("#download-callback").addEventListener("click", () =>
 editor.addEventListener("input", () => localStorage.setItem("geometry-lab:draft", editor.value));
 
 window.addEventListener("message", (event: MessageEvent<unknown>) => {
-  if (event.source !== window.parent || !isEmbedLoadProblemMessage(event.data)) return;
+  if (event.source !== window.parent) return;
+  if (isEmbedHelloV2Message(event.data)) {
+    parentOrigin = event.origin === "null" ? "*" : event.origin;
+    notifyParent(
+      {
+        type: EMBED_CAPABILITIES_V2,
+        requestId: event.data.requestId,
+        capabilities: BUILTIN_CAPABILITIES,
+      },
+      parentOrigin,
+    );
+    return;
+  }
+  if (parentOrigin !== "*" && event.origin !== parentOrigin) return;
+  if (isEmbedLoadExperimentV2Message(event.data)) {
+    try {
+      const experiment = validateExperimentSpec(event.data.experiment);
+      const available = new Set(BUILTIN_CAPABILITIES.operators.map((operator) => operator.id));
+      const requested = [
+        experiment.inputs.mesh.operator,
+        ...(experiment.inputs.field ? [experiment.inputs.field.operator] : []),
+        ...experiment.methods.map((method) => method.operator),
+      ];
+      const missing = [...new Set(requested.filter((operator) => !available.has(operator)))];
+      notifyParent({
+        type: EMBED_RESULT_V2,
+        requestId: event.data.requestId,
+        result: {
+          schema: "geometry-lab/result@2",
+          experimentId: experiment.id,
+          status: "failed",
+          meshes: [],
+          fields: [],
+          metrics: [],
+          series: [],
+          messages: [
+            {
+              level: "error",
+              code: missing.length
+                ? "capability-unavailable"
+                : "experiment-adapter-unavailable",
+              text: missing.length
+                ? `This build does not provide: ${missing.join(", ")}.`
+                : "The numerical capabilities are present, but this experiment does not yet have a runtime adapter.",
+            },
+          ],
+          provenance: {
+            applicationVersion: BUILTIN_CAPABILITIES.applicationVersion,
+            backendBundles: { gp_lab_kernels: "bundled" },
+            experiment: JSON.parse(JSON.stringify(experiment)) as JsonObject,
+          },
+        },
+      });
+    } catch (error) {
+      setStatus(
+        `Embedded experiment rejected: ${error instanceof Error ? error.message : String(error)}`,
+        "bad",
+      );
+    }
+    return;
+  }
+  if (!isEmbedLoadProblemMessage(event.data)) return;
   try {
     const problem = validateProblem(event.data.problem);
     editor.value = formatProblem(problem);
