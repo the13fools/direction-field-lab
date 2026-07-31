@@ -13,7 +13,10 @@
     "test:wasm": "node tools/test_wasm_kernel.mjs",
     "test:watch": "vitest",
     "build:wasm": "cmake -S cpp -B build/wasm -DCMAKE_TOOLCHAIN_FILE=$EMSDK/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake && cmake --build build/wasm -j",
-    "build:native": "cmake -S native/polyscope-viewer -B build/polyscope-viewer -DCMAKE_BUILD_TYPE=Release && cmake --build build/polyscope-viewer -j",
+    "configure:native": "cmake --preset native",
+    "build:native": "cmake --build --preset native",
+    "test:native": "ctest --preset native",
+    "run:native": "./build/native/geometry-lab-vertex-field",
     "serve:bridge": "python3 tools/polyscope_bridge.py --root dist --port 4174",
     "serve:bridge:python": "python3 tools/polyscope_bridge.py --root dist --port 4174 --viewer tools/polyscope_viewer.py",
     "view:python": "python3 tools/polyscope_viewer.py"

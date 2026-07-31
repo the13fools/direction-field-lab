@@ -1,0 +1,60 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 24,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "native",
+      "displayName": "Native research build",
+      "description": "TinyAD numerical core, tests, and Polyscope applications",
+      "binaryDir": "${sourceDir}/build/native",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "BUILD_TESTING": "ON",
+        "GEOMETRY_LAB_BUILD_POLYSCOPE": "ON"
+      }
+    },
+    {
+      "name": "native-core",
+      "displayName": "Native numerical core only",
+      "description": "Fast headless build without the Polyscope dependency",
+      "binaryDir": "${sourceDir}/build/native-core",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "BUILD_TESTING": "ON",
+        "GEOMETRY_LAB_BUILD_POLYSCOPE": "OFF"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "native",
+      "configurePreset": "native",
+      "jobs": 4
+    },
+    {
+      "name": "native-core",
+      "configurePreset": "native-core",
+      "jobs": 4
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "native",
+      "configurePreset": "native",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "native-core",
+      "configurePreset": "native-core",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ]
+}
