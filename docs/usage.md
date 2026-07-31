@@ -70,7 +70,7 @@ Inside the lab:
 - use **Reset + build** to reconstruct solver state;
 - take one numerical step at a time before pressing **Play**;
 - inspect energy, gradient norm, sparse-system size, and field certificates;
-- save locally or use **Download experiment repo** to make a small,
+- save locally or use **Download experiment files** to make a small,
   host-neutral research record.
 
 The current problem and the three editable callback headers autosave in
@@ -87,35 +87,27 @@ npm run build
 `npm test` checks TypeScript formats, Python snapshot parsing, and the compiled
 WebAssembly kernels.
 
-## Edit C++ in the browser, then run it natively
+## Edit C++ in the browser, then run it locally
 
-The connected workflow is the shortest path from a browser worksheet to a real
-C++ research loop:
+Choose a Hodge or vertex-field exercise, expand **Actual TinyAD callbacks**, and
+edit the highlighted source. Comments marked `LAB NOTE` explain the local
+automatic-differentiation program; comments marked `TRY` suggest controlled
+changes. Then choose **Download rebuild files**.
+
+Copy the exported `cpp/include/*.hh` files over the matching files in a full
+clone and rebuild:
 
 ```sh
+source /absolute/path/to/emsdk/emsdk_env.sh
 npm ci
-npm run build
-npm run serve:bridge
+npm run build:wasm
+npm test
+npm run dev
 ```
 
-Open <http://127.0.0.1:4174>. Choose **07 · Vertex objective** or **08 · Vertex
-integrability**, expand **Actual TinyAD callbacks**, edit
-`VertexFieldCallbacks.hh`, and press **Build + open in Polyscope**.
-
-The bridge:
-
-1. validates the problem and accepts only the three known callback paths;
-2. writes an atomic project under `.lab-workspace/current`;
-3. configures CMake with that callback directory ahead of the repository
-   defaults;
-4. rebuilds `geometry-lab-vertex-field`;
-5. passes the current problem parameters on the command line and launches
-   Polyscope.
-
-The C++ is not evaluated by the browser. Connected mode deliberately compiles
-and executes it on the local machine, so it must only be used with code the
-student trusts. Static hosting cannot launch a compiler; there the same button
-downloads a Git-ready experiment archive.
+The C++ is not evaluated by the hosted browser. Static hosting cannot launch a
+compiler, so the page keeps showing the committed kernel until this explicit
+local rebuild succeeds.
 
 TinyAD computes derivatives of the edited callback when the native target is
 rebuilt. The callback still has a fixed element arity; changing the unknown

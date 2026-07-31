@@ -28,5 +28,8 @@ describe("experiment repository export", () => {
     });
     const archive = await JSZip.loadAsync(await blob.arrayBuffer());
     expect(await archive.file("cpp/include/HodgeProjectionCallbacks.hh")!.async("string")).toBe(source);
+    expect(await archive.file("README.md")!.async("string")).toContain(
+      "continues to run the committed Wasm kernel",
+    );
   });
 });

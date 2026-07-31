@@ -20,25 +20,24 @@ The published site contains a pinned WebAssembly module. It can:
 It does **not** compile arbitrary C++ in a visitor's browser. Pretending that an
 edited header had taken effect would make the lab pedagogically dangerous.
 
-### Connected mode
+### Local rebuild mode
 
-`npm run serve:bridge` serves the same built page from loopback and adds one
-trusted local endpoint. **Build + open in Polyscope** writes the edited callback
-to a fixed workspace, rebuilds the native target, and launches it with the
-current problem parameters.
+**Download rebuild files** exports the edited callbacks and problem. A student
+copies those headers into a clone, rebuilds with the pinned toolchain, and then
+runs either the Wasm lab or native Polyscope target.
 
 This supplies the desired beginner loop:
 
 1. open one page;
 2. change a local TinyAD energy;
-3. press one button;
-4. TinyAD produces the gradient and Hessian during native execution;
-5. inspect the result in Polyscope;
-6. open `.lab-workspace/current` in an editor when the experiment outgrows the
-   worksheet.
+3. download the problem and edited headers;
+4. copy them into a clone and rebuild;
+5. TinyAD produces the gradient and Hessian during execution;
+6. inspect the result in the browser or Polyscope.
 
-Because the header is compiled and executed locally, connected mode is for
-trusted source only.
+Because the header is compiled and executed locally, rebuild only source you
+trust. The explicit download boundary is intentional in the current teaching
+UI.
 
 ### Fork-hosted mode
 

@@ -30,8 +30,8 @@ jobs:
         shell: bash
         run: |
           git clone --depth 1 https://github.com/emscripten-core/emsdk.git "$RUNNER_TEMP/emsdk"
-          "$RUNNER_TEMP/emsdk/emsdk" install 4.0.10
-          "$RUNNER_TEMP/emsdk/emsdk" activate 4.0.10
+          "$RUNNER_TEMP/emsdk/emsdk" install 5.0.7
+          "$RUNNER_TEMP/emsdk/emsdk" activate 5.0.7
       - name: Recompile the edited C++ kernel
         shell: bash
         run: |

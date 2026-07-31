@@ -80,19 +80,20 @@ ctest --preset native
 This application calls the same `VertexFieldSystem` and TinyAD callbacks as the
 WebAssembly build. It adds a Polyscope UI, not a parallel solver.
 
-For the edit-in-browser/build-native loop:
+For the edit-in-browser/build-native loop, use **Download rebuild files** in
+the callback panel, then copy the exported callback headers into a clone:
 
 ```sh
+source /absolute/path/to/emsdk/emsdk_env.sh
 npm ci
-npm run build
-npm run serve:bridge
+npm run build:wasm
+npm test
+npm run dev
 ```
 
-Open <http://127.0.0.1:4174>, choose a vertex-field exercise, expand **Actual
-TinyAD callbacks**, edit the header, and press **Build + open in Polyscope**.
-The local bridge writes only the whitelisted callback files to
-`.lab-workspace/current`, compiles the native target, and launches it. This is a
-trusted local developer mode: edited C++ is real native code.
+This teaching UI intentionally stops at the download boundary for now. The
+local bridge remains available for snapshot viewing and future developer tools,
+but the page does not quietly compile or execute edited source.
 
 ## Rebuild the WebAssembly kernel
 
@@ -150,7 +151,7 @@ snapshot for manual use.
 
 This repository is an ordinary static web project: fork it on GitHub, enable the
 included Pages workflow, or push it to a private remote. The app never asks for
-Git credentials. **Download experiment repo** creates a small Git-ready archive
+Git credentials. **Download experiment files** creates a small Git-ready archive
 containing the current problem and reproduction lock; its owner can commit that
 archive to any public or private host.
 

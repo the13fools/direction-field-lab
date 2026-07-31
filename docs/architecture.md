@@ -52,12 +52,12 @@ committed Wasm. It cannot safely turn arbitrary C++ text into a new WebAssembly
 module. The callback editor therefore has two explicit outcomes:
 
 - on static hosting, save the source in IndexedDB or export it;
-- in trusted connected mode, send only whitelisted callback files to the
-  loopback bridge, rebuild the native target, and launch Polyscope.
+- after download, copy the whitelisted callback files into a clone and rebuild
+  the native or Wasm target with the pinned toolchain.
 
-The bridge never accepts an output path or shell command from the browser.
-Supporting a broader project later should use a declared project manifest and
-an isolated build directory, not loosen the path whitelist.
+The optional bridge never accepts an output path or shell command from the
+browser. Supporting one-click recompilation later should use a declared project
+manifest and an isolated build directory, not loosen the path whitelist.
 
 See [cpp-first-workflow.md](cpp-first-workflow.md).
 
