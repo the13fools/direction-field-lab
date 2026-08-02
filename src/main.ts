@@ -139,7 +139,7 @@ editor.value = requestedTutorial
 callbackEditor.value =
   localStorage.getItem(sourceStorageKey(sourceKind)) ?? compiledSources[sourceKind].source;
 
-const storedBriefState = localStorage.getItem("geometry-lab:experiment-brief-open");
+const storedBriefState = localStorage.getItem("geometry-lab:experiment-brief-open-v2");
 if (storedBriefState !== null) representationNote.open = storedBriefState === "true";
 
 let parentOrigin = "*";
@@ -374,9 +374,16 @@ function setConfigMode(mode: ConfigMode): void {
   jsonModeButton.classList.toggle("active", mode === "json");
   guidedModeButton.setAttribute("aria-pressed", String(mode === "guided"));
   jsonModeButton.setAttribute("aria-pressed", String(mode === "json"));
+  const sourcePath = activeTutorialId === "vertex-field-unit-integrable"
+    ? "examples/vertex-unit-integrable.problem.json"
+    : activeTutorialId === "first-newton-step"
+      ? "examples/first-newton-step.problem.json"
+      : activeTutorialId === "hodge-one-form"
+        ? "examples/hodge-torus.problem.json"
+        : "src/core/problem.ts";
   editorNote.innerHTML = mode === "guided"
-    ? "Adjust the labeled controls, then choose <code>Reset + build</code>. JSON remains available as the portable source of truth."
-    : "Edit the complete portable problem, choose <code>Validate</code>, then <code>Reset + build</code>.";
+    ? `These controls edit the active in-memory problem. Choose <b>JSON</b> above to see all of it, then <code>Reset + build</code>. Repository seed: <a id="problem-source-link" href="https://github.com/the13fools/direction-field-lab/blob/main/${sourcePath}" target="_blank" rel="noreferrer"><code id="problem-source-path">${sourcePath}</code> ↗</a>`
+    : `This textarea is the complete active problem JSON. Edit it, choose <code>Validate</code>, then <code>Reset + build</code>. Repository seed: <a id="problem-source-link" href="https://github.com/the13fools/direction-field-lab/blob/main/${sourcePath}" target="_blank" rel="noreferrer"><code id="problem-source-path">${sourcePath}</code> ↗</a>`;
   localStorage.setItem("geometry-lab:config-mode", mode);
 }
 
@@ -740,7 +747,7 @@ callbackEditor.addEventListener("keydown", (event) => {
 
 representationNote.addEventListener("toggle", () => {
   localStorage.setItem(
-    "geometry-lab:experiment-brief-open",
+    "geometry-lab:experiment-brief-open-v2",
     String(representationNote.open),
   );
 });

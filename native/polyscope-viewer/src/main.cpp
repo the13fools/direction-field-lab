@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
     return 2;
   }
   snapshot_path = std::filesystem::absolute(argv[1]);
-  polyscope::options::programName = "Geometry Processing Lab · Polyscope";
+  polyscope::options::programName = "Direction Field Lab · Polyscope";
   polyscope::options::autocenterStructures = false;
   polyscope::state::userCallback = callback;
   polyscope::init();

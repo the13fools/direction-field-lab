@@ -1212,12 +1212,12 @@ byId<HTMLButtonElement>("send-handles-to-stripes").addEventListener("click", () 
   document.getElementById("stripe-projection")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
-// Observe the things whose drawing buffers actually depend on their CSS size.
-// Observing document.body creates a feedback loop in some browsers: a canvas
-// redraw can perturb the document height, which triggers another body resize
-// and lets scroll anchoring walk the page upward.
+// Canvas drawing-buffer changes must never be allowed to trigger layout work.
+// In particular, ResizeObserver callbacks can form a browser-dependent loop
+// with percentage-sized canvases and scroll anchoring. The page layout changes
+// only when the viewport changes, so redraw from that one-way signal instead.
 let resizeFrame = 0;
-const canvasResizeObserver = new ResizeObserver(() => {
+window.addEventListener("resize", () => {
   if (resizeFrame) return;
   resizeFrame = requestAnimationFrame(() => {
     resizeFrame = 0;
@@ -1227,10 +1227,6 @@ const canvasResizeObserver = new ResizeObserver(() => {
     drawStripePattern();
   });
 });
-
-for (const canvas of [fieldCanvas, historyCanvas, polycurlCanvas, stripeCanvas]) {
-  canvasResizeObserver.observe(canvas);
-}
 
 applyProgram(initialProgram());
 drawPolyCurl();

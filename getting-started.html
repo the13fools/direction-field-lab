@@ -6,16 +6,16 @@
     <meta name="theme-color" content="#21194a" />
     <meta name="description" content="From an interactive geometry-processing figure to a local TinyAD and Polyscope research project." />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Geometry Processing Lab · Start, fork, publish" />
+    <meta property="og:title" content="Direction Field Lab · Start, fork, publish" />
     <meta property="og:description" content="Move one geometry-processing experiment from a static figure to a TinyAD and Polyscope research project." />
     <meta property="og:image" content="./og.png" />
     <meta property="og:image:alt" content="A luminous tangent vector field flowing over a violet triangulated surface." />
     <meta name="twitter:card" content="summary_large_image" />
-    <title>Start, fork, publish · Geometry Processing Lab</title>
+    <title>Start, fork, publish · Direction Field Lab</title>
   </head>
   <body>
     <header class="start-header">
-      <a href="./index.html">← Geometry Processing Lab</a>
+      <a href="./index.html">← Direction Field Lab</a>
       <nav aria-label="Getting started links">
         <a href="./energy-playground.html">Live workshop</a>
         <a href="./shallow-water.html">Surface-wave starter</a>
@@ -60,11 +60,11 @@
           <article id="clone">
             <span>WEB CLONE</span>
             <h3>Change the web experiment</h3>
-            <p>Use this when you want new controls, plots, element kinds, or lessons. The committed Wasm is already present.</p>
+            <p>Use this when you want new controls, plots, element kinds, or lessons. The committed Wasm is already present. <a href="https://github.com/the13fools/direction-field-lab">Open the Direction Field Lab repository ↗</a></p>
             <div class="command-card">
               <button data-copy-source="clone-commands">Copy</button>
-              <pre id="clone-commands"><code>git clone https://github.com/YOUR-NAME/geometry-processing-lab.git
-cd geometry-processing-lab
+              <pre id="clone-commands"><code>git clone https://github.com/the13fools/direction-field-lab.git
+cd direction-field-lab
 npm ci
 npm run doctor
 npm run dev</code></pre>
@@ -77,11 +77,11 @@ npm run dev</code></pre>
             <p>Copy the deliberately small starter when your method needs arbitrary C++, mesh neighborhoods, or native debugging.</p>
             <div class="command-card">
               <button data-copy-source="native-commands">Copy</button>
-              <pre id="native-commands"><code>cp -R student-starter ../my-geometry-project
+              <pre id="native-commands"><code>cp -R geometry-processing-starter-kit ../my-geometry-project
 cd ../my-geometry-project
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j 4
-./build/sgi-tinyad-starter</code></pre>
+./build/geometry-processing-starter</code></pre>
             </div>
             <small>The first configure downloads the pinned Eigen, TinyAD, and Polyscope dependencies.</small>
           </article>

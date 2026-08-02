@@ -176,7 +176,7 @@ int main(int argc, char **argv) {
   }
 
   polyscope::options::programName =
-      "Geometry Processing Lab - native vertex fields";
+      "Direction Field Lab - native vertex fields";
   polyscope::options::groundPlaneMode = polyscope::GroundPlaneMode::None;
   polyscope::state::userCallback = user_interface;
   polyscope::init();

@@ -29,9 +29,9 @@ checks.push({ label: git ?? "Git", required: true, ok: Boolean(git), help: "Inst
 const cmake = commandVersion("cmake", ["--version"]);
 checks.push({ label: cmake ?? "CMake (optional)", required: false, ok: Boolean(cmake), help: "CMake 3.24+ is needed only for native TinyAD/Polyscope work." });
 const compiler = commandVersion(process.platform === "win32" ? "cl" : "c++", ["--version"]);
-checks.push({ label: compiler ? `C++ compiler: ${compiler}` : "C++ compiler (optional)", required: false, ok: Boolean(compiler), help: "A C++20 compiler is needed only for the student-starter/native path." });
+checks.push({ label: compiler ? `C++ compiler: ${compiler}` : "C++ compiler (optional)", required: false, ok: Boolean(compiler), help: "A C++20 compiler is needed only for the geometry-processing-starter-kit/native path." });
 
-console.log("Geometry Processing Lab · environment check\n");
+console.log("Direction Field Lab · environment check\n");
 for (const check of checks) {
   const icon = check.ok ? "✓" : check.required ? "✗" : "○";
   console.log(`${icon} ${check.label}${check.ok ? "" : `\n  ${check.help}`}`);
@@ -43,5 +43,5 @@ if (failed.length > 0) {
   process.exitCode = 1;
 } else {
   console.log("\nBrowser path ready: npm run dev");
-  console.log(cmake && compiler ? "Native prerequisites detected: continue with the student-starter when ready." : "Native tools are optional; the browser lab is ready now.");
+  console.log(cmake && compiler ? "Native prerequisites detected: continue with the geometry-processing-starter-kit when ready." : "Native tools are optional; the browser lab is ready now.");
 }

@@ -1,4 +1,7 @@
-# Geometry Processing Lab
+# Direction Field Lab
+
+Clone the course repository from
+[`the13fools/direction-field-lab`](https://github.com/the13fools/direction-field-lab).
 
 A static, fork-friendly reference implementation for small geometry-processing
 experiments. A researcher can try compiled C++/WebAssembly kernels in the
@@ -133,15 +136,17 @@ audits the result for repository-subpath hosting. See the complete
 [usage guide](docs/usage.md) for GitHub Pages,
 forking, native research workflows, and the browser/Polyscope handoff.
 
-## Minimal student C++ starter
+## Geometry Processing Starter Kit
 
-[`student-starter/`](student-starter/) is a copyable TinyAD + Polyscope project
+[`geometry-processing-starter-kit/`](geometry-processing-starter-kit/) is a copyable TinyAD + Polyscope project
 for the Summer Geometry Initiative. It generates its own triangle grid and
 keeps the editable objective in one clearly marked block of `main.cpp`, so a
 first experiment does not require the web application, the shared solver
 architecture, or mesh-loading boilerplate. Its README provides a ten-minute
 path, the circulation derivation, suggested extensions, troubleshooting, and a
-headless smoke-test command.
+headless smoke-test command. CMake options let students add libigl, Geometry
+Central, both libraries, or neither without changing the objective-first entry
+point.
 
 A fork owner can also edit a callback through GitHub, run **Recompile kernel
 and publish** from the Actions tab, and receive a Pages deployment containing
@@ -268,7 +273,7 @@ src/viewer/               browser rendering
 cpp/                      shared TinyAD + Eigen numerical core and Wasm adapter
 native/experiments/       native Polyscope applications using the shared core
 native/polyscope-viewer/  optional neutral-snapshot viewer
-student-starter/          copyable objective-first TinyAD + Polyscope project
+geometry-processing-starter-kit/          copyable objective-first TinyAD + Polyscope project
 tools/                    local-only bridge
 examples/                 portable problem files
 docs/                     architecture, formats, and extension roadmap

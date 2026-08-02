@@ -54,7 +54,7 @@ def parse_args() -> argparse.Namespace:
 def validate_snapshot(source: object) -> dict:
     normalize_document(source)
     if not isinstance(source, dict):
-        raise ValueError("Expected a Geometry Processing Lab JSON object")
+        raise ValueError("Expected a Direction Field Lab JSON object")
     return source
 
 
@@ -232,14 +232,14 @@ def main() -> None:
                 self.send_error(HTTPStatus.INTERNAL_SERVER_ERROR, str(error))
 
     address = ("127.0.0.1", args.port)
-    print(f"Geometry Processing Lab: http://{address[0]}:{address[1]}")
+    print(f"Direction Field Lab: http://{address[0]}:{address[1]}")
     print(f"Snapshot bridge: {snapshot_path}")
     print(f"Editable native project: {workspace}")
     server = ThreadingHTTPServer(address, Handler)
     try:
         server.serve_forever()
     except KeyboardInterrupt:
-        print("\nGeometry Processing Lab bridge stopped.")
+        print("\nDirection Field Lab bridge stopped.")
     finally:
         server.server_close()
 

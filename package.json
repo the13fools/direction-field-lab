@@ -1,9 +1,9 @@
 {
-  "name": "geometry-processing-lab",
+  "name": "direction-field-lab",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "A local-first browser lab for inspectable geometry-processing solvers.",
+  "description": "A local-first lab for direction fields, Hodge decomposition, and integrable projection.",
   "engines": {
     "node": ">=22"
   },

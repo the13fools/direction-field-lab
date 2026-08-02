@@ -6,18 +6,18 @@
     <meta name="theme-color" content="#f1ede1" />
     <meta name="description" content="A local-first browser lab for inspectable geometry-processing solvers." />
     <meta property="og:type" content="website" />
-    <meta property="og:title" content="Geometry Processing Lab" />
+    <meta property="og:title" content="Direction Field Lab" />
     <meta property="og:description" content="Live energies, sparse Hessians, vector-field discretizations, and a path into TinyAD." />
     <meta property="og:image" content="./og.png" />
     <meta property="og:image:alt" content="A luminous tangent vector field flowing over a violet triangulated surface." />
     <meta name="twitter:card" content="summary_large_image" />
-    <title>Geometry Processing Lab</title>
+    <title>Direction Field Lab</title>
   </head>
   <body>
     <header class="app-header">
       <div class="identity">
-        <div class="mark">GPL</div>
-        <div><h1>Geometry Processing Lab</h1><p>small experiments · inspectable numerics · portable files</p></div>
+        <div class="mark">DFL</div>
+        <div><h1>Direction Field Lab</h1><p>vertex fields · integrable projection · research-ready experiments</p></div>
       </div>
       <div class="header-actions">
         <a href="./getting-started.html" class="button dark">Student start</a>
@@ -35,6 +35,15 @@
     </div>
     <main class="workspace">
       <aside class="sidebar">
+        <details class="first-visit-guide" open>
+          <summary><span>NEW HERE?</span><strong>Take the four-stop path</strong></summary>
+          <ol>
+            <li><a href="./getting-started.html"><b>Orient</b><small>See what runs in a browser, locally, and in C++.</small></a></li>
+            <li><a href="./index.html?lesson=hodge-one-form"><b>Decompose</b><small>Start with one Hodge decomposition.</small></a></li>
+            <li><a href="./energy-playground.html"><b>Experiment</b><small>Edit an energy with browser sparse AD.</small></a></li>
+            <li><a href="https://github.com/the13fools/direction-field-lab"><b>Clone</b><small>Continue with TinyAD, Polyscope, and the starter kit.</small></a></li>
+          </ol>
+        </details>
         <p class="section-label">Vector field tour</p>
         <p class="sidebar-intro">A compact path from local energies to discrete Hodge theory, integrable projection, and surface flow. Open one chapter at a time.</p>
         <div id="tutorials" class="tutorial-sections"></div>
@@ -55,7 +64,7 @@
       </aside>
       <section class="stage">
         <div id="viewer" aria-label="Interactive result viewer"></div>
-        <details id="representation-note" class="representation-note" open hidden>
+        <details id="representation-note" class="representation-note" hidden>
           <summary>
             <div><span id="representation-kind">Representation</span><strong id="representation-title">—</strong></div>
             <span class="brief-toggle" aria-hidden="true"></span>
@@ -148,21 +157,24 @@
         <div class="editor-head"><h2>Experiment controls</h2><div class="editor-tools"><button id="code-focus" class="button" type="button" aria-pressed="false">Expand code</button><button id="guided-mode" class="button editor-mode active" type="button">Guided</button><button id="json-mode" class="button editor-mode" type="button">JSON</button><button id="format" class="button">Validate</button></div></div>
         <div id="problem-controls" class="problem-controls" aria-label="Guided problem controls"></div>
         <textarea id="problem-editor" spellcheck="false" aria-label="Editable problem JSON"></textarea>
-        <p id="editor-note" class="editor-note">Adjust the labeled controls, then choose <code>Reset + build</code>. JSON remains available as the portable source of truth.</p>
+        <p id="editor-note" class="editor-note">Adjust the labeled controls, then choose <code>Reset + build</code>. Choose <b>JSON</b> above to see the complete active problem. Repository seed: <a id="problem-source-link" href="https://github.com/the13fools/direction-field-lab/blob/main/src/core/problem.ts" target="_blank" rel="noreferrer"><code id="problem-source-path">src/core/problem.ts</code> ↗</a></p>
         <details id="source-panel" class="source-panel" hidden>
           <summary><span id="source-title">Actual TinyAD callbacks</span><span id="source-state" data-kind="compiled">compiled source</span></summary>
-          <div id="source-explainer" class="source-explainer">
-            This is the literal C++ callback behind the experiment. Comments marked <code>LAB NOTE</code> explain what TinyAD differentiates; <code>TRY</code> suggests a safe first change. The browser view keeps running its committed Wasm; connected mode can compile the edited vertex callback into the native target, while static mode can export it.
-          </div>
-          <section class="execution-guide" aria-label="What changes run without compiling">
-            <header><span>WHAT RUNS?</span><strong>The browser and C++ editor have different execution boundaries.</strong></header>
-            <div class="execution-guide-grid">
-              <div><b>LIVE · NO REBUILD</b><small>Guided controls and JSON change numbers passed into the already-compiled objective.</small></div>
-              <div><b>LIVE · BROWSER AD</b><small>The Energy Playground's scalar expression is parsed and differentiated in TypeScript.</small></div>
-              <div class="needs-build"><b>REBUILD REQUIRED</b><small>Editing this C++ callback changes source text, not the Wasm currently running.</small></div>
+          <details class="source-guidance">
+            <summary><span>How browser edits differ from C++</span><small>show explanation +</small></summary>
+            <div id="source-explainer" class="source-explainer">
+              This is the literal C++ callback behind the experiment. Comments marked <code>LAB NOTE</code> explain what TinyAD differentiates; <code>TRY</code> suggests a safe first change. The browser view keeps running its committed Wasm; connected mode can compile the edited vertex callback into the native target, while static mode can export it.
             </div>
-            <p>On GitHub Pages, download or commit C++ edits and rebuild. Locally, start the bridge to enable <b>Build + open native</b>. <a href="./getting-started.html#execution-boundary">See the complete workflow →</a></p>
-          </section>
+            <section class="execution-guide" aria-label="What changes run without compiling">
+              <header><span>WHAT RUNS?</span><strong>The browser and C++ editor have different execution boundaries.</strong></header>
+              <div class="execution-guide-grid">
+                <div><b>LIVE · NO REBUILD</b><small>Guided controls and JSON change numbers passed into the already-compiled objective.</small></div>
+                <div><b>LIVE · BROWSER AD</b><small>The Energy Playground's scalar expression is parsed and differentiated in TypeScript.</small></div>
+                <div class="needs-build"><b>REBUILD REQUIRED</b><small>Editing this C++ callback changes source text, not the Wasm currently running.</small></div>
+              </div>
+              <p>On GitHub Pages, download or commit C++ edits and rebuild. Locally, start the bridge to enable <b>Build + open native</b>. <a href="./getting-started.html#execution-boundary">See the complete workflow →</a></p>
+            </section>
+          </details>
           <div class="code-editor-shell">
             <pre id="callback-highlight" aria-hidden="true"></pre>
             <textarea id="callback-editor" wrap="off" spellcheck="false" aria-label="Editable TinyAD C++ callback source"></textarea>

@@ -1,4 +1,4 @@
-# Using Geometry Processing Lab
+# Using Direction Field Lab
 
 The repository supports three deliberately different levels of commitment:
 

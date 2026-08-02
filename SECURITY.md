@@ -1,6 +1,6 @@
 # Security
 
-Geometry Processing Lab is a static, local-first application. Report a security
+Direction Field Lab is a static, local-first application. Report a security
 issue privately to the repository owner rather than opening a public issue.
 
 The local Polyscope bridge binds only to `127.0.0.1`, validates the snapshot

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""View Geometry Processing Lab snapshots in Polyscope.
+"""View Direction Field Lab snapshots in Polyscope.
 
 The parser is dependency-free. NumPy and Polyscope are imported only after the
 document has been validated, so format tests do not need a graphics stack.
@@ -282,7 +282,7 @@ def main() -> None:
         except (OSError, ValueError, json.JSONDecodeError) as error:
             print(f"Snapshot reload failed: {error}")
 
-    ps.set_program_name("Geometry Processing Lab · Python")
+    ps.set_program_name("Direction Field Lab · Python")
     ps.set_open_imgui_window_for_user_callback(False)
     ps.init()
     reload_if_changed()

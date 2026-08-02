@@ -112,6 +112,19 @@ a.button { display: inline-grid; place-items: center; text-decoration: none; }
 .editor-resizer:focus-visible::after { background: #70a493; box-shadow: 0 0 0 2px rgba(112, 164, 147, .24); }
 body.resizing-editor { cursor: col-resize; user-select: none; }
 .sidebar { padding: 20px; border-right: 1px solid var(--line); }
+.first-visit-guide { margin: 0 0 18px; border: 1px solid #65508a; border-radius: 5px; background: linear-gradient(145deg, #211942, #18382f); }
+.first-visit-guide > summary { padding: 11px 12px; color: white; cursor: pointer; list-style: none; }
+.first-visit-guide > summary::-webkit-details-marker { display: none; }
+.first-visit-guide > summary span, .first-visit-guide > summary strong { display: block; }
+.first-visit-guide > summary span { margin-bottom: 4px; color: var(--acid); font: 8px var(--mono); letter-spacing: .08em; }
+.first-visit-guide > summary strong { font-size: 11px; }
+.first-visit-guide ol { display: grid; gap: 1px; margin: 0; padding: 1px; list-style: none; background: #38534a; }
+.first-visit-guide li { background: #10261f; }
+.first-visit-guide a { display: block; padding: 9px 10px; color: white; text-decoration: none; }
+.first-visit-guide a:hover { background: #183b30; }
+.first-visit-guide b, .first-visit-guide small { display: block; }
+.first-visit-guide b { color: #70dcff; font: 9px var(--mono); }
+.first-visit-guide small { margin-top: 3px; color: #9bb3aa; font-size: 8px; line-height: 1.35; }
 .editor-panel { display: flex; flex-direction: column; border-left: 1px solid var(--line); }
 .section-label { margin: 0 0 10px; color: var(--quiet); font: 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
 .sidebar-intro { margin: 0 0 22px; color: var(--quiet); font-size: 13px; line-height: 1.55; }
@@ -286,6 +299,7 @@ body.resizing-editor { cursor: col-resize; user-select: none; }
 .editor-panel.source-visible #problem-editor { flex: 0 0 clamp(240px, 34vh, 330px); min-height: 240px; resize: vertical; }
 .editor-note { margin: 0; padding: 14px 16px; color: var(--quiet); border-top: 1px solid var(--line); font-size: 11px; line-height: 1.5; }
 .editor-note code { color: var(--ink); font-family: var(--mono); }
+.editor-note a { color: #4f2b74; font-weight: 750; }
 
 .source-panel { flex: 0 0 auto; border-top: 1px solid var(--line); background: #eef1eb; }
 .source-panel[hidden] { display: none; }
@@ -294,6 +308,14 @@ body.resizing-editor { cursor: col-resize; user-select: none; }
 #source-state[data-kind="modified"] { color: #a13c2c; }
 .source-explainer { padding: 0 16px 12px; color: var(--quiet); font-size: 10px; line-height: 1.55; }
 .source-explainer code { color: var(--ink); font-family: var(--mono); font-weight: 700; }
+.source-guidance { border-top: 1px solid #d4dbd6; background: #f6f8f3; }
+.source-guidance > summary { padding: 9px 16px; font-size: 9px; list-style: none; }
+.source-guidance > summary::-webkit-details-marker { display: none; }
+.source-guidance > summary span { font-weight: 800; }
+.source-guidance > summary small { margin-left: auto; color: #6e7873; font: 8px var(--mono); text-transform: uppercase; }
+.source-guidance[open] > summary small { font-size: 0; }
+.source-guidance[open] > summary small::after { content: "hide explanation −"; font: 8px var(--mono); }
+.source-guidance .source-explainer { padding-top: 3px; }
 .execution-guide { margin: 0 16px 13px; overflow: hidden; border: 1px solid #bbc7c0; border-radius: 5px; background: #fbfcf8; }
 .execution-guide header { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-bottom: 1px solid #d8ded9; }
 .execution-guide header span { padding: 3px 6px; color: #5b286e; border: 1px solid #c8a5d5; border-radius: 999px; background: #f2e5fa; font: 8px var(--mono); letter-spacing: .06em; }
@@ -370,8 +392,7 @@ body.resizing-editor { cursor: col-resize; user-select: none; }
   .workspace[data-code-focus="true"] .editor-note { display: none; }
   .workspace[data-code-focus="true"] .editor-head { flex: 0 0 auto; justify-content: flex-end; padding: 8px 10px; }
   .workspace[data-code-focus="true"] .source-panel[open] { display: flex; flex: 1 1 auto; min-height: 0; flex-direction: column; overflow: hidden; border-top: 0; }
-  .workspace[data-code-focus="true"] .source-explainer,
-  .workspace[data-code-focus="true"] .execution-guide { flex: 0 0 auto; }
+  .workspace[data-code-focus="true"] .source-guidance { flex: 0 0 auto; }
   /* Chromium places the non-summary contents of <details> in an anonymous
      wrapper, so flex-grow on this child can collapse to its borders. Give the
      focused editor an explicit viewport-derived height instead. */

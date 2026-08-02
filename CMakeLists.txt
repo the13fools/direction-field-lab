@@ -71,6 +71,6 @@ if(GEOMETRY_LAB_BUILD_POLYSCOPE)
     geometry-lab-vertex-field PRIVATE geometry-lab::core polyscope
   )
 
-  add_subdirectory(student-starter)
+  add_subdirectory(geometry-processing-starter-kit)
   add_subdirectory(native/polyscope-viewer)
 endif()
