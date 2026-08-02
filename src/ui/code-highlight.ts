@@ -35,6 +35,22 @@ const TYPES = new Set([
 
 const LITERALS = new Set(["false", "nullptr", "true"]);
 
+const TYPESCRIPT_KEYWORDS = new Set([
+  "as", "async", "await", "break", "case", "catch", "class", "const", "continue",
+  "default", "do", "else", "export", "extends", "finally", "for", "from", "function",
+  "if", "implements", "import", "in", "instanceof", "interface", "let", "new", "of",
+  "private", "protected", "public", "readonly", "return", "static", "switch", "throw",
+  "try", "type", "typeof", "while", "yield",
+]);
+
+const TYPESCRIPT_TYPES = new Set([
+  "Array", "ArrayLike", "boolean", "CanvasRenderingContext2D", "Float32Array",
+  "Float64Array", "HTMLElement", "HTMLCanvasElement", "Map", "number", "Record",
+  "Set", "string", "unknown", "void",
+]);
+
+const TYPESCRIPT_LITERALS = new Set(["false", "null", "true", "undefined"]);
+
 function escapeHtml(value: string): string {
   return value
     .replaceAll("&", "&amp;")
@@ -55,7 +71,13 @@ function token(kind: string, value: string): string {
  * to the compiler. Keeping the lexer local also keeps the static lab free of a
  * large editor dependency.
  */
-export function highlightCpp(source: string): string {
+function highlightCode(
+  source: string,
+  keywords: ReadonlySet<string>,
+  types: ReadonlySet<string>,
+  literals: ReadonlySet<string>,
+  preprocessor: boolean,
+): string {
   let result = "";
   let index = 0;
   let lineStart = true;
@@ -77,7 +99,7 @@ export function highlightCpp(source: string): string {
       continue;
     }
 
-    if (lineStart && character === "#") {
+    if (preprocessor && lineStart && character === "#") {
       const end = source.indexOf("\n", index);
       const stop = end === -1 ? source.length : end;
       result += token("preprocessor", source.slice(index, stop));
@@ -105,7 +127,7 @@ export function highlightCpp(source: string): string {
       continue;
     }
 
-    if (character === '"' || character === "'") {
+    if (character === '"' || character === "'" || character === "`") {
       const quote = character;
       let stop = index + 1;
       while (stop < source.length) {
@@ -136,11 +158,11 @@ export function highlightCpp(source: string): string {
 
     const identifier = remainder.match(/^[A-Za-z_][A-Za-z0-9_]*/)?.[0];
     if (identifier) {
-      const kind = KEYWORDS.has(identifier)
+      const kind = keywords.has(identifier)
         ? "keyword"
-        : TYPES.has(identifier)
+        : types.has(identifier)
           ? "type"
-          : LITERALS.has(identifier)
+          : literals.has(identifier)
             ? "literal"
             : /^[A-Z][A-Z0-9_]+$/.test(identifier)
               ? "macro"
@@ -157,4 +179,19 @@ export function highlightCpp(source: string): string {
   }
 
   return result;
+}
+
+export function highlightCpp(source: string): string {
+  return highlightCode(source, KEYWORDS, TYPES, LITERALS, true);
+}
+
+/** Lightweight, dependency-free highlighting for the executable reference adapters. */
+export function highlightTypeScript(source: string): string {
+  return highlightCode(
+    source,
+    TYPESCRIPT_KEYWORDS,
+    TYPESCRIPT_TYPES,
+    TYPESCRIPT_LITERALS,
+    false,
+  );
 }

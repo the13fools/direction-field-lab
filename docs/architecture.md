@@ -52,12 +52,13 @@ committed Wasm. It cannot safely turn arbitrary C++ text into a new WebAssembly
 module. The callback editor therefore has two explicit outcomes:
 
 - on static hosting, save the source in IndexedDB or export it;
-- after download, copy the whitelisted callback files into a clone and rebuild
-  the native or Wasm target with the pinned toolchain.
+- in connected local mode, build the whitelisted vertex callback through the
+  fixed native target, or export it for a native or Wasm rebuild elsewhere.
 
-The optional bridge never accepts an output path or shell command from the
-browser. Supporting one-click recompilation later should use a declared project
-manifest and an isolated build directory, not loosen the path whitelist.
+The optional bridge binds to loopback, uses an isolated scratch directory, and
+never accepts an output path, target, compiler flag, or shell command from the
+browser. Extending one-click recompilation to more experiment types should use
+a declared project manifest, not loosen the path whitelist.
 
 See [cpp-first-workflow.md](cpp-first-workflow.md).
 
@@ -97,12 +98,18 @@ a newer handshake.
 
 An experiment is a versioned document, not another branch in the application
 controller. It names mesh and field generators, one or more operator methods,
-metrics, presets, and an optional parameter sweep. A future runtime registry
-will map each operator id to a lazy-loaded backend adapter and a renderer.
+metrics, presets, and an optional parameter sweep. The runtime registry maps a
+compatible set of operator ids to an adapter. Its first adapter executes the
+vertex-curl manufactured-solution bench and returns `result@2`; unknown operator
+sets fail with an explicit adapter diagnostic.
 
 Keep operator ids about mathematical behavior (`projection.hodge-edge-dec`,
 `connection.phong-rodrigues`), not C++ class names. The C++/Embind surface can
 change without invalidating saved experiments.
+
+The standalone `vertex-curl.html` page is a renderer for that same adapter. The
+course page and embed protocol call the same manifest contract; neither owns a
+private copy of the numerical output schema.
 
 ## Adding a kernel
 

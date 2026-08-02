@@ -53,6 +53,80 @@ export function periodicGridFaces(gridSize: number): Int32Array {
 }
 
 /**
+ * Reconstruct a flat, periodic edge 1-form at vertices before it is lifted to
+ * the decorative torus. The Hodge kernel lives on a flat square complex; doing
+ * Whitney interpolation directly on the curved display mesh silently changes
+ * its metric and produces especially misleading arrows near the seams.
+ */
+export function periodicVertexFieldFromOneForm(
+  gridSize: number,
+  edges: Int32Array,
+  values: Float64Array,
+): Float64Array {
+  if (edges.length !== values.length * 2) {
+    throw new Error("A discrete 1-form needs one value per oriented edge.");
+  }
+
+  const lookup = new Map<string, { edge: number; tail: number; head: number }>();
+  for (let edge = 0; edge < values.length; edge += 1) {
+    const tail = edges[2 * edge]!;
+    const head = edges[2 * edge + 1]!;
+    lookup.set(edgeKey(tail, head), { edge, tail, head });
+  }
+
+  const faces = periodicGridFaces(gridSize);
+  const sums = new Float64Array(gridSize * gridSize * 2);
+  const weights = new Float64Array(gridSize * gridSize);
+  for (let face = 0; face < faces.length / 3; face += 1) {
+    const vertices: [number, number, number] = [
+      faces[3 * face]!,
+      faces[3 * face + 1]!,
+      faces[3 * face + 2]!,
+    ];
+    const cell = Math.floor(face / 2);
+    const x = cell % gridSize;
+    const y = Math.floor(cell / gridSize);
+    const points: [[number, number], [number, number], [number, number]] =
+      face % 2 === 0
+        ? [[x, y], [x + 1, y], [x + 1, y + 1]]
+        : [[x, y], [x + 1, y + 1], [x, y + 1]];
+    const twiceArea =
+      (points[1][0] - points[0][0]) * (points[2][1] - points[0][1]) -
+      (points[1][1] - points[0][1]) * (points[2][0] - points[0][0]);
+    const gradients: [[number, number], [number, number], [number, number]] = [
+      [(points[1][1] - points[2][1]) / twiceArea, (points[2][0] - points[1][0]) / twiceArea],
+      [(points[2][1] - points[0][1]) / twiceArea, (points[0][0] - points[2][0]) / twiceArea],
+      [(points[0][1] - points[1][1]) / twiceArea, (points[1][0] - points[0][0]) / twiceArea],
+    ];
+    const alpha = [
+      orientedValue(vertices[0], vertices[1], lookup, values),
+      orientedValue(vertices[1], vertices[2], lookup, values),
+      orientedValue(vertices[2], vertices[0], lookup, values),
+    ];
+    let vectorX = 0;
+    let vectorY = 0;
+    for (let edge = 0; edge < 3; edge += 1) {
+      const next = (edge + 1) % 3;
+      vectorX += alpha[edge]! * (gradients[next]![0] - gradients[edge]![0]) / 3;
+      vectorY += alpha[edge]! * (gradients[next]![1] - gradients[edge]![1]) / 3;
+    }
+    const area = 0.5 * twiceArea;
+    for (const vertex of vertices) {
+      sums[2 * vertex] = sums[2 * vertex]! + area * vectorX;
+      sums[2 * vertex + 1] = sums[2 * vertex + 1]! + area * vectorY;
+      weights[vertex] = weights[vertex]! + area;
+    }
+  }
+
+  for (let vertex = 0; vertex < weights.length; vertex += 1) {
+    const weight = weights[vertex]!;
+    sums[2 * vertex] = sums[2 * vertex]! / weight;
+    sums[2 * vertex + 1] = sums[2 * vertex + 1]! / weight;
+  }
+  return sums;
+}
+
+/**
  * Convert a discrete primal 1-form (one signed integral per oriented edge)
  * into a tangent vector at each triangle barycenter using Whitney
  * interpolation. This is the same bridge used by mesh DEC viewers: the

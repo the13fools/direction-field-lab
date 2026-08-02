@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#21194a" />
+    <meta name="description" content="From an interactive geometry-processing figure to a local TinyAD and Polyscope research project." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Geometry Processing Lab · Start, fork, publish" />
+    <meta property="og:description" content="Move one geometry-processing experiment from a static figure to a TinyAD and Polyscope research project." />
+    <meta property="og:image" content="./og.png" />
+    <meta property="og:image:alt" content="A luminous tangent vector field flowing over a violet triangulated surface." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>Start, fork, publish · Geometry Processing Lab</title>
+  </head>
+  <body>
+    <header class="start-header">
+      <a href="./index.html">← Geometry Processing Lab</a>
+      <nav aria-label="Getting started links">
+        <a href="./energy-playground.html">Live workshop</a>
+        <a href="./shallow-water.html">Surface-wave starter</a>
+        <a href="./vertex-curl.html">Curl observatory</a>
+        <a href="./references.html">Reading map</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="start-hero">
+        <p class="eyebrow">READER → STUDENT → RESEARCHER → AUTHOR</p>
+        <h1>One experiment should survive every handoff.</h1>
+        <p class="hero-copy">Begin with a figure that runs on a static blog. Clone the lab only when you want to change its structure. Move into TinyAD and Polyscope when the experiment needs a serious native solver. Publish the validated element program with the result.</p>
+        <div class="hero-actions">
+          <a class="primary-action" href="./energy-playground.html">Try the live objective</a>
+          <a class="secondary-action" href="#clone">Set up a local clone ↓</a>
+        </div>
+        <div class="handoff-rail" aria-label="Experiment workflow">
+          <div><span>00</span><b>Read</b><small>static figure</small></div>
+          <i>→</i>
+          <div><span>01</span><b>Fork</b><small>browser lab</small></div>
+          <i>→</i>
+          <div><span>02</span><b>Research</b><small>TinyAD + Polyscope</small></div>
+          <i>→</i>
+          <div><span>03</span><b>Publish</b><small>blog + artifact</small></div>
+        </div>
+      </section>
+
+      <section class="workflow-section">
+        <div class="section-heading">
+          <p class="eyebrow">CHOOSE THE SMALLEST ENVIRONMENT THAT ANSWERS THE QUESTION</p>
+          <h2>Start without installing the entire research stack</h2>
+        </div>
+        <div class="mode-grid">
+          <article>
+            <span>NO INSTALL</span>
+            <h3>Change an energy in the browser</h3>
+            <p>Edit the safe scalar expression, assemble its sparse Hessian, and export the complete program. This path works from GitHub Pages or a blog iframe.</p>
+            <a href="./dec-playground.html">Begin with forms, d, and ⋆ →</a>
+            <a href="./energy-playground.html">Then open the live energy →</a>
+          </article>
+          <article id="clone">
+            <span>WEB CLONE</span>
+            <h3>Change the web experiment</h3>
+            <p>Use this when you want new controls, plots, element kinds, or lessons. The committed Wasm is already present.</p>
+            <div class="command-card">
+              <button data-copy-source="clone-commands">Copy</button>
+              <pre id="clone-commands"><code>git clone https://github.com/YOUR-NAME/geometry-processing-lab.git
+cd geometry-processing-lab
+npm ci
+npm run doctor
+npm run dev</code></pre>
+            </div>
+            <small>Open <code>http://localhost:4173</code>. Node 22+ is the only required runtime for this path.</small>
+          </article>
+          <article>
+            <span>NATIVE PROJECT</span>
+            <h3>Change C++ and inspect in Polyscope</h3>
+            <p>Copy the deliberately small starter when your method needs arbitrary C++, mesh neighborhoods, or native debugging.</p>
+            <div class="command-card">
+              <button data-copy-source="native-commands">Copy</button>
+              <pre id="native-commands"><code>cp -R student-starter ../my-geometry-project
+cd ../my-geometry-project
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j 4
+./build/sgi-tinyad-starter</code></pre>
+            </div>
+            <small>The first configure downloads the pinned Eigen, TinyAD, and Polyscope dependencies.</small>
+          </article>
+        </div>
+      </section>
+
+      <section class="artifact-section">
+        <div>
+          <p class="eyebrow">THE THREAD THROUGH ALL THREE ENVIRONMENTS</p>
+          <h2>The element program is the research object</h2>
+          <p>A picture is evidence that something rendered. The shared file records what was optimized: unknown association, target, parameters, local expression, edge connection term, face circulation term, and solver choice.</p>
+          <ul>
+            <li><code>element-program.json</code> runs in the browser and lives in a share URL.</li>
+            <li><code>GeneratedElementProgram.hh</code> carries the same terms into TinyAD.</li>
+            <li><code>generated_element_program.py</code> is a readable Python reference.</li>
+            <li><code>result@2</code> carries mesh fields and diagnostics back to the web or Polyscope.</li>
+          </ul>
+        </div>
+        <pre class="artifact-code"><code>{
+  "unknown": {
+    "association": "vertex",
+    "dimension": 2,
+    "frame": "tangent"
+  },
+  "terms": [
+    "vertex expression",
+    "edge connection",
+    "triangle circulation"
+  ],
+  "solver": "damped sparse Newton"
+}</code></pre>
+      </section>
+
+      <section class="hosting-section" id="publish">
+        <div class="section-heading">
+          <p class="eyebrow">STATIC BY DEFAULT</p>
+          <h2>Publish without operating a compiler service</h2>
+          <p>The browser solver, Wasm kernels, examples, and documentation compile into ordinary files under <code>dist/</code>. Public hosting never receives arbitrary C++ or launches Polyscope.</p>
+        </div>
+        <div class="hosting-grid">
+          <article class="pages-card">
+            <span>RECOMMENDED FOR STUDENT FORKS</span>
+            <h3>GitHub Pages</h3>
+            <ol>
+              <li>Push the fork to GitHub.</li>
+              <li>Choose <b>Settings → Pages → GitHub Actions</b>.</li>
+              <li>Run <b>Publish website</b>, or push to <code>main</code>.</li>
+              <li>Paste the published experiment URL into the blog embed tool.</li>
+            </ol>
+            <p>The included workflow verifies the numerical tests and the subpath-safe static build before deployment.</p>
+          </article>
+          <article>
+            <span>ANY STATIC HOST</span>
+            <h3>Build once, upload <code>dist/</code></h3>
+            <div class="command-card light">
+              <button data-copy-source="host-commands">Copy</button>
+              <pre id="host-commands"><code>npm ci
+npm run check</code></pre>
+            </div>
+            <p>Configure the host’s output directory as <code>dist</code>. Relative asset URLs allow the lab to live at a domain root or repository subpath.</p>
+          </article>
+          <article>
+            <span>SGI BLOG</span>
+            <h3>Embed, with a durable fallback</h3>
+            <p>In the workshop, choose <b>Copy iframe</b> for a live figure and include the full-page link underneath. If the blog sanitizes iframes, use the generated Markdown fallback instead.</p>
+            <a href="./energy-playground.html">Create a publication kit →</a>
+          </article>
+        </div>
+      </section>
+
+      <section class="runtime-table-section">
+        <div class="section-heading"><p class="eyebrow">KNOW THE BOUNDARY</p><h2>What works where</h2></div>
+        <div class="runtime-table" role="table" aria-label="Capabilities by environment">
+          <div class="table-row heading" role="row"><b role="columnheader">Capability</b><b role="columnheader">Blog / Pages</b><b role="columnheader">Local web</b><b role="columnheader">Native</b></div>
+          <div class="table-row" role="row"><span role="cell">Edit scalar energy</span><strong role="cell">yes</strong><strong role="cell">yes</strong><strong role="cell">in C++</strong></div>
+          <div class="table-row" role="row"><span role="cell">Sparse Hessian + Newton/PCG</span><strong role="cell">browser</strong><strong role="cell">browser</strong><strong role="cell">TinyAD</strong></div>
+          <div class="table-row" role="row"><span role="cell">Compile arbitrary C++</span><em role="cell">no</em><strong role="cell">fixed bridge</strong><strong role="cell">yes</strong></div>
+          <div class="table-row" role="row"><span role="cell">Open Polyscope</span><em role="cell">download only</em><strong role="cell">loopback bridge</strong><strong role="cell">yes</strong></div>
+          <div class="table-row" role="row"><span role="cell">Share by URL</span><strong role="cell">yes</strong><strong role="cell">yes</strong><em role="cell">export result</em></div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <p>Begin with one manufactured solution and one question. Publish the program and diagnostics, not only the final picture.</p>
+      <div><a href="./energy-playground.html">Shared-file workshop</a><a href="./shallow-water.html">Shallow-water starter</a><a href="./references.html">Canonical reading map</a><a href="#publish">Publishing workflow</a><a href="./index.html">Return to the course tour</a></div>
+    </footer>
+
+    <div id="copy-toast" class="copy-toast" role="status" aria-live="polite"></div>
+    <script type="module" src="/src/getting-started.ts"></script>
+  </body>
+</html>

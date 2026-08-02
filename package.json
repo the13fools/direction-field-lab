@@ -4,9 +4,15 @@
   "private": true,
   "type": "module",
   "description": "A local-first browser lab for inspectable geometry-processing solvers.",
+  "engines": {
+    "node": ">=22"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
+    "check:static": "node tools/check_static_site.mjs",
+    "check": "npm test && npm run build && npm run check:static",
+    "doctor": "node tools/doctor.mjs",
     "preview": "vite preview",
     "test": "vitest run && npm run test:python && npm run test:wasm",
     "test:python": "python3 -m unittest tools/test_polyscope_viewer.py tools/test_polyscope_bridge.py",

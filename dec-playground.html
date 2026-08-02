@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#21194a" />
+    <meta name="description" content="An explorable ladder from discrete differential forms on a mesh to sparse operators and surface energies." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Geometry Processing Lab · Discrete forms playground" />
+    <meta property="og:description" content="Apply d and the Hodge star, inspect their sparse matrices, and turn a discrete operator into a local energy." />
+    <meta property="og:image" content="./og.png" />
+    <meta property="og:image:alt" content="A luminous tangent vector field flowing over a violet triangulated surface." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>Discrete forms playground · Geometry Processing Lab</title>
+  </head>
+  <body>
+    <header class="dec-header">
+      <a href="./index.html">← Geometry Processing Lab</a>
+      <div><span>EXPLORABLE EXPLANATION 00</span><h1>Move through discrete forms</h1></div>
+      <a href="./energy-playground.html">Continue to live energies →</a>
+    </header>
+
+    <main class="dec-page">
+      <aside class="operator-panel">
+        <p class="eyebrow">The DEC map</p>
+        <h2>Where does the data live?</h2>
+        <p class="panel-copy">Click a space to start there. Use <strong>d</strong> to move horizontally and the <strong class="hodge-star">⋆</strong> Hodge star to cross between the primal and dual mesh.</p>
+
+        <div class="dec-map" aria-label="Discrete exterior calculus form spaces">
+          <button data-form="primal-0"><b>Ω⁰</b><span>primal 0</span><small>vertices</small></button>
+          <span class="map-arrow">d →</span>
+          <button data-form="primal-1"><b>Ω¹</b><span>primal 1</span><small>edges</small></button>
+          <span class="map-arrow">d →</span>
+          <button data-form="primal-2"><b>Ω²</b><span>primal 2</span><small>faces</small></button>
+
+          <span class="star-arrow"><b>⋆</b><small>HODGE STAR</small></span><span></span><span class="star-arrow"><b>⋆</b><small>HODGE STAR</small></span><span></span><span class="star-arrow"><b>⋆</b><small>HODGE STAR</small></span>
+
+          <button data-form="dual-2"><b>Ω̃²</b><span>dual 2</span><small>dual cells</small></button>
+          <span class="map-arrow">← d</span>
+          <button data-form="dual-1"><b>Ω̃¹</b><span>dual 1</span><small>dual edges</small></button>
+          <span class="map-arrow">← d</span>
+          <button data-form="dual-0"><b>Ω̃⁰</b><span>dual 0</span><small>face centers</small></button>
+        </div>
+
+        <div class="operator-actions">
+          <button id="apply-d" class="candy-button">Apply d</button>
+          <button id="apply-star" class="candy-button star">Apply Hodge <span class="hodge-star">⋆</span></button>
+          <button id="undo-operation" class="plain-button">Undo</button>
+          <button id="reset-dec" class="plain-button">Start over</button>
+        </div>
+
+        <div class="recipe-row">
+          <span>TRY A COMPOSITION</span>
+          <button data-recipe="exactness">d · d</button>
+          <button data-recipe="codifferential">δ ≈ <span class="hodge-star">⋆</span> d <span class="hodge-star">⋆</span></button>
+          <button data-recipe="laplacian">Δ ≈ <span class="hodge-star">⋆</span> d <span class="hodge-star">⋆</span> d</button>
+        </div>
+
+        <div class="path-card">
+          <span>YOUR PATH THROUGH THE COMPLEX</span>
+          <div id="operator-path" class="operator-path"></div>
+          <p id="exactness-note"></p>
+        </div>
+
+        <details class="orientation-note">
+          <summary>What is fixed before we begin?</summary>
+          <p>Triangles are counterclockwise. Every primal edge has one stored direction. Dual orientations follow the transposed incidence matrices. Changing an orientation flips both the coefficient and the corresponding matrix column, not the represented form.</p>
+        </details>
+      </aside>
+
+      <section class="mesh-stage">
+        <div class="stage-heading">
+          <div><span id="form-kicker">PRIMAL COCHAIN</span><h2 id="form-title">Primal 0-form</h2><p id="form-subtitle">one number at every vertex</p></div>
+          <div class="stage-certificate"><span>support</span><strong id="support-count">—</strong><span>‖coefficients‖₂</span><strong id="cochain-norm">—</strong></div>
+        </div>
+        <div class="mesh-scale-switch" aria-label="DEC example mesh size"><div><span>EXAMPLE SIZE</span><strong id="mesh-scale-note">7 vertices · every coefficient labeled</strong></div><button data-dec-mesh="teaching" aria-pressed="true">Readable 1-ring</button><button data-dec-mesh="patch" aria-pressed="false">Larger 5 × 5 patch</button></div>
+        <canvas id="dec-canvas" aria-label="Interactive primal and dual mesh form visualization"></canvas>
+        <div class="mesh-legend"><span><i class="negative"></i>negative</span><span><i class="zero"></i>zero</span><span><i class="positive"></i>positive</span><span><i class="primal-line"></i>primal</span><span><i class="dual-line"></i>dual</span></div>
+
+        <div class="paint-controls">
+          <label><span><strong>Paint a coefficient</strong><small>click the current support on the mesh</small></span><output id="brush-output">0.75</output><input id="brush-value" type="range" min="-1" max="1" value="0.75" step="0.05"></label>
+          <label class="support-picker"><span>support index</span><input id="support-index" type="number" min="0" value="0"><button id="set-support" class="plain-button">Set value</button></label>
+        </div>
+        <div class="seed-row" aria-label="Cochain presets">
+          <span>Seed:</span>
+          <button data-seed="hill">smooth hill</button>
+          <button data-seed="linear">linear</button>
+          <button data-seed="alternating">alternating</button>
+        </div>
+      </section>
+
+      <aside class="abstraction-panel">
+        <p class="eyebrow">Ladder of abstraction</p>
+        <div class="lens-tabs" role="tablist" aria-label="Explanation level">
+          <button role="tab" data-lens="picture" aria-selected="true">Picture</button>
+          <button role="tab" data-lens="cochain" aria-selected="false">Cochain</button>
+          <button role="tab" data-lens="matrix" aria-selected="false">Matrix</button>
+          <button role="tab" data-lens="energy" aria-selected="false">Energy</button>
+        </div>
+
+        <section data-lens-panel="picture">
+          <span class="lens-number">01 · GEOMETRIC PICTURE</span>
+          <h2 id="picture-heading">Sample a function at vertices</h2>
+          <p id="picture-copy"></p>
+          <dl class="meaning-list">
+            <div><dt>support</dt><dd id="meaning-support"></dd></div>
+            <div><dt>coefficient means</dt><dd id="meaning-coefficient"></dd></div>
+            <div><dt>orientation</dt><dd id="meaning-orientation"></dd></div>
+          </dl>
+        </section>
+
+        <section data-lens-panel="cochain" hidden>
+          <span class="lens-number">02 · ARRAY OF MEASUREMENTS</span>
+          <h2 id="cochain-heading">The picture is a vector</h2>
+          <p>Click a coefficient to select its geometric support. Signs are meaningful only relative to the stored orientations shown on the mesh.</p>
+          <div id="cochain-values" class="cochain-values"></div>
+          <p id="selected-coefficient" class="selected-coefficient"></p>
+        </section>
+
+        <section data-lens-panel="matrix" hidden>
+          <span class="lens-number">03 · SPARSE LINEAR MAP</span>
+          <h2 id="matrix-heading">Incidence is topology</h2>
+          <p id="matrix-copy"></p>
+          <div class="matrix-meta"><span id="matrix-shape"></span><span id="matrix-nnz"></span></div>
+          <div id="matrix-grid" class="matrix-grid" role="table" aria-label="Current sparse operator matrix"></div>
+          <code id="matrix-equation" class="matrix-equation"></code>
+        </section>
+
+        <section data-lens-panel="energy" hidden>
+          <span class="lens-number">04 · LOCAL TERMS ASSEMBLE GLOBALLY</span>
+          <h2 id="energy-heading">Turn the residual into an energy</h2>
+          <code id="energy-formula" class="energy-formula"></code>
+          <p id="energy-copy"></p>
+          <div class="energy-value"><span>current value</span><strong id="natural-energy">—</strong></div>
+          <pre><code id="energy-code"></code></pre>
+          <a href="./energy-playground.html">Write and differentiate a live vertex-field energy →</a>
+        </section>
+      </aside>
+    </main>
+
+    <section class="next-rung">
+      <div><p class="eyebrow">THE NEXT RUNG</p><h2>From a topological identity to a surface objective</h2></div>
+      <ol>
+        <li><span>1</span><div><strong>Choose the unknown.</strong><p>Vertex scalar, edge 1-form, face vector, or vertex tangent vector are different spaces.</p></div></li>
+        <li><span>2</span><div><strong>Choose the measurement.</strong><p><code>d₀φ</code> is an edge difference. <code>d₁α</code> is triangle circulation.</p></div></li>
+        <li><span>3</span><div><strong>Choose the metric.</strong><p>The Hodge star supplies geometry and units; it is not another incidence matrix.</p></div></li>
+        <li><span>4</span><div><strong>Write the local energy.</strong><p>TinyAD differentiates the edge or face term and scatters its sparse derivatives.</p></div></li>
+      </ol>
+      <div class="next-actions"><a href="./representations.html">Compare vertex, edge, and face addresses</a><a href="./energy-playground.html">Open the live energy workshop</a><a href="./getting-started.html">Continue into TinyAD + Polyscope</a></div>
+    </section>
+
+    <footer>
+      <p>Interaction pattern inspired by Geometry Collective’s browser projects.</p>
+      <div><a href="https://www.cs.cmu.edu/~kmcrane/Projects/DDG/" target="_blank" rel="noreferrer">DEC course notes ↗</a><a href="https://geometrycollective.github.io/geometry-processing-js/projects/discrete-exterior-calculus/index.html" target="_blank" rel="noreferrer">Discrete Exterior Calculus ↗</a><a href="https://geometrycollective.github.io/geometry-processing-js/projects/direction-field-design/index.html" target="_blank" rel="noreferrer">Direction Field Design ↗</a><a href="./references.html#dec">Annotated reading map →</a></div>
+    </footer>
+
+    <script type="module" src="/src/experiments/dec-playground.ts"></script>
+  </body>
+</html>

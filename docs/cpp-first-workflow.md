@@ -5,7 +5,7 @@ it. A student should be able to inspect an experiment before installing a
 toolchain, edit the important local energy with little ceremony, and then keep
 the same code and data when the project becomes serious.
 
-## The two honest execution modes
+## Three honest execution modes
 
 ### Static mode
 
@@ -20,24 +20,38 @@ The published site contains a pinned WebAssembly module. It can:
 It does **not** compile arbitrary C++ in a visitor's browser. Pretending that an
 edited header had taken effect would make the lab pedagogically dangerous.
 
-### Local rebuild mode
+### Connected local mode
+
+After `npm run build` and `npm run serve:bridge:python`, the same page is served
+by a loopback-only bridge. For the vertex-field lessons it can send the current
+problem and whitelisted callback headers to a scratch workspace, build the
+fixed `geometry-lab-vertex-field` CMake target, and launch Polyscope. The UI asks
+for confirmation before compilation.
+
+This is orchestration, not a general terminal: the browser cannot choose a
+command, target, compiler flag, path, or environment variable. A lock prevents
+overlapping native builds. Edited C++ still executes locally, so the trust
+boundary is the user's clone.
+
+### Download-and-rebuild mode
 
 **Download rebuild files** exports the edited callbacks and problem. A student
 copies those headers into a clone, rebuilds with the pinned toolchain, and then
 runs either the Wasm lab or native Polyscope target.
 
-This supplies the desired beginner loop:
+Together, the connected button and download fallback supply the desired
+beginner loop:
 
 1. open one page;
 2. change a local TinyAD energy;
-3. download the problem and edited headers;
-4. copy them into a clone and rebuild;
+3. build the fixed native target from the connected page, or download the
+   problem and edited headers;
+4. inspect the scratch build, or copy the archive into a larger clone;
 5. TinyAD produces the gradient and Hessian during execution;
 6. inspect the result in the browser or Polyscope.
 
 Because the header is compiled and executed locally, rebuild only source you
-trust. The explicit download boundary is intentional in the current teaching
-UI.
+trust. The static page never gains this authority.
 
 ### Fork-hosted mode
 

@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f1ede1" />
     <meta name="description" content="A local-first browser lab for inspectable geometry-processing solvers." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Geometry Processing Lab" />
+    <meta property="og:description" content="Live energies, sparse Hessians, vector-field discretizations, and a path into TinyAD." />
+    <meta property="og:image" content="./og.png" />
+    <meta property="og:image:alt" content="A luminous tangent vector field flowing over a violet triangulated surface." />
+    <meta name="twitter:card" content="summary_large_image" />
     <title>Geometry Processing Lab</title>
   </head>
   <body>
@@ -14,6 +20,8 @@
         <div><h1>Geometry Processing Lab</h1><p>small experiments · inspectable numerics · portable files</p></div>
       </div>
       <div class="header-actions">
+        <a href="./getting-started.html" class="button dark">Student start</a>
+        <a href="./references.html" class="button dark">Reading map</a>
         <span id="persistence-state" class="persistence-state">local draft ready</span>
         <button id="import-file" class="button dark">Import problem</button>
         <button id="save-local" class="button dark">Save locally</button>
@@ -21,12 +29,25 @@
         <input id="file-input" type="file" accept="application/json,.json" hidden>
       </div>
     </header>
-    <div class="status-strip"><span id="status">Loading numerical kernels…</span><span id="backend">WebAssembly worker</span></div>
+    <div class="status-strip">
+      <span id="status">Loading numerical kernels…</span>
+      <span class="backend-cluster"><span id="backend">WebAssembly worker</span><span id="local-mode" data-kind="static">static web</span></span>
+    </div>
     <main class="workspace">
       <aside class="sidebar">
-        <p class="section-label">Guided experiments</p>
-        <p class="sidebar-intro">Change one thing, predict the outcome, then read the solver diagnostics. These are reference problems—not magic buttons.</p>
-        <div id="tutorials"></div>
+        <p class="section-label">Vector field tour</p>
+        <p class="sidebar-intro">A compact path from local energies to discrete Hodge theory, integrable projection, and surface flow. Open one chapter at a time.</p>
+        <div id="tutorials" class="tutorial-sections"></div>
+        <details class="tour-section roadmap-section" name="tour-sections">
+          <summary class="tour-summary"><span class="tour-marker">D</span><span><strong>Toward shallow water</strong><small>Turn the operators into a conservative surface dynamics stack.</small></span></summary>
+          <ol class="roadmap-list">
+            <li><strong>State</strong><span>Vertex height h + vertex tangent velocity u.</span></li>
+            <li><strong>Flux audit</strong><span>Derive an edge 1-form α from u; never hide the transfer.</span></li>
+            <li><strong>Pressure</strong><span>Pair G and D = −Mₕ⁻¹GᵀMᵤ before time integration.</span></li>
+            <li><strong>Linear wave</strong><span>Benchmark mass and energy before adding advection.</span></li>
+          </ol>
+          <a class="roadmap-launch" href="./shallow-water.html"><strong>Open the runnable starter →</strong><span>Advance a vertex height + tangent velocity pulse, audit mass and energy, then compare a future vorticity state.</span></a>
+        </details>
         <div class="local-area">
           <p class="section-label">This browser</p>
           <select id="workspace-select" aria-label="Saved local workspaces"></select>
@@ -42,6 +63,39 @@
           <div class="representation-copy">
             <p id="representation-description"></p>
             <ol id="representation-steps"></ol>
+            <details id="projection-map" class="projection-map" hidden>
+              <summary><span>OBJECTIVE MAP</span><strong>Which integrable projection is this?</strong><span class="projection-toggle">compare +</span></summary>
+              <div class="projection-grid">
+                <article data-projection-family="penalty">
+                  <span>INTERACTIVE BASELINE</span><strong>Soft curl penalty</strong>
+                  <code>min E<sub>fit</sub>(w) + μ/2 ‖Cw‖²</code>
+                  <p>Easy to edit and continue in μ. Finite μ reduces circulation but does not impose exact integrability.</p>
+                </article>
+                <article data-projection-family="closest">
+                  <span>HODGE / CLOSEST FIELD</span><strong>Metric projection</strong>
+                  <code>min ½‖δ‖²<sub>M</sub> &nbsp; s.t. C(w+δ)=0</code>
+                  <p>The answer depends on the field representation, mass matrix, boundary conditions, and global periods.</p>
+                </article>
+                <article data-projection-family="rescale">
+                  <span>DIRECTION → PERIODIC PHASE</span><strong>Rescaled stripe projection</strong>
+                  <code>min Σ w<sub>ij</sub>|ψ<sub>j</sub>−e<sup>iωij</sup>ψ<sub>i</sub>|² &nbsp; s.t. ‖ψ‖<sub>M</sub>=1</code>
+                  <p>Turns field directions and spacing into a periodic phase. Amplitude or an explicit scale field can yield near incompatibilities, exposing stripe branch points.</p>
+                </article>
+                <article data-projection-family="unit">
+                  <span>UNIT-AWARE FIELD</span><strong>As integrable + unit as possible</strong>
+                  <code>min E<sub>fit</sub> + μ/2‖Cw‖² + ν/2Σ(‖w<sub>i</sub>‖²−1)²</code>
+                  <p>Finite curl and unit penalties expose the compromise before either condition is promoted to a hard constraint.</p>
+                </article>
+              </div>
+              <p class="projection-source">The highlighted card names the current lesson. Each family changes a distinct modeling choice: variables, metric, constraints, or regularization.</p>
+              <nav class="projection-routes" aria-label="Projection variants">
+                <a href="./index.html?lesson=hodge-one-form">Closest / Hodge</a>
+                <a href="./index.html?lesson=vertex-field-integrability">Soft circulation</a>
+                <a href="./index.html?lesson=vertex-field-unit-integrable">Unit-aware</a>
+                <a href="./energy-playground.html#stripe-projection">Rescaled / stripes</a>
+                <a href="./energy-playground.html">Live energy ↗</a>
+              </nav>
+            </details>
           </div>
         </details>
         <div id="hodge-report" class="hodge-report" hidden aria-live="polite">
@@ -58,6 +112,11 @@
           <div><small>u-cycle period</small><strong id="vertex-period-u">—</strong></div>
           <div><small>v-cycle period</small><strong id="vertex-period-v">—</strong></div>
         </div>
+        <section id="sparsity-guide" class="sparsity-guide" hidden aria-live="polite">
+          <div><span>SCALING QUESTION</span><strong>Local stencil, growing mesh</strong><p>A grid with width <em>n</em> has 2n² position DOFs. Each spring touches only four scalar DOFs, so row width stays bounded: sparse nnz grows with the mesh, while dense storage grows with the square of the DOF count.</p></div>
+          <div class="scaling-comparison"><span><small>current grid</small><strong id="scaling-grid">—</strong></span><span><small>sparse Hessian</small><strong id="scaling-sparse">run once</strong></span><span><small>dense entries</small><strong id="scaling-dense">—</strong></span></div>
+          <nav aria-label="Sparsity scaling resolutions"><button type="button" data-scaling-grid="12">12 × 12</button><button type="button" data-scaling-grid="20">20 × 20</button><button type="button" data-scaling-grid="30">30 × 30</button><button type="button" data-scaling-grid="42">42 × 42</button></nav>
+        </section>
         <div class="transport">
           <button id="run" class="button primary" disabled>Reset + build</button>
           <button id="step" class="button" disabled>One step</button>
@@ -84,14 +143,16 @@
           <div class="metric"><span>Accepted steps</span><strong id="metric-iterations">—</strong></div>
         </div>
       </section>
+      <div id="editor-resizer" class="editor-resizer" role="separator" aria-label="Resize experiment editor" aria-orientation="vertical" tabindex="0"></div>
       <aside class="editor-panel">
-        <div class="editor-head"><h2>Problem definition</h2><div class="editor-tools"><button id="format" class="button">Validate + format</button></div></div>
+        <div class="editor-head"><h2>Experiment controls</h2><div class="editor-tools"><button id="code-focus" class="button" type="button" aria-pressed="false">Code column</button><button id="guided-mode" class="button editor-mode active" type="button">Guided</button><button id="json-mode" class="button editor-mode" type="button">JSON</button><button id="format" class="button">Validate</button></div></div>
+        <div id="problem-controls" class="problem-controls" aria-label="Guided problem controls"></div>
         <textarea id="problem-editor" spellcheck="false" aria-label="Editable problem JSON"></textarea>
-        <p class="editor-note">Every run is defined by one versioned JSON file. The numerical kernel runs off the UI thread; edit parameters, then choose <code>Reset + build</code>.</p>
+        <p id="editor-note" class="editor-note">Adjust the labeled controls, then choose <code>Reset + build</code>. JSON remains available as the portable source of truth.</p>
         <details id="source-panel" class="source-panel" hidden>
           <summary><span id="source-title">Actual TinyAD callbacks</span><span id="source-state" data-kind="compiled">compiled source</span></summary>
-          <div class="source-explainer">
-            This is the literal C++ callback behind the experiment. Comments marked <code>LAB NOTE</code> explain what TinyAD differentiates; <code>TRY</code> suggests a safe first change. The hosted lab keeps running its committed Wasm, so download the project to rebuild edited C++ locally.
+          <div id="source-explainer" class="source-explainer">
+            This is the literal C++ callback behind the experiment. Comments marked <code>LAB NOTE</code> explain what TinyAD differentiates; <code>TRY</code> suggests a safe first change. The browser view keeps running its committed Wasm; connected mode can compile the edited vertex callback into the native target, while static mode can export it.
           </div>
           <div class="code-editor-shell">
             <pre id="callback-highlight" aria-hidden="true"></pre>
@@ -101,8 +162,9 @@
             <button id="reset-callback" class="button" type="button">Restore compiled source</button>
             <button id="download-callback" class="button primary" type="button">Download edited header</button>
             <button id="download-rebuild-project" class="button primary" type="button">Download rebuild files</button>
+            <button id="build-native" class="button native-action" type="button" hidden disabled>Build + open native</button>
           </div>
-          <p class="connected-note">To run an edit: download the project, place it in a clone of Geometry Processing Lab, then use <code>npm run build:wasm</code>. Parameter changes in the problem JSON remain live without recompiling.</p>
+          <p id="connected-note" class="connected-note">Static mode: parameter changes are live without recompiling. Download edited source when you are ready to continue in C++.</p>
         </details>
       </aside>
     </main>

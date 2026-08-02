@@ -116,6 +116,12 @@ Operator ids are resolved against `geometry-lab/capabilities@1`. A saved
 experiment therefore fails with a precise “capability unavailable” diagnosis
 rather than silently selecting a different formula.
 
+`examples/vertex-curl-baseline.experiment.json` is the complete executable
+reference: it declares two curl measurements, two connection baselines, four
+teaching presets, eight metrics, and a six-resolution sweep. The same document
+can be imported into the standalone observatory or sent through embed protocol
+v2.
+
 ## `geometry-lab/result@2`
 
 A result contains one or more generic meshes and fields. Each field explicitly

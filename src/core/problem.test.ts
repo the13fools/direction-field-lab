@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { TUTORIALS, formatProblem, parseProblem } from "./problem";
+import { TUTORIALS, TUTORIAL_SECTIONS, formatProblem, parseProblem } from "./problem";
 
 describe("problem format", () => {
   it("round-trips every tutorial", () => {
     for (const tutorial of TUTORIALS) {
       expect(parseProblem(formatProblem(tutorial.problem))).toEqual(tutorial.problem);
     }
+  });
+
+  it("organizes every tutorial into exactly one tour section", () => {
+    const ids = TUTORIAL_SECTIONS.flatMap((section) => section.tutorialIds);
+    expect(ids).toHaveLength(TUTORIALS.length);
+    expect(new Set(ids).size).toBe(TUTORIALS.length);
+    expect(new Set(ids)).toEqual(new Set(TUTORIALS.map((tutorial) => tutorial.id)));
   });
 
   it("rejects unknown kernels", () => {

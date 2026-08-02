@@ -1,0 +1,50 @@
+{
+  "schema": "geometry-lab/element-program@1",
+  "id": "integrable-unit-vertex-field",
+  "name": "Integrable, as unit as possible",
+  "description": "A rotating vertex tangent field balanced against unit norm and triangle circulation.",
+  "mesh": {
+    "kind": "triangular-grid",
+    "gridSize": 11
+  },
+  "unknown": {
+    "id": "u",
+    "association": "vertex",
+    "dimension": 2,
+    "frame": "tangent"
+  },
+  "target": {
+    "kind": "rotating"
+  },
+  "parameters": {
+    "dataWeight": 0.35,
+    "unitWeight": 6,
+    "targetLength": 1,
+    "smoothnessWeight": 0.15,
+    "integrabilityWeight": 15
+  },
+  "terms": [
+    {
+      "id": "fit-and-unit",
+      "domain": "vertex",
+      "kind": "expression",
+      "expression": "0.5 * data * ((ux - tx)^2 + (uy - ty)^2) + 0.5 * unit * (ux^2 + uy^2 - length^2)^2"
+    },
+    {
+      "id": "connection-smoothing",
+      "domain": "edge",
+      "kind": "connection-difference",
+      "weight": "smoothnessWeight"
+    },
+    {
+      "id": "local-integrability",
+      "domain": "face",
+      "kind": "triangle-circulation",
+      "weight": "integrabilityWeight"
+    }
+  ],
+  "solver": {
+    "kind": "damped-sparse-newton",
+    "iterationsPerStep": 1
+  }
+}

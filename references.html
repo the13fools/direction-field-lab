@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17102f" />
+    <meta name="description" content="An annotated source trail for the Geometry Processing Lab: DEC, vector fields, integrable projection, stripes, automatic differentiation, and surface flow." />
+    <meta property="og:title" content="Geometry Processing Lab · Reading map" />
+    <meta property="og:description" content="Canonical papers, course notes, and reference implementations behind the interactive vector-field tour." />
+    <meta property="og:image" content="./og.png" />
+    <title>Reading map · Geometry Processing Lab</title>
+  </head>
+  <body>
+    <header class="reference-header">
+      <a href="./index.html">← Geometry Processing Lab</a>
+      <div><span>ANNOTATED SOURCE TRAIL</span><strong>Reading map</strong></div>
+      <a href="./getting-started.html">Student setup →</a>
+    </header>
+
+    <main>
+      <section class="reference-hero">
+        <div>
+          <p class="eyebrow">PAPER ↔ OPERATOR ↔ EXPERIMENT</p>
+          <h1>Follow the idea<br /><em>back to its source.</em></h1>
+          <p>This is a selective reading path, not an exhaustive bibliography. Each work earns its place by defining an operator used in the lab, comparing a representation choice, or showing where the student experiment can grow.</p>
+        </div>
+        <nav class="reference-index" aria-label="Reading map sections">
+          <a href="#dec"><span>01</span><strong>DEC + Hodge</strong></a>
+          <a href="#fields"><span>02</span><strong>Field representations</strong></a>
+          <a href="#integrability"><span>03</span><strong>Integrable fields</strong></a>
+          <a href="#stripes"><span>04</span><strong>Stripe realization</strong></a>
+          <a href="#optimization"><span>05</span><strong>Sparse differentiation</strong></a>
+          <a href="#flow"><span>06</span><strong>Surface flow + pedagogy</strong></a>
+        </nav>
+      </section>
+
+      <section id="dec" class="reference-section">
+        <header><span>01 · ALGEBRAIC SPINE</span><h2>Discrete exterior calculus and Hodge decomposition</h2><p>Read these when an incidence matrix, Hodge star, adjoint, boundary condition, or harmonic component feels like a convention rather than a mathematical choice.</p></header>
+        <div class="reference-grid">
+          <article data-kind="course"><div><span>COURSE NOTES · 2013</span><b>Crane, de Goes, Desbrun & Schröder</b></div><h3>Digital Geometry Processing with Discrete Exterior Calculus</h3><p>The canonical computational path from cochains and incidence matrices through metric Hodge stars and geometry-processing algorithms.</p><nav><a href="https://www.cs.cmu.edu/~kmcrane/Projects/DDG/" target="_blank" rel="noreferrer">Course + notes ↗</a><a href="./dec-playground.html">Lab companion →</a></nav></article>
+          <article data-kind="survey"><div><span>COURSE NOTES · 2016</span><b>de Goes, Desbrun & Tong</b></div><h3>Vector Field Processing on Triangle Meshes</h3><p>A representation-aware account of face-, edge-, and vertex-based fields, with their differential operators and Hodge decompositions.</p><nav><a href="https://www.geometry.caltech.edu/pubs/dGDT15.pdf" target="_blank" rel="noreferrer">Read the notes ↗</a><a href="./representations.html">Representation audit →</a></nav></article>
+        </div>
+      </section>
+
+      <section id="fields" class="reference-section alternate">
+        <header><span>02 · TANGENT DATA</span><h2>Representations, connections, and field design</h2><p>These works separate where a field is stored from how vectors in different tangent planes are compared.</p></header>
+        <div class="reference-grid three">
+          <article data-kind="paper"><div><span>CGF · 2010</span><b>Crane, Desbrun & Schröder</b></div><h3>Trivial Connections on Discrete Surfaces</h3><p>Builds smooth discrete connections with controlled singularities—the intrinsic reference behind connection-based field comparison.</p><nav><a href="https://doi.org/10.1111/j.1467-8659.2010.01761.x" target="_blank" rel="noreferrer">Publisher page ↗</a><a href="./vertex-curl.html">Connection microscope →</a></nav></article>
+          <article data-kind="paper"><div><span>ACM TOG · 2013</span><b>Knöppel, Crane, Pinkall & Schröder</b></div><h3>Globally Optimal Direction Fields</h3><p>Turns smooth direction-field design and singularity placement into a sparse global eigenproblem.</p><nav><a href="https://doi.org/10.1145/2461912.2462005" target="_blank" rel="noreferrer">DOI ↗</a></nav></article>
+          <article data-kind="software"><div><span>REFERENCE LIBRARY</span><b>Vaxman et al.</b></div><h3>Directional tutorial</h3><p>A practical taxonomy and C++ implementation of tangent bundles, symmetries, representations, matching, and field processing.</p><nav><a href="https://avaxman.github.io/Directional/tutorial/" target="_blank" rel="noreferrer">Open tutorial ↗</a></nav></article>
+        </div>
+      </section>
+
+      <section id="integrability" class="reference-section">
+        <header><span>03 · PROJECTION CHOICES</span><h2>Integrability is not one operator</h2><p>Closest exact fields, curl penalties, hard constraints, unit-length fields, and parameterization-aligned fields solve related but different problems.</p></header>
+        <div class="reference-grid">
+          <article data-kind="paper"><div><span>ACM TOG · 2015</span><b>Diamanti, Vaxman, Panozzo & Sorkine-Hornung</b></div><h3>Integrable PolyVector Fields</h3><p>Optimizes tangent fields that both respect design constraints and correspond exactly to local parameterization gradients.</p><nav><a href="https://igl.ethz.ch/projects/integrable/" target="_blank" rel="noreferrer">Project + paper ↗</a><a href="./energy-playground.html">Vertex-field analogue →</a></nav></article>
+          <article data-kind="paper"><div><span>ACM TOG · 2016</span><b>Liu, Tong, de Goes & Desbrun</b></div><h3>Discrete Connection and Covariant Derivative</h3><p>Develops a principled discrete connection for analysis and design, clarifying what it means to differentiate vertex-based tangent vectors.</p><nav><a href="https://geometry.caltech.edu/pubs/LTDD14.pdf" target="_blank" rel="noreferrer">Read the paper ↗</a></nav></article>
+        </div>
+      </section>
+
+      <section id="stripes" class="reference-section alternate">
+        <header><span>04 · PERIODIC REALIZATION</span><h2>From direction fields to stripe patterns</h2><p>The lab’s complex phase is a compact teaching model of this lineage. The important leap is from a local direction to a globally continuous periodic function.</p></header>
+        <div class="reference-grid three">
+          <article data-kind="paper"><div><span>ACM TOG · 2015</span><b>Knöppel, Crane, Pinkall & Schröder</b></div><h3>Stripe Patterns on Surfaces</h3><p>Introduces globally continuous, equally spaced surface stripes as the smallest eigenvector of a sparse connection energy.</p><nav><a href="https://www.cs.cmu.edu/~kmcrane/Projects/StripePatterns/" target="_blank" rel="noreferrer">Project + paper ↗</a><a href="./energy-playground.html#stripe-projection">Run the teaching model →</a></nav></article>
+          <article data-kind="paper"><div><span>ACM TOG · 2019</span><b>Vekhter, Zhuo, Gil Fandino, Huang & Vouga</b></div><h3>Weaving Geodesic Foliations</h3><p>Separates designing an approximately geodesic unit field from integrating it into a periodic foliation, including relaxed global integrability.</p><nav><a href="https://doi.org/10.1145/3306346.3323043" target="_blank" rel="noreferrer">DOI ↗</a><a href="https://www.cs.utexas.edu/~josh/papers/weaving.pdf" target="_blank" rel="noreferrer">Author PDF ↗</a></nav></article>
+          <article data-kind="paper"><div><span>ACM TOG · 2023</span><b>Montes Maestre et al.</b></div><h3>Differentiable Stripe Patterns for Inverse Design</h3><p>Extends stripe patterns into an end-to-end differentiable design space and addresses non-uniqueness in the original formulation.</p><nav><a href="https://doi.org/10.1145/3592114" target="_blank" rel="noreferrer">DOI ↗</a></nav></article>
+        </div>
+      </section>
+
+      <section id="optimization" class="reference-section">
+        <header><span>05 · RESEARCH IMPLEMENTATION</span><h2>Sparse derivatives without hand-written Hessians</h2><p>The browser exposes the local-element idea; these systems show two routes into larger compiled research code.</p></header>
+        <div class="reference-grid">
+          <article data-kind="software"><div><span>CGF · 2022</span><b>Schmidt, Born, Bommes, Campen & Kobbelt</b></div><h3>TinyAD: Automatic Differentiation in Geometry Processing Made Simple</h3><p>Differentiates small mesh elements through second order and assembles their sparse global gradient and Hessian.</p><nav><a href="https://doi.org/10.1111/cgf.14607" target="_blank" rel="noreferrer">Paper ↗</a><a href="https://github.com/patr-schm/TinyAD" target="_blank" rel="noreferrer">Code ↗</a><a href="./getting-started.html">Starter workflow →</a></nav></article>
+          <article data-kind="software"><div><span>COMPILER AD</span><b>Moses, Churavy et al.</b></div><h3>Enzyme</h3><p>Differentiates optimized LLVM IR across several source languages—a complementary path when research code should remain ordinary compiled code.</p><nav><a href="https://enzyme.mit.edu/" target="_blank" rel="noreferrer">Project + papers ↗</a></nav></article>
+        </div>
+      </section>
+
+      <section id="flow" class="reference-section alternate">
+        <header><span>06 · DESTINATION + MEDIUM</span><h2>Surface flow and explorable explanations</h2><p>One branch supplies the physical destination; the other asks how a computational argument can remain inspectable and editable.</p></header>
+        <div class="reference-grid three">
+          <article data-kind="paper"><div><span>SCA · 2007</span><b>Wang, Miller & Turk</b></div><h3>Solving General Shallow Wave Equations on Surfaces</h3><p>A canonical graphics treatment of shallow water directly on curved surfaces without requiring a global parameterization.</p><nav><a href="https://faculty.cc.gatech.edu/~turk/paper_pages/2007_shallow_waves/index.html" target="_blank" rel="noreferrer">Project + paper ↗</a><a href="./shallow-water.html">Run the baseline →</a></nav></article>
+          <article data-kind="essay"><div><span>ESSAY · 2011/2024</span><b>Bret Victor</b></div><h3>Explorable Explanations</h3><p>The design north star: claims backed by computational models whose assumptions and calculations remain visible and editable.</p><nav><a href="https://worrydream.com/ExplorableExplanations/" target="_blank" rel="noreferrer">Read the essay ↗</a></nav></article>
+          <article data-kind="course"><div><span>BROWSER COURSE</span><b>Geometry Collective</b></div><h3>Geometry Processing in JavaScript</h3><p>Direct precedents for teaching DEC and direction-field design through focused interactive browser assignments.</p><nav><a href="https://geometrycollective.github.io/geometry-processing-js/projects/discrete-exterior-calculus/index.html" target="_blank" rel="noreferrer">DEC project ↗</a><a href="https://geometrycollective.github.io/geometry-processing-js/projects/direction-field-design/index.html" target="_blank" rel="noreferrer">Field design ↗</a></nav></article>
+        </div>
+      </section>
+
+      <section class="citation-note">
+        <div><span>FOR STUDENT REPORTS</span><h2>Cite the method you actually use.</h2><p>This page is an orientation map. Follow the project or DOI link for the authors’ preferred BibTeX and version of record, and distinguish an inspiration from an implemented method.</p></div>
+        <nav><a href="./energy-playground.html">Edit an energy live</a><a href="./getting-started.html">Clone the lab</a><a href="./index.html">Return to the course</a></nav>
+      </section>
+    </main>
+
+    <script type="module" src="/src/references.ts"></script>
+  </body>
+</html>

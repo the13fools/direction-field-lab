@@ -6,6 +6,13 @@ Meshes* (SIGGRAPH 2016 course notes). The representations are not interchangeabl
 containers. They have different degrees of freedom, interpolation rules,
 operators, and continuity.
 
+The standalone `representations.html` breakout gives this distinction one
+compact visual treatment. It keeps a native vertex field fixed, transfers it
+to oriented edge integrals, reconstructs constant face vectors, and area
+averages them back to vertices. Its circulation, face-fit, and round-trip
+residuals make clear which view is an unknown and which is only a derived
+audit. The main objective workshop remains vertex-only after this detour.
+
 ## 04 - Face fields: mixed finite elements
 
 The unknown input is one constant tangent vector per triangle. The exact part
@@ -27,7 +34,7 @@ The mixture is essential. On a closed genus-g mesh its dimensions leave a
 2g-dimensional harmonic remainder. Using the same scalar basis for both pieces
 creates spurious harmonic modes.
 
-## 05 - Edge fields: discrete exterior calculus
+## 05 - Edge fields: identity-weighted cochain Hodge split
 
 The unknown input is a signed line integral on every oriented edge. TinyAD
 solves the two least-squares projections in the discrete de Rham complex:
@@ -36,15 +43,20 @@ solves the two least-squares projections in the discrete de Rham complex:
 c = d phi + delta psi + h.
 ```
 
-The exterior derivative is an incidence matrix; metric information enters
-through the inner product/Hodge star. Closedness and co-closedness are tested
-before any vector glyph is reconstructed.
+The exterior derivative is an incidence matrix. This first baseline uses the
+identity inner product on cochains, so its transpose-incidence codifferential is
+not yet a geometry-dependent DEC Hodge star. The topological identity
+`d1 d0 = 0` is exact, and closedness and co-closedness are tested before any
+vector glyph is reconstructed. A later metric DEC comparison should replace
+the unit weights with explicit primal/dual measures.
 
 ## 06 - Vertex reconstruction: an audit, not a new complex
 
-Whitney interpolation first maps the edge 1-form to one vector per face. Those
-vectors are area averaged in ambient coordinates and projected into each vertex
-tangent plane. This is useful for display and for transferring data into a
+Whitney interpolation first maps the edge 1-form to one vector per face in the
+same flat periodic complex used by the solver. Those vectors are area averaged,
+then their two flat coordinates are lifted into tangent frames on the decorative
+torus. Reconstructing directly on the curved display mesh would silently change
+the metric. The result is useful for display and for transferring data into a
 vertex-oriented application.
 
 It is not a native vertex Hodge decomposition. The SIGGRAPH 2016 notes point
@@ -110,3 +122,51 @@ The next extension should turn the two reported periods into optional
 constraints, then add user-authored boundary or singularity terms to this same
 data-driven callback vocabulary. That is a more honest route toward a
 vertex-based Hodge-like projection than relabeling an edge solve.
+
+## 09 - Integrable and as unit as possible
+
+This lesson enables both nonlinear unit-length and triangle-circulation
+penalties on the native vertex unknowns:
+
+```text
+min_u E_data(u) + μ/2 sum_f circulation_f(u)^2 / area(f)
+                    + ν/2 sum_i (||u_i||^2 - L^2)^2.
+```
+
+Finite `μ` and `ν` make this an intentionally soft projection. The viewer shows
+where a rotating target sacrifices data fidelity, curl-freedom, or unit length
+rather than calling the result exactly integrable and unit.
+
+## 10 - Compare curl locations and connection models
+
+The standalone curl observatory adds a manufactured-solution layer around the
+native vertex-field questions. It samples analytic gradient, harmonic, vortex,
+and mixed fields on a torus and compares two circulation domains:
+
+- oriented triangle boundaries, producing one curl value per face;
+- positive barycentric dual boundaries, producing one curl value per vertex.
+
+Both begin with the same endpoint-trapezoid edge integral. Keeping the output
+associations distinct in `result@2` prevents a viewer from treating the two
+arrays as interchangeable samples.
+
+The connection comparison is deliberately separate. Endpoint minimal-normal
+rotation uses the embedding. The intrinsic baseline normalizes each one-ring's
+corner angles to a polar chart and compares edge directions. The latter is a
+useful controlled baseline, not a universal canonical connection. Both are
+measured against analytic Levi–Civita transport on the reference torus and both
+must be read over the manifest's refinement sweep.
+
+## 11 - Rewrite the local energy in the browser
+
+The standalone unit-energy workshop accepts a small arithmetic language over
+`ux`, `uy`, `tx`, `ty`, `data`, `unit`, and `length`. The shared
+`element-program@1` file also declares the edge connection and face circulation
+terms. Second-order jets differentiate each local element, scatter complete
+off-diagonal blocks into a sparse global Hessian, and solve a damped Newton
+system with diagonally preconditioned conjugate gradients.
+
+The page is not yet a fully general sparse element compiler: the available
+vertex, edge, and face term kinds are a small validated vocabulary. It is the
+first vertical slice of the element-program IR described in
+`docs/research-sharing-workflow.md`.

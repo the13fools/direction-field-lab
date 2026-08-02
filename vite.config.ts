@@ -5,6 +5,18 @@ export default defineConfig({
   build: {
     target: "es2022",
     sourcemap: true,
+    rollupOptions: {
+      input: [
+        "index.html",
+        "vertex-curl.html",
+        "energy-playground.html",
+        "dec-playground.html",
+        "getting-started.html",
+        "shallow-water.html",
+        "representations.html",
+        "references.html",
+      ],
+    },
   },
   server: {
     port: 4173,

@@ -1,0 +1,20 @@
+{
+  "schema": "geometry-lab/problem@1",
+  "name": "Vertex field: integrable and as unit as possible",
+  "kernel": "vertex-field",
+  "parameters": {
+    "gridSize": 16,
+    "initializationNoise": 0.18,
+    "seed": 17,
+    "objective": {
+      "dataWeight": 0.35,
+      "connectionSmoothnessWeight": 0.15,
+      "integrabilityWeight": 15,
+      "lengthWeight": 6,
+      "targetLength": 1
+    }
+  },
+  "solver": {
+    "iterationsPerStep": 4
+  }
+}

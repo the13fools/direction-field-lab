@@ -1,0 +1,981 @@
+Differentiable Stripe Patterns for Inverse Design of Structured Surfaces
+JUAN MONTES MAESTRE, ETH Zürich, Switzerland
+YINWEI DU, ETH Zürich, Switzerland
+RONAN HINCHET, ETH Zürich, Switzerland
+STELIAN COROS, ETH Zürich, Switzerland
+BERNHARD THOMASZEWSKI, ETH Zürich, Switzerland
+a                                               b
+
+
+
+
+                                                                                                c                                            d
+
+
+1cm
+
+Fig. 1. Optimization of a compliant gripper using Differentiable Stripe Patterns. An initial design with parallel stripes (a) and an optimized design (b) deforms
+out of plane under actuation, but the initial design does not produce sufficient closure (c). Our optimized design (d) produces significantly larger lateral
+deflection for the same actuation in simulation, as shown in the rendered insets. The corresponding physical prototype confirms this prediction and is able to
+enclose and lift a small object.
+
+Stripe patterns are ubiquitous in nature and everyday life. While the syn-                          patterns as a design space for structured materials. Our simulation results
+thesis of these patterns has been thoroughly studied in the literature, their                       are experimentally validated on physical prototypes.
+potential to control the mechanics of structured materials remains largely
+unexplored. In this work, we introduce Differentiable Stripe Patterns—a com-                        CCS Concepts: • Applied computing → Computer-aided manufactur-
+putational approach for automated design of physical surfaces structured                            ing; • Computing methodologies → Modeling and simulation.
+with stripe-shaped bi-material distributions. Our method builds on the work
+by Knöppel and colleagues [2015] for generating globally-continuous and                             ACM Reference Format:
+equally-spaced stripe patterns. To unlock the full potential of this design                         Juan Montes Maestre, Yinwei Du, Ronan Hinchet, Stelian Coros, and Bern-
+space, we propose a gradient-based optimization tool to automatically com-                          hard Thomaszewski. 2023. Differentiable Stripe Patterns for Inverse Design
+pute stripe patterns that best approximate macromechanical performance                              of Structured Surfaces. ACM Trans. Graph. 42, 4, Article 102 (August 2023),
+goals. Specifically, we propose a computational model that combines solid                           14 pages. https://doi.org/10.1145/3592114
+shell finite elements with XFEM for accurate and fully-differentiable model-
+ing of elastic bi-material surfaces. To resolve non-uniqueness problems in the
+original method, we furthermore propose a robust formulation that yields
+unique and differentiable stripe patterns. We combine these components                              1   INTRODUCTION
+with equilibrium state derivatives into an end-to-end differentiable pipeline                       From soft to stiff, from isotropic to anisotropic, and from homo-
+that enables inverse design of mechanical stripe patterns. We demonstrate                           geneous to functionally-graded—designing materials with tailored
+our method on a diverse set of examples that illustrate the potential of stripe                     mechanical properties is a central problem in many fields of science
+                                                                                                    and engineering. Structured materials are particularly interesting in
+Authors’ addresses: Juan Montes Maestre, ETH Zürich, Switzerland, jmontes@inf.ethz.
+ch; Yinwei Du, ETH Zürich, Switzerland, yinwei.du@inf.ethz.ch; Ronan Hinchet, ETH
+                                                                                                    this context since their macromechanical behavior can be controlled
+Zürich, Switzerland, ronanhinchet@gmail.com; Stelian Coros, ETH Zürich, Switzerland,                through their microscale geometry. Here we consider a particular
+stelian@inf.ethz.ch; Bernhard Thomaszewski, ETH Zürich, Switzerland, bthomasz@                      class of structured surfaces that are quasi-inextensible in a given
+ethz.ch.
+                                                                                                    direction while being compliant in the orthogonal direction. By
+Permission to make digital or hard copies of all or part of this work for personal or
+                                                                                                    varying the principal directions across the surface, these materials
+classroom use is granted without fee provided that copies are not made or distributed               can achieve a broad range of macromechanical effects, making them
+for profit or commercial advantage and that copies bear this notice and the full citation           interesting for applications in, e.g., sportswear, orthotics, and robot-
+on the first page. Copyrights for components of this work owned by others than the
+author(s) must be honored. Abstracting with credit is permitted. To copy otherwise, or              ics (see Fig. 1). Designing structured surfaces that lead to desired
+republish, to post on servers or to redistribute to lists, requires prior specific permission       mechanical behavior, however, is a challenging problem.
+and/or a fee. Request permissions from permissions@acm.org.                                            In this work, we propose Differentiable Stripe Patterns—a com-
+© 2023 Copyright held by the owner/author(s). Publication rights licensed to ACM.
+0730-0301/2023/8-ART102 $15.00                                                                      putational approach to performance-oriented design of structured
+https://doi.org/10.1145/3592114                                                                     surfaces. We draw inspiration from the work of Knöppel et al. [2015]
+
+                                                                                                          ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+102:2    • Montes et al.
+
+
+who proposed a method for generating equally-spaced, globally-                   2   RELATED WORK
+continuous stripe patterns on arbitrary surfaces. Our key obser-                    Structured Materials. Designing structured materials with desired
+vation is that, when interpreted as bi-material distributions, stripe            macromechanical behaviors is an active field of research in mate-
+patterns form an ideal design space for structured surfaces with high            rial science and engineering [Bertoldi et al. 2017]. With the wide-
+stiffness contrast. To unlock the full potential of this material space,         spread availability of 3D printing, the graphics community has
+we envision an inverse design tool that automatically computes                   likewise started to investigate the creation of metamaterials with
+stripe patterns that lead to an optimal approximation of high-level              lattice- [Gongora et al. 2022; Panetta et al. 2017, 2015], voxel- [Bickel
+performance goals.                                                               et al. 2010; Schumacher et al. 2015; Zhu et al. 2017], and foam-like
+   To implement this vision, we must overcome a number of chal-                  [Martínez et al. 2016, 2017] microstructures. A particular line of
+lenges. First, stripe patterns are generated from tangent vector fields          research focuses on two-dimensional, sheet-like materials [Leimer
+by solving a complex eigenvalue problem (EVP). Due to intrinsic                  and Musialski 2020; Malomo et al. 2018; Martínez et al. 2019; Schu-
+symmetries, eigenvalues of this EVP always occur in pairs. This                  macher et al. 2018; Tozoni et al. 2020]. Our work also targets sheet
+nontrivial multiplicity means that eigenvectors are not unique—they              and thin shell materials, but focuses on global design optimization
+form an eigenplane—and derivatives do not exist. Second, predicting              instead of periodically tileable material cells.
+the mechanics of bi-material distributions with macroscopic stripe                  Closest to our setting in the context of material design is arguably
+patterns requires accurate modeling of material interfaces. While                the work by Tricard et al. [2020] for creating microstructures with
+conforming discretizations are an obvious choice for static inter-               freely-orientable channels. These thin-walled tubes are generated
+faces, finite changes in stripe patterns require remeshing to maintain           such as to follow a user-provided orientation field using a stochastic
+valid tesselations. Such discrete changes are highly problematic for             process. The resulting structures are extremely anisotropic, showing
+gradient-based optimization. Third, to obtain valid stripe patterns,             high stiffness along channels but compliance in the orthogonal
+eigenvectors must be further processed with vector normalizations                plane. Our differentiable stripe patterns similarly target materials
+and other nonsmooth operations. Derivatives of these operations                  with high stiffness contrast along locally controllable directions.
+are discontinuous or diverge at singularities, which is again highly             However, while Tricard et al. describe a forward geometry design
+problematic for optimization-based design.                                       process that is not informed by simulation, we propose an inverse
+   Our Differentiable Stripe Patterns integrate dedicated solutions              material design approach in which stripe patterns are generated
+to each of these problems:                                                       automatically such as to obtain desired mechanical behaviors.
+                                                                                    Although not a primary focus of our work, we show through
+        • We achieve robust evolution of eigenvectors by decomposing             examples that Differentiable Stripe Patterns can be used to modulate
+          the problem of finding the best vector from an eigenplane into         the mechanical properties of conventional textiles using a print-on-
+          the much simpler sub-problems of finding a) some reference             fabric process similar to [Jourdan et al. 2021; Pérez et al. 2017].
+          vector from the eigenplane and b) the optimal in-plane rota-           Instead of using 3D-printing, an alternative strategy would be to
+          tion with respect to this vector. This unique and differentiable       use embroidery for reinforcement, as demonstrated by Moore et al.
+          parameterization of the eigenplane yields well-defined stripe          [2018] and Sati et al. [2021].
+          pattern derivatives.
+        • To allow for continuous motion of material interfaces without            Eigenvector Optimization. Since stripe patterns emerge as the
+          remeshing, we propose a computational model that combines              solution to a generalized eigenvalue problem, optimizing for eigen-
+          solid shells with the extended finite element method (XFEM).           vectors is at the core of our method. Designing mechanical systems
+          Solid shells are made of prismatic elements that derive their          with desired spectral properties is a problem that has occurred fre-
+          response to bending from differential stretching through the           quently in graphics literature. Applications include metallophones
+          thickness. Unlike discrete bending models common in graph-             that produce desired sounds [Bharaj et al. 2015; Musialski et al. 2016;
+          ics, solid shells follow standard finite element theory and thus       Umetani et al. 2010], coarse-level simulations [Chen et al. 2017, 2019]
+          integrate seamlessly with XFEM.                                        and differential geometry operators [Chen et al. 2020; Liu et al. 2019]
+        • We remove and replace non-smooth operations and introduce              that preserve spectral properties, as well as mechanical assemblies
+          a design-space regularizer that prevents numerical singulari-          that are robust to perturbations [Liu et al. 2022; Thomaszewski et al.
+          ties with logarithmic barrier functions.                               2014]. A specific challenge in our setting is that all eigenvalues have
+                                                                                 nontrivial geometric multiplicity, making eigenvectors non-unique
+   Collectively, these contributions combine into a powerful and                 and derivatives undefined. By identifying the origins of this inher-
+fully differentiable model for stripe pattern materials. In combina-             ent multiplicity, we develop a strategy to obtain unique reference
+tion with adjoint sensitivity-analysis, Differentiable Stripe Patterns           vectors in arbitrary eigenplanes and express eigenvectors in this
+enable gradient-based optimization of high-level design objectives               space through an additional rotation parameter.
+with opportunities for broad applications. We illustrate our method
+on a set of inverse design examples, including fabrics with 3D-                     Designing Physical Surfaces. As opposed to purely geometric de-
+printed reinforcements, structural textures for thin-walled 3D-prints,           sign, physical surfaces are subject to equilibrium constraints. Appli-
+a compliant shell gripper, and personalized insoles. We validate our             cations include inflatable membranes [Panetta et al. 2021; Skouras
+examples through physical prototypes and observe good agreement                  et al. 2014], surfaces made from elastic curves [Neveu et al. 2022;
+between simulation and real-world behavior.                                      Panetta et al. 2019; Pillwein and Musialski 2021; Zehnder et al. 2016],
+
+ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+                                                                             Differentiable Stripe Patterns for Inverse Design of Structured Surfaces   •   102:3
+
+
+as well as auxetic [Chen et al. 2021; Jiang et al. 2022; Konaković-      approximate a desired behavior requires inverting the entire design
+Luković et al. 2018] and tension-actuated [Guseinov et al. 2017;         pipeline from input vector field to high-level mechanical function.
+Jourdan et al. 2022b; Pérez et al. 2017] deployable structures. Adding   This inversion notably includes derivatives of stripe patterns with
+to this line of work, we identify stripe patterns as a powerful para-    respect to input vector fields, and derivatives of the equilibrium
+digm for physical surfaces and present a differentiable pipeline for     states with respect to material interfaces.
+inverse design in that space.                                               We start with a minimal description of Stripe Patterns [Knöppel
+                                                                         et al. 2015] in Sec. 4, including an analysis of eigenvalue multiplicity.
+   Material Interfaces and XFEM. Our method uses stripe patterns to      To use Stripe Patterns for inverse design of bi-material distribu-
+define bi-material distributions. This leads to the question of how      tions, we propose a solid shell model with extended finite elements
+to best model material interfaces that, in general, do not align with    to allow for moving material interfaces (Sec. 5). Building on this
+element boundaries in the simulation mesh. XFEM is a technique           computational model, we introduce Differentiable Stripe Patterns
+for modeling material interfaces with displacement or strain discon-     in Sec. 6, including eigenvector derivatives and design objectives.
+tinuities without mesh adaptation [Moës et al. 2003]. In the graphics    We present design examples and further analysis in Sec. 7.
+literature, XFEM has been used, e.g., for cutting shells [Kaufmann
+et al. 2009] and deformable solids [Koschier et al. 2017], metama-       4     STRIPE PATTERNS
+terial design [Zehnder et al. 2017], and for streamlined simulation
+                                                                         The method by Knöppel et al. [2015] generates globally continu-
+of CAD models [Hafner et al. 2019]. To unlock stripe patterns as
+                                                                         ous, equally-spaced stripe patterns on arbitrary triangle meshes. It
+a design space for structured surfaces, we seek an efficient shell
+                                                                         accepts as input a triangle mesh with 𝑛 vertices x = (x1, . . . , x𝑛 )
+model that is amenable to XFEM. While the method by Kaufmann
+                                                                         as well as an initial vector field z = (z1, . . . , z𝑛 ) with each z𝑖 ∈ R3
+et al. [2009] is an option in principle, the high polynomial order of
+                                                                         indicating the vector field evaluated at vertex x𝑖 . The goal of Stripe
+the bi-cubic patches together with the texture-based enrichment
+                                                                         Patterns is to find an angle 𝛼𝑖 per vertex that indicates its phase,
+approach and discontinuous Galerkin formulation translate into ex-
+                                                                         i.e., the location in a periodic function that determines which ma-
+cessive complexity for inverse design. While simpler discrete shell
+                                                                         terial will be assigned to each point. To make this angle function
+models from the graphics community [Bridson et al. 2005; Chen
+                                                                         globally periodic and smooth, angles are represented as complex
+et al. 2018; Garg et al. 2007; Grinspun et al. 2003] offer favorable
+                                                                         numbers Ψ𝑖 ∈ C with 𝛼𝑖 = arg Ψ𝑖 . Stripes should be locally orthogo-
+trade-offs between accuracy and computation cost, their discrete
+                                                                         nal to the input vector field, i.e., the gradient of the angle function
+nature cannot be combined with standard XFEM approaches. We
+                                                                         should be collinear to the input vector field; ∇ (𝑢,𝑣) 𝛼 (𝑢, 𝑣) = z(𝑢, 𝑣)
+therefore propose a solid shell model [Hauptmann and Schweiz-
+                                                                         where (𝑢, 𝑣) are local coordinates. In the discrete setting, changes
+erhof 1998; Ko and Lee 2017] that uses bi-linear triangular prism
+                                                                         in angle are measured along edges e𝑖 𝑗 of the triangulation by linear
+elements which, as we show in our analysis, offer good accuracy-
+                                                                         interpolation and integration as
+performance trade-offs for the range of problems that we consider
+while integrating seamlessly with XFEM.                                                                       1 𝑇
+                                                                                                     𝜔𝑖 𝑗 =    (e z𝑖 + e𝑇𝑖𝑗 z 𝑗 ) .                          (1)
+                                                                                                              2 𝑖𝑗
+   Stripe Patterns in Material Design. Stripe patterns have recently
+seen increasing attention for material design and structural opti-       In general, the change in angle cannot perfectly agree with the vector
+mization. For example, Boddeti et al. [2020] use stripe patterns to      field, unless z is integrable. For this reason, the mismatch between
+guide the design of continuous reinforcement fields within a fiber-      target change and actual change along all edges is minimized as
+in-matrix approach. Panetta et al. [2021] proposed an approach for                                  ∑︁
+                                                                                              𝐸Ψ =       𝑤𝑖 𝑗 |Ψ𝑗 − 𝑒 𝜄𝜔𝑖 𝑗 Ψ𝑖 | 2,         (2)
+designing inflatables that deploy into desired shapes upon pres-
+                                                                                                         𝑖𝑗∈E
+surization. Stripe patterns are used for initializing air channels,
+which are then optimized such as to best approximate a given tar-        where E denotes the edge index set and 𝑤𝑖 𝑗 is a mesh-dependent
+get shape at equilibrium. Jourdan et al. [2022b] likewise use stripe     weight. To arrive at an algorithm with only real arithmetics, per-
+patterns for initialization when designing reinforcement curves          vertex phases are expanded into real and imaginary parts as Ψ𝑖 =
+for self-deploying fabric models. We share the excitement of these       𝑎𝑖 + 𝜄𝑏𝑖 → (𝑎𝑖 , 𝑏𝑖 ) which we store in a real-valued vector v ∈ R2𝑛 .
+works for stripe patterns as a material design space. Instead of mere    Furthermore, since the above energy is quadratic in phases, the real-
+initialization, however, we propose a fully differentiable end-to-end    valued analogue can be expressed as 12 v𝑇 Av with a matrix A that
+pipeline enabling gradient-based design optimization within the          depends on the input mesh and vector field. To eliminate the trivial
+space of stripe patterns.                                                minimizer v = 0, Knöppel et al. pose the constrained optimization
+                                                                         problem
+3   OVERVIEW                                                                                     1               1 𝑇
+                                                                                             min v𝑇 Av s.t.        v Bv = 1 ,              (3)
+The goal of our method is to automatically compute stripe patterns                             v 2               2
+that, when used as bi-material distributions, lead to desired mechan-    where B is a lumped mass matrix whose per-vertex entries are
+ical behavior. A visual summary of our method is shown in Fig.           computed by summing up areas of incident triangles. Considering
+2. To evaluate the performance of a design, we must compute its          the first part of the first-order optimality conditions
+deformed equilibrium state given applied loads and boundary condi-
+tions using simulation. Determining the design parameters that best                                        Av − 𝜆Bv = 0 ,                                    (4)
+
+                                                                                 ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+102:4   • Montes et al.
+
+
+    Initial Design                                                                                                                                   Optimized Design
+                                                                              Compute
+
+
+
+
+                                             Solve for                             Material               Equilibrium            Objective
+                          Vector Field                       Stripe Pattern
+                                           Eigenvector                             Interface                State                Function
+
+
+Fig. 2. Overview of our differentiable stripe pattern pipeline. Starting from an initial input vector field, we compute the corresponding stripe pattern by solving
+a generalized eigenvalue problem (Sec. 4). To accurately model the mechanics of bi-material surfaces structured with such patterns, we combine solid shell
+finite elements with XFEM (Sec. 5). To enable gradient-based minimization of high-level design objectives, we must compute derivatives of eigenvectors (Sec.
+6), material interface, and equilibrium states with respect to vector field parameters p. These design gradients are then used to automatically compute stripe
+patterns that best approximate macromechanical performance goals.
+
+
+                                                                                               of eigenvectors for a given eigenplane; see also the accompanying
+                                                                                               video for an animation. It can be seen that motion in this eigenspace
+                                                                                               corresponds to globally coordinated phase changes, yielding waves
+                                                                                               travelling across the surface. To compute derivatives of stripe pat-
+                                                                                               terns with respect to the input vector field, we must make eigenvec-
+                                                                                               tors unique and their derivatives well-defined. Before we describe
+                                                                                               our solution to this problem in Sec. 6, we first introduce our compu-
+                                                                                               tational model. FF
+Fig. 3. Sequence of stripe patterns corresponding to eigenvectors from a
+two-dimensional eigenspace. Linear motion in this eigenspace corresponds                       5     SOLID SHELLS AND XFEM
+to coordinated phase changes that yield travelling waves.                                      Stripe patterns give rise to piece-wise linear material interfaces
+                                                                                               which, in general, will cross through elements of the underlying
+                                                                                               triangulation. To predict the mechanical behavior of a given stripe
+it is clear that solutions to this constrained optimization problem                            pattern, interfaces between soft and rigid materials must be mod-
+are generalized eigenvectors of A. Consequently, eigenvectors cor-                             eled accurately. Since we are interested in bi-material distributions
+responding to the smallest eigenvalue will minimize the mismatch                               with high stiffness ratio, simple interpolation of material parame-
+energy across all eigenvectors of A. This vector is then further                               ters is not an option [Kharevych et al. 2009]. Conforming meshes
+processed through component-wise normalization, nonlinear per-                                 would avoid material interpolation but changing interfaces require
+triangle interpolation, and other filtering operations to yield per-                           remeshing, which is not differentiable. For this reason, we opt for
+vertex texture coordinates that ultimately determine the color—or,                             an extended finite element method (XFEM) that models material
+in our case, material identity—of each point on the mesh. We refer                             interfaces with additional degrees of freedom [Moës et al. 2003]. As
+to this process as the forward stripe problem. For our method, we                              its central benefit, this approach allows for continuous evolution of
+aim to compute stripe patterns that lead to desired mechanical per-                            material interfaces without changes to the underlying mesh. The
+formance. Solving this inverse stripe problem involves computing                               additional degrees of freedom, so called enrichment coordinates, al-
+derivatives of eigenvectors of A with respect to the input vector                              low for strain discontinuities across the interface, which is precisely
+field, which is made challenging due to the following observation.                             what is needed in our context.
+   Theorem 4.1. All generalized eigenvalues of A have geometric
+multiplicity two, i.e., all eigenvalues are duplicate and the dimension                        5.1    Solid Shells
+of the associated eigenspace is two.                                                           To model structured surfaces that can stretch and bend, we combine
+                                                                                               XFEM with solid shell finite elements—volumetric elements in the
+   Proof. To see this, we observe that Eq. (2) measures only differ-
+                                                                                               shape of triangular prisms [Ko and Lee 2017]. Given a triangle mesh
+ences between phases along edges—rotating all per-vertex phases
+                                                                                               as input, we start by creating two offset surfaces by extruding mid-
+by the same angle will not change the energy. Consider a given
+                                                                                               surface vertices along their vertex normals. The resulting extruded
+eigenvector v and its corresponding phase vector Ψ. Let Ψ⊥ denote
+                                                                                               surfaces model the top and bottom layers of the structured surface
+the phase vector defined as Ψ𝑗⊥ = 𝜄Ψ𝑗 , i.e., with per-vertex phases
+                                                                                               and are used to define a set of six-node triangular prism elements
+rotated by 𝜋/2. The corresponding real-valued vector is v⊥ with                                as shown in Fig. 4. We use a standard isoparametric approach and
+v⊥                          ⊥
+  𝑗 = (−𝑏 𝑗 , 𝑎 𝑗 ). Since v has the same norm and energy as v, it                             define the deformed geometry for each element as
+must also be an eigenvector for the same eigenvalue.              □
+                                                                                                                                  6
+                                                                                                                                 ∑︁
+  The consequence of this observation is that eigenvectors are not                                                      x(u) =         x𝑖 𝑁𝑖 (u) ,                  (5)
+unique and derivatives not well-defined. Fig. 3 illustrate the space                                                             𝑖=1
+
+ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+                                                                                   Differentiable Stripe Patterns for Inverse Design of Structured Surfaces   •   102:5
+
+
+and analogously for the rest state geometry X. In these expressions,             5.2   Material Interfaces & XFEM
+u = (𝑢, 𝑣, 𝑡) are local coordinates with (𝑢, 𝑣) parametrizing the mid-              Level Sets for Material Interfaces. To model the bi-material distri-
+surface triangle and the third coordinate 𝑡 ∈ [−ℎ/2, ℎ/2] runs along             butions induced by stripe patterns, we must determine the location
+the normal direction of the shell, with ℎ indicating its thickness.              of the material interfaces. We model these interfaces using a level
+The six bi-linear basis functions 𝑁𝑖 are uniquely defined by the                 set 𝜙 defined through a set nodal values 𝜙𝑖 ∈ R. The nodal values
+interpolation property 𝑁𝑖 (u 𝑗 ) = 𝛿𝑖 𝑗 . It is worth noting that, for any       represent the signed distance to the interface, with the sign indicat-
+fixed 𝑡, the in-plane coordinates define a linear triangle element with          ing whether the node is on the soft or stiff side. To convert a given
+constant strain. Even though deformation is constant for any given               stripe pattern to its corresponding level set, we first retrieve the
+thickness value, it varies linearly through the thickness. It is this            per-vertex angle 𝛼𝑖 = arg(v𝑖 ) from the corresponding eigenvector
+linear variation that, as we will see, allows solid shells to perform            component v𝑖 . We then compute level set values using a smoothed
+significantly better for bending deformation than constant-strain                triangle wave as transfer function,
+linear tetrahedra.
+                                                                                                       2arccos[(1 − 𝑎 1 )sin(𝛼𝑖 − 𝜋2 )]
+                                                                                              𝜙𝑖 = 1 −                                  − 𝑎 2,       (10)
+                                                                                                                      𝜋
+                                                                                 where 𝑎 1 is a smoothing term and 𝑎 2 determines the ratio between
+                                                                                 stiff and soft material by vertically translating the cut-off value, see
+                                                                                 Fig. 5.
+
+Fig. 4. Solid Shell Elements. Left: a bi-linear prism element is generated by
+extruding a triangle of the input mesh in the direction of its vertex normals.
+Right: level set values 𝜙𝑖 define the location of a material interface and
+additional enrichment DOFs x̂𝑖 allow for different strains on the two sides.
+
+  Using the continuous approximations of element geometry, all
+other kinematic quantities are obtained in the standard form, i.e.,
+                     𝜕x
+              F(u) =    |         C(u) = F(u)𝑇 F(u) ,              (6)
+                     𝜕X (𝑢,𝑣,𝑡 )
+where we made explicit the fact that, unlike for linear elements, the            Fig. 5. Quasi-linear transfer function for mapping per-vertex angles 𝛼𝑖 into
+                                                                                 level set values 𝜙𝑖 . Smooth junctions between linear segments ensure dif-
+deformation gradient F and the right Cauchy-Green tensor C vary
+                                                                                 ferentiability. The material interface is located at 𝜙 = 0, 𝜙 > 0 corresponds
+across the element.                                                              to stiff materials, whereas 𝜙 < 0 indicates soft material. The ratio between
+   Strain Energy. We use a standard Neo-Hookean constitutive law                 stiff and soft material can be controlled by translating this curve vertically.
+as the basis for both soft and stiff materials. The energy density of
+this material is defined as
+                     1                                                             XFEM. Elements whose nodes have level set values 𝜙𝑖 with dif-
+             ΨIso =
+                                                            
+                        𝜇 (tr(C) − 3) − 2𝜇 ln 𝐽 + 𝜆(ln 𝐽 ) 2 ,      (7)          ferent signs are crossed by a material interface. To accurately model
+                     2
+                                                                                 the behavior of these bi-material elements we resort to an extended
+where 𝜆 and 𝜇 are the Lamé parameters. We use different application-
+                                                                                 finite element approach. While the location of the interface is given
+dependent material parameters for soft and stiff materials, see Sec.
+                                                                                 by the level set values 𝜙𝑖 , allowing for different strains on opposite
+7. If orthotropic behavior is desired, the isotropic base material can
+                                                                                 sides of the interface requires additional degrees of freedom, the
+be augmented with stiffening fibers as
+                                                                                 so called enrichment coordinates x̂. Enrichment coordinates x̂𝑖 are
+                                       1
+                      ΨOrtho = ΨIso + 𝛽 𝑓 n𝑇𝑓 Cn 𝑓 ,                (8)          collocated with the standard nodal DOFs x𝑖 but have special basis
+                                       2                                         functions.
+where n 𝑓 is the unit vector indicating the fiber orientation and 𝛽 𝑓
+is a material parameter that reflects the fiber stiffness and density;
+see, e.g., [Holzapfel and Gasser 2001].
+   We then obtain the elastic energy of a given solid shell element by
+integrating the strain energy density across the element. In practice,
+we approximate this integral using numerical quadrature,
+                 ∫                    ∑︁                  𝜕X
+            𝑈𝑒 =      Ψ(C(u)) 𝑑𝑉 ≈       𝑤 𝑗 Ψ(C(q 𝑗 ))        ,    (9)
+                   Ω                   𝑗
+                                                          𝜕q
+where q 𝑗 = (𝑢 𝑗 , 𝑣 𝑗 , 𝑡 𝑗 ) are quadrature points in generic coordinates,
+and 𝑤 𝑗 are corresponding quadrature weights. For elements with                  Fig. 6. XFEM discretization of stripe patterns with regions of stiff (dark
+a single material, we use a six-point numerical quadrature scheme                gray) and soft (light gray) material as indicated. Elements crossed by an
+with three points per thickness value. Elements crossed by a material            interface (black) are split into three sub-elements (red) to integrate their
+interface require more elaborate treatment, as explained next.                   elastic energy.
+
+
+                                                                                       ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+102:6   • Montes et al.
+
+
+   We choose the ridge function [Moës et al. 2003], which was de-                [Gingold et al. 2004] performs extraordinarily well, offering the best
+signed for material interfaces that are continuous in displacements              compromise between accuracy and computation time. The picture
+but discontinuous in strain (𝐶 0 but not 𝐶 1 ). For simplicity, we only          is very different for linear tetrahedra, which perform poorly and
+allow one interface per element, although generalizations are pos-               worst by far. Solid shell elements fare much more favorably in com-
+sible [Zehnder et al. 2017]. This can be achieved by adjusting the               parison. Especially the moderate resolution version seems to offer
+frequency of the stripe pattern for a given input mesh, and vice-                an interesting trade-off between accuracy and performance. Tab. 1
+versa. The ridge enrichment function is given by                                 also shows that the performance of solid shell elements and linear
+                        ∑︁               ∑︁                                      tetrahedra degrades as the shell thickness decreases from 0.6𝑚𝑚 to
+                   𝜓=       |𝑁𝑖 𝜙𝑖 | − |    𝑁𝑖 𝜙 𝑖 | ,              (11)
+                                                                                 0.15𝑚𝑚. While these observations imply that solid shells are not
+                                𝑖                𝑖
+                                                                                 competitive for extremely thin shells, we are primarily interested in
+with the corresponding interpolation function for the nodal posi-
+                                                                                 problems with thickness values above 1𝑚𝑚.
+tions              ∑︁               ∑︁                                              The results for uni-axial stretching underscore these initial im-
+                x=     𝑁𝑖 (u)x𝑖 + 𝜓    𝑁𝑖 (u) x̂𝑖 .          (12)
+                                                                                 pressions. As illustrated in Fig. 7, the stiff disk prevents homoge-
+                            𝑖                    𝑖
+We refer to Zehnder et al. [2017] for a visual construction of these             neous stetching which, in combination with a nonzero Poisson ratio,
+functions. The strain in the enriched elements varies throughout the             leads to spatially varying compressive stresses in the orthogonal di-
+element, with a discontinuity located at the interface. To properly              rection that induce buckling. Fig. 8 shows results for this experiment
+integrate over these enriched elements, we subdivide them into                   in the form of normal displacement plots. Using again quadratic
+three sub-prisms and evaluate the sub-integrals numerically using                tetrahedra as ground truth, it can be seen from the plots that results
+an 11-point quadrature rule (Fig. 6).                                            for the discrete shell model are quite close to the reference solution,
+                                                                                 although convergence under refinement is somewhat unclear. Solid
+5.3     Evaluation                                                               shells do not produce satisfying results for the lowest resolution, but
+                                                                                 converge to qualitatively acceptable solutions under refinement. In
+Solid shells have, to the best of our knowledge, not been explored in
+                                                                                 stark contrast, linear tetrahedra fail to produce out of plane motion
+graphics literature before. We therefore perform a series of experi-
+                                                                                 altogether, which we attribute to the well-documented phenomenon
+ments intended to test the accuracy and convergence behavior of
+                                                                                 of volumetric locking.
+solid shells in comparison to other models. In particular, we compare
+to conforming discretizations with four-node linear tetrahedron el-                 Discussion. Our analysis shows that the discrete shell model offers
+ements and ten-node quadratic tetrahedron elements, as well as                   very good accuracy already for comparatively coarse discretizations—
+conforming bi-linear prisms and a discrete shell model [Gingold                  on par with quadratic tetrahedra, but at a much lower computational
+et al. 2004]. We use two simple experiments in which we impose                   costs. While this makes them an ideal choice for static bi-material dis-
+different periodic boundary conditions—cylindrical bending (radius               tributions, we were unable to find a robust formulation for moving
+𝑟 = 10𝑐𝑚) and uni-axial loading (stretch 𝜀 = 10%)—onto a square                  interfaces with conforming meshes. Our experiments with different
+plate with dimensions 7𝑐𝑚 × 7𝑐𝑚.                                                 options invariably led to numerical instabilities: directly moving
+                                                                                 interface nodes along with the stripe pattern produces ill-shaped
+                                                                                 elements and diverging derivatives. Moving non-interface nodes
+                                                                                 using, e.g., a Laplacian regularizer [Montes et al. 2020; Pérez et al.
+
+                                                                                                Linear Tets Solid Shells         XFEM          D Shells
+
+
+
+Fig. 7. Problem setups for shell comparison. A square plate is endowed            ad Tets
+with a disc-shaped region of stiff material (dark blue) subject to periodic
+boundary conditions that impose cylindrical curvature (left) and uni-axial
+stretching (right) as indicated.
+
+   To investigate the impact of material interfaces, we use a disc-
+shaped region with stiffer material at the center of the plate. See
+also Fig. 7. We solve these problems numerically using different
+types of elements, different mesh resolutions, and plates of differ-
+ent thickness. We then compare the elastic energy and per-vertex                                      -2           0            2
+                                                                                                             -1          1
+displacement norms at equilibrium.
+   The results for the bending test are summarized in Tab. 1. Qua-                                   Normal displacement (mm)
+dratic tetrahedra perform best and converge very rapidly under
+refinement. Because differences are very small, we only list energy              Fig. 8. Normal displacement plots for uni-axial loading. Almost all models
+and compute time for the coarsest discretization and use them as                 produce out-of-plane buckling given sufficient resolution, whereas linear
+reference values. It can further be noted that the discrete shell model          tetrahedra completely fail to capture this behavior.
+
+
+ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+                                                                                  Differentiable Stripe Patterns for Inverse Design of Structured Surfaces   •   102:7
+
+
+Table 1. Comparison between different shell models on a cylindrical bending     6.1   Eigenvector Derivatives
+example.
+                                                                                We start by expressing optimization problem (3) through its La-
+                                                                                grangian
+    Method              DOFs         Energy       Energy   Timing                                         1          𝜆  𝑇       
+                                     (0.6mm)      (0.15mm) [s]                                 L (v, 𝜆) = v𝑇 Av −       v Bv − 1 .               (13)
+                                                                                                          2          2
+    Quadratic Tets      73764        0.0596       0.0009       10.86            Any solution s = (v, 𝜆) to this problem must satisfy the first-order
+    Linear Tets         12381        0.3542       0.0483       0.74             optimality conditions g(v, 𝜆) := ∇L = 0 where
+                        47914        0.2072       0.0146       3.61
+                                                                                                                g𝑣 = (A − 𝜆B)v ,                                 (14)
+                        244285       0.0951       0.0070       35.36
+                                                                                                                 1          
+    Solid Shells        11884        0.1215       0.0164       0.70                                        g𝜆 = − v𝑇 Bv − 1 .                                    (15)
+                                                                                                                 2
+                        46346        0.0751       0.0048       3.50
+                        183022       0.0635       0.0032       17.96            Requiring that these conditions be satisfied for all admissible pa-
+                                                                                rameter changes,
+    XFEM                12126        0.1210       0.0161       0.83
+                        46864        0.0752       0.0048       3.90                                        𝑑g 𝜕g 𝜕g 𝜕s
+                                                                                                             =  +      =0,                                       (16)
+                        184438       0.0635       0.0032       19.84                                       𝑑p 𝜕p 𝜕s 𝜕p
+    Discrete Shells     5942         0.0598       0.0009       0.56             leads to the saddle-point system
+                        23173        0.0597       0.0009       2.60                                             " 𝜕v # " 𝜕gv #
+                                                                                                  A − 𝜆B −Bv 𝜕p           − 𝜕p
+                                                                                                  −(Bv)𝑇      0     𝜕𝜆 =         .                               (17)
+                                                                                                                    𝜕p      0
+
+                                                                                Since 𝜆 has geometric multiplicity two, the system is singular and,
+                                                                                consequently, the derivative of v is not well-defined. This is easily
+2017] delays these problems without solving them. While remeshing               verified by observing that the vector (v⊥, 0) is in the nullspace of
+can avoid instabilities in principle, the corresponding discontinuities          𝜕g                                                   𝑇
+would prevent gradient-based optimizers from converging. These                   𝜕s , where v⊥ is the second eigenvector for 𝜆 with v v⊥ = 0.
+                                                                                   To resolve eigenvector ambiguity, we recall from Sec. 4 that vec-
+observations are in line with expectations as they are among the
+                                                                                tors in the two-dimensional eigenspace correspond to synchronous
+primary reasons for using XFEM instead of conforming discretiza-
+                                                                                rotations of per-vertex phase vectors. Using this insight, we can
+tions in inverse problems with material interfaces [Kaufmann et al.
+                                                                                define unique eigenvectors by specifying the phase for an arbitrary
+2009; Moës et al. 2003; Zehnder et al. 2017]. While discrete shells
+                                                                                vertex 𝑘. To this end, we simply set v𝑘 = (𝑎𝑘 , 0) which eliminates
+and XFEM would appear to be a winning combination, we could not
+                                                                                one degree of freedom. This leads to a modified optimization prob-
+find a way to reconcile these disparate concepts: extended finite ele-
+                                                                                lem with an extra constraint on 𝑏𝑘 ,
+ments rely on element geometry and strain being defined in terms of
+basis functions and their derivatives, but the curvature computation                                           1 𝑇     1
+                                                                                            L (p, v, 𝜆, 𝜇) =     v Av − 𝜆(v𝑇 Bv − 1) − 𝜇𝑏𝑘 ,                     (18)
+of discrete shell elements does not fit this framework. Ultimately,                                            2       2
+solid shells with XFEM emerge as the best trade-off for our problem             whose corresponding first-order optimality conditions are
+setting. Unlike linear tetrahedra, they provide acceptable accuracy
+already for moderate resolution. Compared to quadratic tetrahedra                                         gv = Av − 𝜆Bv − 𝜇e𝑏𝑘 = 0                               (19)
+with XFEM, solid shells are considerably simpler and, for the level                                             1
+of accuracy and mesh resolution that we require, the more efficient                                       g𝜆 = − (v𝑇 Bv − 1) = 0                                 (20)
+                                                                                                                2
+choice.                                                                                                   g𝜇 = −𝑏𝑘 = 0 .                                         (21)
+
+                                                                                A vector v that satisfies these optimality conditions is also an eigen-
+6    DIFFERENTIABLE STRIPE PATTERNS                                             vector of A − 𝜆B, since we can always find a vector in the eigenplane
+Inverse material design based on stripe patterns leads to the central           that satisfies the condition 𝑏𝑘 = 0. Consequently, 𝜇 is always equal
+challenge of determining the change in stripes induced by a given               to 0. Requiring Eqs (19—21) to be satisfied for any change in param-
+change in input vector field z. Since we only care about the direction          eters yields the modified saddle-point system
+of per-vertex vectors z𝑖 and not their magnitude, we parameterize
+                                                                                                 A − 𝜆B       −Bv     e𝑏𝑘   𝜕v   𝜕gv 
+the input vector field as z = z(p) where p = (𝑝 1, . . . , 𝑝𝑛 ) is the vector                                               𝜕p  − 𝜕p 
+of design parameters with per-vertex angles 𝑝𝑖 . The relation between                           −(Bv)𝑇         0               𝜕𝜆
+                                                                                                                        0  = 0  ,
+                                                                                                                                                                (22)
+                                                                                                 𝑇
+                                                                                                 e                            𝜕p         
+design parameters and output material distribution is then given                                 𝑏             0       0   0   0 
+                                                                                                      𝑘                                   
+implicitly through the generalized eigenvalue problem (4). However,
+since eigenvalues for this problem have geometric multiplicity two,             where e𝑏𝑘 is the unit vector corresponding to the index 𝑏𝑘 . In-
+the corresponding eigenvectors are not unique. We first show that               tuitively, there exists no vector from the eigenplane that is both
+eigenvector derivatives are not well defined before we describe our             orthogonal to v and e𝑏𝑘 . The above system is therefore non-singular
+solution to this problem.                                                       and can be solved for the unknown eigenvector derivatives 𝜕v  𝜕p .
+
+                                                                                      ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+102:8   • Montes et al.
+
+
+   Eigenplane Parameterization. It should be noted that, while con-              where E denotes the edge index set, 𝑤𝑖 𝑗 is cotangent weight, and
+straining a given phase variable leads to unique eigenvectors, any               𝑝𝑖 , 𝑝 𝑗 are design parameters (i.e., angles) expressed in a common
+specific choice of 𝑘 and 𝑏𝑘 will introduce bias—another vector from              reference frame. As can be seen from Fig. 9 (right), this simple regu-
+the eigenplane might be better suited for decreasing the design                  larizer leads to substantially cleaner stripe patterns. It furthermore
+objective. To avoid arbitrary choices, we introduce an additional                reduces singularities even before the log barrier penalty becomes
+parameter 𝜃 that represents the current eigenvector as a rotation in             active.
+the eigenplane relative to the unique reference eigenvector defined
+through the choice of 𝑘 and 𝑏𝑘 .
+
+6.2     Regularization and Parametrization
+   Vanishing Phase Values. The idea of stripe patterns is to express
+phase as the argument of complex number since this representation
+can offer global continuity. Once eigenvectors are computed, per-
+vertex phases (complex numbers) have to be normalized to retrieve
+their argument (i.e., the real-numbered angle value). However, as
+phase vector tend towards zero, this operation becomes numerically
+unstable and, eventually, diverges. This is typically not much of a
+concern for the forward stripe pattern problem, since even numer-
+ically infinitesimal vectors can still be normalized. However, the
+                                                                                 Fig. 9. Smoothness regularizer. By promoting smooth vector fields during
+sensitivities of angles diverge as per-vertex phases approach zero,              optimization, this regularizer removes high-frequency noise (left), resulting
+which is very problematic for the inverse problem. Our solution to               in clean and aesthetically pleasing stripe patterns (right).
+this problem is to simply disallow phase vectors from becoming ar-
+bitrarily small. We achieve this goal by imposing smoothly-clamped
+logarithmic barrier functions [Li et al. 2020] on per-vertex phases
+as,
+                           (
+                                                                                 6.3   Design Objectives
+                                   ˆ 2 ln( 𝑑 ) 0 < 𝑑 ≤ 𝑑ˆ
+                             −(𝑑 − 𝑑)                                            Our differentiable formulation for stripe patterns can be used for
+                      ˆ
+           𝑅sing (𝑑, −𝑑) =                 𝑑ˆ                   (23)
+                             0                 otherwise ,                       solving a large array of design problems, see Sec. 7. In the following,
+                                                                                 we summarize the objective functions that we use for our examples.
+where 𝑑 = |v𝑖 | and 𝑑ˆ = 0.1 is a cut-off value. By preventing zero
+phases through a design objective, we ensure that eigenvectors still                Target Deformation. A basic task is to find stripe patterns such that
+have the same meaning as before—they represent ideal approxi-                    the design best approximates a given target shape x̃ in equilibrium.
+mations to potentially non-integrable vector fields. However, the                In its simplest form, the corresponding objective function is
+design parameters are now strongly repelled from values that lead                                         𝑇match = |x(p) − x̃| 2 .                       (24)
+to eigenvectors with zero per-vertex phases.
+   An interesting question in this context is what do we lose when                  Macromechanical Properties. Stripe patterns are ideal for creat-
+preventing zero per-vertex phases? As described by Knöppel et al.                ing materials with high stiffness contrast, e.g., by modulating the
+[2015], scaling per-vertex phases down to zero permits the introduc-             macromechanical properties of a soft (fabric) substrate with stripe
+tion of singularities in the phase field that would otherwise lead to            patterns made from stiffer material. In this context, designers are
+non-integrability. Our experiments indicate that the expressiveness              typically interested in averaged, high-level behavior of the rein-
+of stripe patterns generated without such non-integrable compo-                  forced material, rather than in local deformations. In order to find
+nents does not suffer. Indeed, while almost-zero phase vectors can               stripe patterns that best approximate a given macromechanical be-
+be normalized without problems, they often lead to randomly ori-                 havior, we define an objective function that penalizes deviations
+ented phases with significant curl. These high-curl regions translate            between actual and target directional stiffness as
+into quasi-amorphous material distributions with isolated patches                                           ∑︁
+rather than clean stripes. We argue that such phase fields are neither                              𝑇Mat =     |𝑘 (𝜃𝑖 , x(p)) − 𝑘ˆ𝑖 | 2 ,         (25)
+useful nor desirable from a material design perspective.                                                        𝑖
+
+   Smoothness. While the regularizer introduced above prevents                   where 𝜃𝑖 ∈ [0, 𝜋] are sample locations in polar coordinates with
+singularities in the phase field, the input vector field can still exhibit       corresponding directional stiffness targets 𝑘ˆ𝑖 given as generalized
+high-frequency components that translate into artifacts in the stripe            Young’s moduli. To compute the directional stiffness for given de-
+patterns as shown in Fig. 9. To avoid such artifacts, we introduce               sign parameters, we simulate a unit-patch of the corresponding
+an additional smoothness regularizer based on the formulation by                 structure subject to periodic boundary conditions that enforce a
+Crane et al. [2010],                                                             given uniaxial target deformation. We obtain the corresponding
+            ∑︁                                                                 stiffness 𝑘 (𝜃𝑖 , x(p)) by evaluating the stress on the boundary of
+𝑅sm (p) =        𝑤𝑖 𝑗 [cos(𝑝𝑖 ) − cos(𝑝 𝑗 )] 2 + [sin(𝑝𝑖 ) − sin(𝑝 𝑗 )] 2 ,      the unit cell and dividing by the strain magnitude as described by
+            𝑖,𝑗 ∈ E                                                              Schumacher et al. [2018].
+
+ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+                                                                                         Differentiable Stripe Patterns for Inverse Design of Structured Surfaces   •   102:9
+
+
+a                                       b                                        c                                            d
+
+
+
+
+Fig. 10. Controlling Macromechanical Properties. Starting from an initial concentric pattern (a), we optimize for patterns that lead to isotropic (b), orthotropic
+(c), and tetragonal (d) macromechanical behavior.
+
+
+  Generalized Stiffness. Another basic design goal that we use in                    we compute a pair of orthogonal eigenvectors (v1, v2 ) as a basis for
+our examples is to achieve a desired stiffness with respect to given                 the eigenplane with minimal eigenvalue. We obtain the reference
+loads. When defining generalized stiffness as displacement norm                      eigenvector by finding 𝜃 that satisfies the condition 𝑏𝑘 = 0 in the
+divided by applied force magnitude, this objective becomes a special                 equation
+case of Eq. (24) .                                                                                        v = v1 cos(𝜃 ) + v2 sin(𝜃 ) .               (28)
+                                                                                     The current eigenvector is computed by rotating the reference vec-
+6.4   Optimization Algorithm                                                         tor by the new angle 𝜃 + Δ𝜃 as given by the search direction. Having
+Our formulation allows us to compute derivatives of objective func-                  computed the new eigenvector in this way, the material interfaces
+tions with respect to the design parameters. These gradients can                     are updated accordingly, and new equilibrium positions are com-
+then be used to drive first-order descent or quasi-Newton meth-                      puted using forward simulation.
+ods for minimization. We experimented with steepest descent and
+L-BFGS, but ultimately found the Globally-Convergent Method of                       7     RESULTS
+Moving Asymptotes (GC-MMA) [Svanberg 1995] to be most effi-                          We evaluate our method on a range of examples that demonstrate
+cient for our problem setting. We express the objective gradient                     its potential to solve general inverse design problems for elastic
+with respect to the parameters as                                                    surfaces structured with bi-material distributions. Statistics for all
+                           𝜕𝝓 𝜕v 𝑇 𝜕𝑇 𝜕x 𝑇 𝜕𝑇                                        experiments are listed in Tab. 2.
+                                               
+             𝑑𝑇     𝜕𝑇
+                  =    +                +           ,          (26)
+              𝑑p    𝜕p     𝜕v 𝜕p     𝜕𝝓 𝜕𝝓 𝜕x                                            Controlling Macromechanical Properties. In our first example, we
+        𝜕𝜙                                                                           explore stripe patterns as a design space for modulating the me-
+ where 𝜕v is the derivative of the level set with respect to the
+                                                                                     chanical properties of an isotropic base material. To this end, we
+eigenvector (Eq. 10), 𝜕v
+                      𝜕p denotes the sensitivity of the eigenvector                  initialize our method with a radial vector field that generates con-
+                                                                 𝜕x
+with respect to the parameters as illustrated in section 6.1 and 𝜕𝝓                  centric stripes on a square patch. We impose periodic boundary
+is the sensitivity of the nodal positions with respect to the level                  conditions and use homogenization to compute directional stiffness
+set. Instead of fully evaluating both sensitivity matrices, we use the               profiles based on the formulation by Schumacher et al. [2018]. As
+adjoint method for both terms sequentially, requiring just two linear                can bee seen from Fig. 10(a), despite its apparent symmetry, the
+solves per gradient evaluation.                                                      tiling of this pattern is not rotationally symmetric and its stiffness
+                                                                                     is thus not isotropic. Given an isotropic stiffness profile as target,
+                                                                                     however, our method finds a concentric but slightly more rectangu-
+   Simulation Sensitivity. The map of the nodal positions as a func-
+                                                                                     lar pattern that leads to the desired behavior (Fig. 10(b)). As shown
+tion of the level set x(𝝓) is given by the force equilibrium constraint
+                                                                                     in Fig. 10(c) and (d), our method is likewise able to find modified
+of the forward simulation, 𝒇 = − 𝑑𝑈  𝑑x = 0. As a result, changes in 𝝓               patterns that yield orthotropic and tetragonal behavior, respectively.
+                                                                 𝑑𝒇
+induce changes in the equilibrium configuration x. Since 𝑑𝝓 = 0 for
+                                                                                        Variable Stiffness Materials. In a second example, we use our
+every equilibrium configuration, we have
+                                                                                     method to design variable stiffness materials. We consider a rect-
+                        𝑑𝒇   𝜕𝒇 𝜕x 𝑇 𝜕𝒇                                              angular patch clamped at two opposite boundaries as shown in
+                           =   +        =0,                              (27)
+                        𝑑𝝓 𝜕𝝓 𝜕𝝓 𝜕x                                                  Fig. 11. As design objective, we ask that displacements should vary
+           𝜕x is extracted.
+from which 𝜕𝝓                                                                        linearly when applying a constant horizontal force density such as
+                                                                                     to encourage a stiff to soft distribution from the top to the bottom
+   Evaluating Candidate Parameters. Whenever a candidate parame-                     boundary. We start with a initial material distribution of vertical
+ter update is evaluated during the optimization process, we must                     stripes, for which the stiffness—measured as applied force magni-
+recompute eigenvectors at the new parameter location. To this end,                   tude divided by resulting displacement norm—is the same for both
+
+                                                                                             ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+102:10   • Montes et al.
+
+
+top and bottom boundaries. As can be seen from Fig. 11 (b, right),               and −6.31𝑚𝑚 for the midfoot. After optimization, these values have
+our method produces a pattern that yields the desired stiffness gradi-           changed to −4.67𝑚𝑚 and −2.52𝑚𝑚, respectively, indicating that the
+ent. Visually, stripes have changed direction on the stiffer boundary            desired stiffness distribution has been achieved. It can further be
+(top) into an almost horizontal arrangement, whereas they remain                 observed that the quality of the stripes deteriorates as the optimiza-
+largely vertical on the softer end (bottom). This non-trivial transition         tion tries to increase the amount of stiff materials. Our smoothness
+is enabled through a sequence of turning and branching points that,              and singularity regularizers put a bound to this trend and largely
+despite rather substantial changes, lead to an overall smooth and                succeed in maintaining stripe integrity.
+continuous pattern.
+                                                                                    Garment Design. Fitted sportswear and medical garments rely on
+   Compliant Gripper. While the previous examples have focused                   the ability to locally control stretch and stiffness. To investigate the
+on the control of in-plane mechanical properties, Differentiable                 potential of Differentiable Stripe Patterns in this context, we study
+Stripe Patterns can likewise be used to drive large out-of-plane                 the problem of designing an elastic sports shirt structured with
+deformations upon actuation. To explore this application, we study               stripe-shaped reinforcements. The shirt is fitted onto a torso model
+an example inspired by Kirigami thin-shell grippers [Yang et al.                 and, compared to its rest shape, must increase in area by about 10%
+2021]. Starting from the parallel stripes design shown in Fig. 1 (a),            to conform to the body. Stretch is therefore inevitable and we aim to
+we aim to optimize the pattern such that, when pulled along its                  route stripes such as to minimize the elastic energy of the shirt. The
+horizontal axis, the wings of the sheet fold such as to minimize                 initial design with parallel stripes shown in Fig. 14(left) exhibits a
+the distance between their tips. Actuating the initial design with               high strain energy value since stiff reinforcements experience high
+parallel stripes does not result in sufficient lateral deflection (Fig. 1        stress with such a layout. Our optimization method finds a stripe
+(c)). For our optimized design, however, the same actuation produces             pattern that decreases the energy by more than 25% with stripes
+the desired large out-of-plane motion that is able to lift a small 3D-           that branch and meander such as to avoid long tension lines and
+printed model; see Fig. 1(d) and the accompanying video.                         alignment with principal stress directions. See Fig. 14(right).
+   Soft Pneumatic Actuator. Our method can also be combined with
+other means of actuation to produce large controlled deformations.                  Structural Optimization of Thin Shells. While we primarily de-
+We demonstrate such a use case by designing a pneumatic actuator—                signed our method to operate on bi-material distributions, Differ-
+a basic building block for soft robotics applications. The actuator is           entiable Stripe Patterns can also be used to generate geometric
+made from a rectangular piece of textile structured with stiff stripe            modifications for single material designs. We investigate this ge-
+patterns. The reinforced design is connected along its long boundary             ometry mode on a structural optimization problem where we seek
+and sealed at the far ends. We simulate inflation by applying constant           to increase the stiffness for a simple vase model subject to vertical
+pressure forces [Montes et al. 2020] and enforce periodic boundary               loading as shown in Fig. 16. Instead of defining a bi-material dis-
+conditions on both displacement and stripe patterns. Our design                  tribution, we use stripe patterns with sinusoidal cross sections to
+objective is to reach a target shape corresponding to a constant-                generate normal displacements. Structuring surfaces with so called
+curvature bend of 180◦ . As shown in Fig. 12, our method produces a              beads and groves to increase stiffness is a common strategy—also
+smooth stripe pattern that closely approximates the target shape in              referred to as topography optimization—in engineering design. As
+simulation. One can distinguish two main mechanisms that enable                  shown Fig. 16 (3—4), the optimized design found by our method
+this behavior: ribs running along the radial direction such as to                yields a structure with significantly improved axial stiffness that
+allow axial stretch on the top surface while preventing an increase              shows no sign of buckling even as we increase load by a factor of
+in radius; and a concentration of stiff material on the bottom surface           two (Fig. 16). As a visual interpretation, adding stripe-shaped nor-
+that leads to differential axial stiffness and, consequently, a preferred        mal displacements means that quasi-isometric bending modes for
+bending direction. Our physical prototype confirms the feasibility               the plain design would induce substantial in-plane deformation in
+of this design and achieves the targeted change in end-effector                  the optimized design. Thanks to its fully-differentiable nature, our
+orientation, albeit with a somewhat larger lateral contraction.                  method is able to exploit this effect, leading to structurally efficient
+                                                                                 and aesthetically pleasing patterns.
+   Optimization of Insoles. Stripe patterns are ideal for designing
+materials with targeted directional deformations, and all examples
+shown so far relied on this unique capability. To analyze the robust-               Choice of Initial Guess. As with any nonlinear, nonconvex opti-
+ness of our method with respect to design goals outside this space,              mization problem, there can be many local minima in the solution
+we investigate an example that does not inherently require material              landscape. As a result, the pattern found depends on the choice
+anisotropy. To this end, we consider the design of a compliant shoe              of initial guess. We explore the effect of different initial guesses
+sole that exhibits low stiffness to normal loading in the heel and               on an example that aims to modulate the directional stiffness of a
+forefoot regions but offers higher stiffness in the midfoot region for           reinforced fabric into a tetragonal profile. Starting from unidirec-
+increased stability. As can be seen in Fig. 13, our method finds a               tional and radial vector fields, we optimize for the same target and
+pattern layout that achieves these stiffness goals in simulation by              compare their results. As can be seen in Fig. 15, the symmetry of
+concentrating stiff material in the midfoot region. To evaluate this             the concentric circles allows the pattern to comfortably reach the
+result quantitatively, the initial design shows average displacements            target with very few changes. In contrast, the unidirectional pattern,
+in the normal direction of −3.66𝑚𝑚 for heel and forefoot regions                 which exhibits an extreme initial stiffness profile, is forced to break
+
+ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+                                                                                          Differentiable Stripe Patterns for Inverse Design of Structured Surfaces   •   102:11
+
+
+a                                                                                       b
+
+
+
+
+                                     1cm
+
+Fig. 11. Variable Stiffness Design. Comparison between an initial design with constant stiffness (a, left) and our optimized design with linearly varying
+stiffness (a, right). When applying the same force density, our optimized design (b, right) exhibits the desired stiffness gradient whereas the initial design
+shows constant stiffness as expected.
+
+
+a                                                                  b                                                              c                                  1cm
+
+
+
+
+Fig. 12. Soft Actuator. Using a stretchable textile as substrate, we optimize for stripe-shaped reinforcements (a) such that, once sewn and sealed (b, top), the
+soft actuator deforms into a desired target shape upon pressurization (c). The prediction from our simulation model (b, bottom) is in good agreement with the
+physical actuator.
+
+
+a                                                  b                                                                  c
+                       compression opt.
+
+
+                                                                              hard                  soft
+                                                                soft
+
+
+
+
+                                     infill
+
+Fig. 13. Heterogeneous stiffness optimization. We optimize for stripe patterns such as to produce a shoe insole with a soft response to vertical loading in the
+heel and forefoot region while offering larger stiffness in the midfoot region. A bi-material stripe pattern with soft TPU (green) and stiff PET (blue) is placed on
+top of a soft infill (a). The stripe pattern is optimized to yield a soft response to vertical loading in the heel and forefoot region while offering larger stiffness in
+the midfoot region (b) such as to increase comfort when worn (c).
+
+
+its symmetry to better fit the target, without achieving the same                       surfaces. In order to invert the stripe pattern pipeline due to Knöp-
+level of success as the concentric circles.                                             pel et al. [2015], we have addressed several key challenges. First,
+                                                                                        we resolved ambiguities due to eigenvalue multiplicity by estab-
+8   CONCLUSION                                                                          lishing a unique parameterization of the corresponding eigenplane,
+We presented Differentiable Stripe Patterns, a computational ap-                        resulting in well-defined eigenvector derivatives. Second, to allow
+proach that unlocks Stripe Patterns as a design space for structured                    for accurate modeling of moving material interfaces, we proposed a
+
+                                                                                               ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+102:12   • Montes et al.
+
+
+                                         Table 2. Summary of parameters and performance statistics for all our experiments.
+
+
+           Example                # dofs         # iterations           Time per iter. [s]     Initial objective   Final objective    Figure
+           Isotropic              10481          55                     21.41                  391.81              38.04              Fig. 10(b)
+           Orthotropic            10481          310                    21.22                  7324.53             60.06              Fig. 10(c)
+           Tetragonal             10481          267                    21.50                  1721.02             21.92              Fig. 10(d)
+           Cloth                  8138           66                     193.97                 776.17              642.59             Fig. 14
+           Vase                   14026          592                    25.68                  2344.09             1957.59            Fig. 16
+           Actuator               11689          384                    34.27                  3574.64             901.40             Fig. 12
+           Gripper                6718           14                     389.31                 1486.14             311.59             Fig. 1
+           Var. Stiffness         11592          139                    130.13                 1031.89             12.49              Fig. 11
+           Insole                 6681           357                    126.10                 209.17              103.76             Fig. 13
+
+
+                                                                                         are, nevertheless, several limitations and corresponding opportuni-
+                                                                                         ties for future improvements.
+
+                                                                                         8.1     Limitations
+                                                                                         We have assumed that our bi-material designs have material inter-
+                                                                                         faces extending through the entire thickness. This assumption is
+                                                                                         a somewhat coarse approximation of our reinforced fabric exam-
+                                                                                         ples, for which we added 3D-printed stripes on top of a textile sub-
+                                                                                         strate. While our results showed fairly good accuracy compared to
+                                                                                         real-world experiments, Jourdan et al. [2022a] have recently demon-
+                                                                                         strated that a thin shell model can be adapted to reflect this non-
+                                                                                         symmetric patterning. We expect that similar modifications could
+Fig. 14. Functional Elastic Shirt. Using a stretchable textile as substrate, we          likewise be effective for our solid shell model. Another alternative
+optimize for stripe-shaped reinforcements such as to minimize the strain                 would be to use a bi-layer solid shell, with a homogeneous bottom
+energy of the garment. Left: initial design with parallel stripes in front and           layer and a structured top layer consisting of stiff and void material.
+back view. Our optimized design (right) yields a significant decrease in                    Our method is currently limited to a single linear cut per element.
+energy.                                                                                  This is not much of a restriction in practice, since our focus is on low-
+                                                                                         frequency stripe patterns and we can simply choose mesh resolution
+                                                                                         accordingly. An exception are branches, which involve two cuts in
+                                                                                         a single element that form an inward dent. Our method currently
+                                                                                         ignores this non-convex feature and approximates it with its convex
+                                                                                         closure. Nevertheless, extending our method to handle multiple cuts
+                                                                                         per element using the hierarchical scheme by Zehnder et al. [2017]
+                                                                                         should pose no major problems.
+                                                                                            We believe that the combination of solid shells and XFEM offers
+                                                                                         unique advantages in terms of accuracy for computation time. In
+                                                                                         this work, we only explored constant thickness shells with two
+                                                                                         materials. However, solid shells could be useful for many other
+Fig. 15. Influence of initial guess on optimization results. We optimize a re-
+                                                                                         graphics applications where through-the-thickness deformation is
+inforced fabric to exhibit a tetragonal stiffness profile using a unidirectional
+(left) and a radial (right) vector field as initial guess. Initial patterns and
+                                                                                         an important effect, including simulation of skin, faces, and filled
+stiffness profiles are shown as bottom and top inset images, respectively.               garments.
+                                                                                            Finally, we have only started to explore the possibilities of stripe
+                                                                                         patterns for functional garment design. In the future, we would like
+combination of solid shells and extended finite elements. Finally, we                    to investigate the design of haptic garments that use stripe patterns
+introduced design space regularizers to avoid numerical singulari-                       to provide feedback on, e.g., posture [Vechev et al. 2022]. Extending
+ties and improve stripe neatness. We combined these components                           passive stripes toward active control and sensing is likewise an
+with equilibrium state derivatives into an end-to-end differentiable                     exciting avenue for future work.
+pipeline that enables inverse design with high-level performance
+objectives. Our results indicate that stripe patterns are indeed a                       ACKNOWLEDGMENTS
+promising design space for bi-material surfaces, and that gradient-                      We are grateful to the anonymous reviewers for their valuable com-
+based optimization is an effective tool for exploring this space. There                  ments. This work was supported by the European Research Council
+
+ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+                                                                                              Differentiable Stripe Patterns for Inverse Design of Structured Surfaces     •       102:13
+
+
+                                                                                                                                                                               100
+               0N                                45 N                                0N                           90 N
+                                                                                                                                                          with stripes
+                                                                                                                                                                               80
+
+
+
+                                                                                                                                                                                    Force (N)
+                                                                                                                                                                               60
+                                                                                                                                                no stripes
+                                                                                                                                                                               40
+
+                                                                                                                                                                               20
+
+                                                                                                                                                                               0
+                                                                                                                                         -1    0     1    2     3    4     5
+                                                                                                                                              Compression (mm)
+
+Fig. 16. Structural Optimization with Differentiable Stripe Patterns. From left to right: a 3D-printed thin-walled vase (1) buckles under a vertical load of 45N
+(2). To prevent this failure mode, we optimize for normal offsets in the form of stripe patterns such as to maximize the stiffness of the vase with respect to
+vertical loading (3). Our optimized design deforms much less under vertical loading (4) and shows no signs of buckling even for 90N (5).
+
+
+(ERC) under the European Union’s Horizon 2020 research and in-                                   Designing lattices for impact protection using transfer learning. Matter 5, 9 (2022),
+novation program (grant agreement No. 866480), and the Swiss Na-                                 2829–2846. https://doi.org/10.1016/j.matt.2022.06.051
+                                                                                             Eitan Grinspun, Anil N Hirani, Mathieu Desbrun, and Peter Schröder. 2003. Discrete
+tional Science Foundation through SNF project grant 200021_200644.                               shells. In Proceedings of the 2003 ACM SIGGRAPH/Eurographics symposium on Com-
+                                                                                                 puter animation. Eurographics Association, 62–67.
+
+REFERENCES
+                                                                                             Ruslan Guseinov, Eder Miguel, and Bernd Bickel. 2017. CurveUps: Shaping Objects
+                                                                                                 from Flat Plates with Tension-Actuated Curvature. ACM Trans. Graph. 36, 4, Article
+Katia Bertoldi, Vincenzo Vitelli, Johan Christensen, and Martin Van Hecke. 2017. Flexible        64 (July 2017), 12 pages. https://doi.org/10.1145/3072959.3073709
+   mechanical metamaterials. Nature Reviews Materials 2, 11 (2017), 1–11.                    Christian Hafner, Christian Schumacher, Espen Knoop, Thomas Auzinger, Bernd Bickel,
+Gaurav Bharaj, David I. W. Levin, James Tompkin, Yun Fei, Hanspeter Pfister, Wojciech            and Moritz Bächer. 2019. X-CAD: Optimizing CAD Models with Extended Finite
+   Matusik, and Changxi Zheng. 2015. Computational Design of Metallophone Contact                Elements. ACM Trans. Graph. 38, 6, Article 157 (Nov. 2019), 15 pages. https:
+   Sounds. ACM Trans. Graph. 34, 6, Article 223 (Oct. 2015), 13 pages. https://doi.org/         //doi.org/10.1145/3355089.3356576
+   10.1145/2816795.2818108                                                                   R. Hauptmann and K. Schweizerhof. 1998. A systematic development of ‘solid-shell’ el-
+Bernd Bickel, Moritz Bächer, Miguel A. Otaduy, Hyunho Richard Lee, Hanspeter Pfister,            ement formulations for linear and non-linear analyses employing only displacement
+   Markus Gross, and Wojciech Matusik. 2010. Design and Fabrication of Materials                 degrees of freedom. Internat. J. Numer. Methods Engrg. 42, 1 (1998), 49–69. https:
+   with Desired Deformation Behavior. In ACM SIGGRAPH 2010 Papers (Los Angeles,                 //doi.org/10.1002/(SICI)1097-0207(19980515)42:1<49::AID-NME349>3.0.CO;2-2
+   California) (SIGGRAPH ’10). Association for Computing Machinery, New York, NY,            Gerhard A. Holzapfel and Thomas C. Gasser. 2001. A viscoelastic model for fiber-
+   USA, Article 63, 10 pages. https://doi.org/10.1145/1833349.1778800                            reinforced composites at finite strains: Continuum basis, computational aspects and
+Narasimha Boddeti, Yunlong Tang, Kurt Maute, David W. Rosen, and Martin L. Dunn.                 applications. Computer Methods in Applied Mechanics and Engineering 190, 34 (2001),
+   2020. Optimal design and manufacture of variable stiffness laminated continuous               4379–4403. https://doi.org/10.1016/S0045-7825(00)00323-6
+   fiber reinforced composites. Scientific Reports 10 (12 2020). Issue 1. https://doi.org/   Caigui Jiang, Florian Rist, Hui Wang, Johannes Wallner, and Helmut Pottmann. 2022.
+   10.1038/s41598-020-73333-4                                                                    Shape-morphing mechanical metamaterials. Computer-Aided Design 143 (2022),
+R. Bridson, S. Marino, and R. Fedkiw. 2005. Simulation of Clothing with Folds and                103146. https://doi.org/10.1016/j.cad.2021.103146
+   Wrinkles. In ACM SIGGRAPH 2005 Courses (Los Angeles, California) (SIGGRAPH                David Jourdan, Skouras Mélina, Romero Victor, Etienne Vouga, and Adrien Bousseau.
+   ’05). Association for Computing Machinery, New York, NY, USA, 3–es. https:                    2022a. Simulation of printed-on-fabric assemblies. Association for Computing
+   //doi.org/10.1145/1198555.1198573                                                             Machinery (ACM), 1–11. https://doi.org/10.1145/3559400.3562001
+Desai Chen, David I. W. Levin, Wojciech Matusik, and Danny M. Kaufman. 2017.                 David Jourdan, Mélina Skouras, Etienne Vouga, and Adrien Bousseau. 2022b. Compu-
+   Dynamics-Aware Numerical Coarsening for Fabrication Design. ACM Trans. Graph.                 tational Design of Self-Actuated Surfaces by Printing Plastic Ribbons on Stretched
+   36, 4, Article 84 (jul 2017), 15 pages. https://doi.org/10.1145/3072959.3073669               Fabric. Computer Graphics Forum 41 (5 2022), 493–506. Issue 2. https://doi.org/10.
+Honglin Chen, Hsueh-TI Derek Liu, Alec Jacobson, and David I. W. Levin. 2020. Chordal            1111/cgf.14489
+   Decomposition for Spectral Coarsening. ACM Trans. Graph. 39, 6, Article 265 (nov          David Jourdan, Mélina Skouras, Etienne Vouga, Adrien Bousseau, D Jourdan, M Skouras,
+   2020), 16 pages. https://doi.org/10.1145/3414685.3417789                                      E Vouga, and A Bousseau. 2021. Printing-on-Fabric Meta-Material for Self-Shaping
+Hsiao-Yu Chen, Arnav Sastry, Wim M. van Rees, and Etienne Vouga. 2018. Physical                 Architectural Models. AAG 2020-Advances in Architectural Geometry. , 19 pages.
+   Simulation of Environmentally Induced Thin Shell Deformation. ACM Trans. Graph.               https://hal.inria.fr/hal-02925036
+   37, 4, Article 146 (jul 2018), 13 pages. https://doi.org/10.1145/3197517.3201395          Peter Kaufmann, Sebastian Martin, Mario Botsch, Eitan Grinspun, and Markus Gross.
+Tian Chen, Julian Panetta, Max Schnaubelt, and Mark Pauly. 2021. Bistable auxetic                2009. Enrichment Textures for Detailed Cutting of Shells. ACM Trans. Graph. 28, 3,
+   surface structures. ACM Transactions on Graphics 40 (7 2021). Issue 4. https:                Article 50 (jul 2009), 10 pages. https://doi.org/10.1145/1531326.1531356
+   //doi.org/10.1145/3450626.3459940                                                         Lily Kharevych, Patrick Mullen, Houman Owhadi, and Mathieu Desbrun. 2009. Numer-
+Yu Ju (Edwin) Chen, David I. W. Levin, Danny Kaufmann, Uri Ascher, and Dinesh K. Pai.            ical coarsening of inhomogeneous elastic materials. ACM Transactions on graphics
+   2019. EigenFit for Consistent Elastodynamic Simulation across Mesh Resolution.               (TOG) 28, 3 (2009), 1–8.
+   In Proceedings of the 18th Annual ACM SIGGRAPH/Eurographics Symposium on                  Felix Knöppel, Keenan Crane, Ulrich Pinkall, and Peter Schröder. 2015. Stripe patterns on
+   Computer Animation (Los Angeles, California) (SCA ’19). Association for Computing             surfaces. ACM Transactions on Graphics 34. Issue 4. https://doi.org/10.1145/2767000
+   Machinery, New York, NY, USA, Article 5, 13 pages. https://doi.org/10.1145/3309486.       Yeongbin Ko and Phill Seung Lee. 2017. A 6-node triangular solid-shell element for
+   3340248                                                                                       linear and nonlinear analysis. Internat. J. Numer. Methods Engrg. 111 (9 2017),
+Keenan Crane, Mathieu Desbrun, and Peter Schröder. 2010. Trivial Connections on                  1203–1230. Issue 13. https://doi.org/10.1002/nme.5498
+   Discrete Surfaces. Computer Graphics Forum (SGP) 29, 5 (2010), 1525–1533.                 Mina Konaković-Luković, Julian Panetta, Keenan Crane, and Mark Pauly. 2018. Rapid
+Akash Garg, Eitan Grinspun, Max Wardetzky, and Denis Zorin. 2007. Cubic Shells.                  Deployment of Curved Surfaces via Programmable Auxetics. ACM Trans. Graph. 37,
+   In Proceedings of the 2007 ACM SIGGRAPH/Eurographics Symposium on Computer                    4, Article 106 (July 2018), 13 pages. https://doi.org/10.1145/3197517.3201373
+   Animation (San Diego, California) (SCA ’07). Eurographics Association, Goslar, DEU,       Dan Koschier, Jan Bender, and Nils Thuerey. 2017. Robust extended finite elements
+   91–98.                                                                                        for complex cuting of deformables. ACM Transactions on Graphics 36. Issue 4.
+Yotam Gingold, Adrian Secord, Jefferson Y Han, Eitan Grinspun, and Denis Zorin.                  https://doi.org/10.1145/3072959.3073666
+   2004. A discrete model for inelastic deformation of thin shells. In ACM SIG-              Kurt Leimer and Przemyslaw Musialski. 2020. Reduced-Order Simulation of Flexi-
+   GRAPH/Eurographics symposium on computer animation. Citeseer.                                 ble Meta-Materials. Proceedings - SCF 2020: ACM Symposium on Computational
+Aldair E. Gongora, Kelsey L. Snapp, Richard Pang, Thomas M. Tiano, Kristofer G. Reyes,           Fabrication. https://doi.org/10.1145/3424630.3425411
+   Emily Whiting, Timothy J. Lawton, Elise F. Morgan, and Keith A. Brown. 2022.
+
+
+                                                                                                    ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+102:14   • Montes et al.
+
+
+Minchen Li, Zachary Ferguson, Teseo Schneider, Timothy R Langlois, Denis Zorin,                 Bernhard Thomaszewski, Stelian Coros, Damien Gauge, Vittorio Megaro, Eitan Grin-
+    Daniele Panozzo, Chenfanfu Jiang, and Danny M Kaufman. 2020. Incremental po-                   spun, and Markus Gross. 2014. Computational Design of Linkage-Based Characters.
+    tential contact: intersection-and inversion-free, large-deformation dynamics. ACM              ACM Trans. Graph. 33, 4, Article 64 (July 2014), 9 pages. https://doi.org/10.1145/
+    Trans. Graph. 39, 4 (2020), 49.                                                                2601097.2601143
+Hsueh-Ti Derek Liu, Alec Jacobson, and Maks Ovsjanikov. 2019. Spectral Coarsening               Davi Colli Tozoni, Jérémie Dumas, Zhongshi Jiang, Julian Panetta, Daniele Panozzo, and
+    of Geometric Operators. ACM Trans. Graph. 38, 4, Article 105 (jul 2019), 13 pages.             Denis Zorin. 2020. A low-parametric rhombic microstructure family for irregular
+    https://doi.org/10.1145/3306346.3322953                                                        lattices. ACM Transactions on Graphics (TOG) 39, 4 (2020), 101–1.
+Zhenyuan Liu, Jingyu Hu, Hao Xu, Peng Song, Ran Zhang, Bernd Bickel, and Chi-                   Thibault Tricard, Vincent Tavernier, Cédric Zanni, Jonàs Martínez, Pierre-Alexandre
+    Wing Fu. 2022. Worst-Case Rigidity Analysis and Optimization for Assemblies with               Hugron, Fabrice Neyret, and Sylvain Lefebvre. 2020. Freely orientable microstruc-
+    Mechanical Joints. Computer Graphics Forum 41, 2 (2022). https://doi.org/10.1111/              tures for designing deformable 3D prints. ACM Trans. Graph. 39, 6 (2020), 211–1.
+    cgf.14490                                                                                   Nobuyuki Umetani, Jun Mitani, and Takeo Igarashi. 2010. Designing Custom-made
+Luigi Malomo, Jesús Pérez, Emmanuel Iarussi, Nico Pietroni, Eder Miguel, Paolo Cignoni,            Metallophone with Concurrent Eigenanalysis. In Proceedings of the International
+    and Bernd Bickel. 2018. FlexMaps: Computational Design of Flat Flexible Shells                 Conference on New Interfaces for Musical Expression. Zenodo, 26–30. https://doi.org/
+    for Shaping 3D Objects. ACM Trans. Graph. 37, 6, Article 241 (Dec. 2018), 14 pages.            10.5281/zenodo.1177917
+    https://doi.org/10.1145/3272127.3275076                                                     Velko Vechev, Juan Zarate, Bernhard Thomaszewski, and Otmar Hilliges. 2022. Com-
+Jonàs Martínez, Jérémie Dumas, and Sylvain Lefebvre. 2016. Procedural voronoi foams                putational Design of Kinesthetic Garments. Computer Graphics Forum (2022).
+    for additive manufacturing. ACM Transactions on Graphics (TOG) 35, 4 (2016), 1–12.             https://doi.org/10.1111/cgf.14492
+Jonàs Martínez, Mélina Skouras, Christian Schumacher, Samuel Hornus, Sylvain Lefeb-             Yi Yang, Katherine Vella, and Douglas P. Holmes. 2021. Grasping with kirigami shells.
+    vre, and Bernhard Thomaszewski. 2019. Star-shaped metrics for mechanical meta-                 Science Robotics 6, 54 (2021), eabd6426. https://doi.org/10.1126/scirobotics.abd6426
+    material design. ACM Transactions on Graphics (TOG) 38, 4 (2019), 1–13.                        arXiv:https://www.science.org/doi/pdf/10.1126/scirobotics.abd6426
+Jonàs Martínez, Haichuan Song, Jérémie Dumas, and Sylvain Lefebvre. 2017. Orthotropic           Jonas Zehnder, Stelian Coros, and Bernhard Thomaszewski. 2016. Designing
+    k-nearest foams for additive manufacturing. ACM Transactions on Graphics (TOG)                 Structurally-Sound Ornamental Curve Networks. ACM Trans. Graph. 35, 4, Ar-
+    36, 4 (2017), 1–12.                                                                            ticle 99 (July 2016), 10 pages. https://doi.org/10.1145/2897824.2925888
+Nicolas Moës, Mathieu Cloirec, Patrice Cartraud, and J-F Remacle. 2003. A computa-              Jonas Zehnder, Espen Knoop, Moritz Bächer, and Bernhard Thomaszewski. 2017.
+    tional approach to handle complex microstructure geometries. Computer methods                  Metasilicone: design and fabrication of composite silicone with desired mechanical
+    in applied mechanics and engineering 192, 28-30 (2003), 3163–3177.                             properties. ACM Transactions on Graphics (TOG) 36, 6 (2017), 1–13.
+Juan Montes, Bernhard Thomaszewski, Sudhir Mudur, and Tiberiu Popa. 2020. Com-                  Bo Zhu, Mélina Skouras, Desai Chen, and Wojciech Matusik. 2017. Two-scale topology
+    putational Design of Skintight Clothing. ACM Trans. Graph. 39, 4, Article 105 (jul             optimization with microstructures. ACM Transactions on Graphics (TOG) 36, 4 (2017),
+    2020), 12 pages. https://doi.org/10.1145/3386569.3392477                                       1.
+Ella Moore, Ioannis Karamouzas, and Michael Porter. 2018. Precision control of tensile
+    properties in fabric for computational fabrication. Proceedings - SCF 2018: ACM
+    Symposium on Computational Fabrication. https://doi.org/10.1145/3213512.3213514
+Przemyslaw Musialski, Christian Hafner, Florian Rist, Michael Birsak, Michael Wimmer,
+    and Leif Kobbelt. 2016. Non-linear Shape Optimization Using Local Subspace
+    Projections. ACM Trans. Graph. 35, 4, Article 87 (July 2016), 13 pages. https:
+    //doi.org/10.1145/2897824.2925886
+William Neveu, Ivan Puhachov, Bernhard Thomaszewski, and Mikhail Bessmeltsev.
+    2022. Stability-Aware Simplification of Curve Networks. In ACM SIGGRAPH 2022
+    Conference Proceedings (Vancouver, BC, Canada) (SIGGRAPH ’22). Association for
+    Computing Machinery, New York, NY, USA, Article 20, 9 pages. https://doi.org/10.
+    1145/3528233.3530711
+Julian Panetta, Florin Isvoranu, Tian Chen, Emmanuel Siéfert, Benoît Roman, and
+    Mark Pauly. 2021. Computational inverse design of surface-based inflatables. ACM
+    Transactions on Graphics 40 (7 2021). Issue 4. https://doi.org/10.1145/3450626.
+    3459789
+J. Panetta, M. Konakoviundefined-Lukoviundefined, F. Isvoranu, E. Bouleau, and M.
+    Pauly. 2019. X-Shells: A New Class of Deployable Beam Structures. ACM Trans.
+    Graph. 38, 4, Article 83 (July 2019), 15 pages. https://doi.org/10.1145/3306346.
+    3323040
+Julian Panetta, Abtin Rahimian, and Denis Zorin. 2017. Worst-case stress relief for
+    microstructures. ACM Transactions on Graphics (TOG) 36, 4 (2017), 1–16.
+Julian Panetta, Qingnan Zhou, Luigi Malomo, Nico Pietroni, Paolo Cignoni, and Denis
+    Zorin. 2015. Elastic textures for additive fabrication. ACM Transactions on Graphics
+    (TOG) 34, 4 (2015), 1–12.
+Jesús Pérez, Miguel A. Otaduy, and Bernhard Thomaszewski. 2017. Computational
+    Design and Automated Fabrication of Kirchhoff-plateau Surfaces. ACM Trans. Graph.
+    36, 4, Article 62 (July 2017), 12 pages. https://doi.org/10.1145/3072959.3073695
+Stefan Pillwein and Przemyslaw Musialski. 2021. Generalized deployable elastic
+    geodesic grids. ACM Transactions on Graphics 40 (12 2021). Issue 6. https:
+    //doi.org/10.1145/3478513.3480516
+Abhinit Sati, Ioannis Karamouzas, and Victor Zordan. 2021. DIGISEW: Anisotropic
+    Stitching for Variable Stretch in Textiles. Association for Computing Machinery, New
+    York, NY, USA. https://doi.org/10.1145/3485114.3485121
+Christian Schumacher, Bernd Bickel, Jan Rys, Steve Marschner, Chiara Daraio, and
+    Markus Gross. 2015. Microstructures to control elasticity in 3D printing. ACM
+    Transactions on Graphics (Tog) 34, 4 (2015), 1–13.
+Christian Schumacher, Steve Marschner, Markus Gross, and Bernhard Thomaszewski.
+    2018. Mechanical Characterization of Structured Sheet Materials. ACM Trans. Graph.
+    37, 4, Article 148 (July 2018), 15 pages. https://doi.org/10.1145/3197517.3201278
+Mélina Skouras, Bernhard Thomaszewski, Peter Kaufmann, Akash Garg, Bernd Bickel,
+    Eitan Grinspun, and Markus Gross. 2014. Designing Inflatable Structures. 33, 4
+    (2014).
+Krister Svanberg. 1995. A globally convergent version of MMA without linesearch. In
+    Proceedings of the first world congress of structural and multidisciplinary optimization,
+    Vol. 28. Goslar, Germany, 9–16.
+
+
+
+
+ACM Trans. Graph., Vol. 42, No. 4, Article 102. Publication date: August 2023.
+

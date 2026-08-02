@@ -9,6 +9,9 @@ import {
 describe("capability manifest", () => {
   it("validates the capabilities compiled into the current application", () => {
     expect(validateCapabilityManifest(BUILTIN_CAPABILITIES)).toEqual(BUILTIN_CAPABILITIES);
+    expect(BUILTIN_CAPABILITIES.operators.map((operator) => operator.id)).toContain(
+      "curl.vertex-barycentric-dual",
+    );
   });
 
   it("rejects duplicate operator ids", () => {
@@ -39,4 +42,3 @@ describe("capability manifest", () => {
     ).toThrow(/Duplicate/);
   });
 });
-

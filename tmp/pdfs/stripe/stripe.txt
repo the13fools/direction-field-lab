@@ -1,0 +1,844 @@
+                                               Stripe Patterns on Surfaces
+                       Felix Knöppel            Keenan Crane            Ulrich Pinkall               Peter Schröder
+                         TU Berlin           Columbia University          TU Berlin                     Caltech
+
+
+Abstract
+
+Stripe patterns are ubiquitous in nature, describing macroscopic
+phenomena such as stripes on plants and animals, down to ma-
+terial impurities on the atomic scale. We propose a method
+for synthesizing stripe patterns on triangulated surfaces, where
+singularities are automatically inserted in order to achieve user-
+specified orientation and line spacing. Patterns are characterized
+as global minimizers of a convex-quadratic energy which is well-
+defined in the smooth setting. Computation amounts to finding
+the principal eigenvector of a symmetric positive-definite matrix
+with the same sparsity as the standard graph Laplacian. The
+resulting patterns are globally continuous, and can be applied to
+a variety of tasks in design and texture synthesis.
+
+CR Categories: I.3.5 [Computer Graphics]: Computational Ge-           (Photo courtesy Joshua Hill)
+
+ometry and Object Modeling—Geometric algorithms, languages,           Figure 2: Natural phenomena like cacti (left) exhibit characteristic
+and systems                                                           branching patterns in an effort to maintain evenly-spaced features.
+                                                                      Right: Our algorithm allows one to quickly and automatically
+Keywords: discrete differential geometry, digital geometry pro-       synthesize similar patterns that seamlessly cover arbitrary surfaces.
+cessing, texture synthesis, direction fields, singularities
+
+1   Introduction
+                                                                      Our approach to stripe pattern synthesis is closely related to ex-
+                                                                      isting methods for field-aligned parameterization (Sec. 1.1). The
+A diverse collection of natural phenomena exhibit the same char-      main point of departure is that existing algorithms try to prevent
+acteristic pattern: unoriented stripes of uniform width that bifur-   singularities that were not specified as part of the input, whereas
+cate at isolated points called edge dislocations [Kalpakjian and      we intentionally allow new singularities, which are essential to
+Schmid 2009, pp. 44–46]. Why does this bifurcation occur? Sur-        modeling natural phenomena. In particular, we use a formulation
+faces of revolution (Fig. 3) provide an instructive example: for      akin to Ray et al. [2006], but omit both the curl correction step
+any given stripe width there is a maximum integer number of           and the unit-norm constraint. As a result, we can formulate our
+stripes that can fit around the circumference at each height h. As    problem via a simple convex quadratic energy; the practical pay-
+the radius r grows or shrinks this number can suddenly jump—          off is an algorithm about an order of magnitude faster than those
+stripes must therefore branch or coalesce in order to maintain a      based on nonconvex constraints or mixed integer programming
+continuous transition between neighboring regions.                    (Sec. 5.1). The final algorithm is simple to implement (App. C)
+                                                                      requiring no global cutting or integer jumps, is robust to errors
+                                                                      in the input (Fig. 16), and requires little work beyond factoring
+                                                                      a single sparse matrix. The output is an angle α at each triangle
+                                                                      corner which can be used to drive a periodic texture or shader.
+                                                                      We also introduce a novel interpolation scheme (Sec. 4.3) that
+                                                                      ensures the pattern is globally continuous (C 0 ) away from a finite
+                                                                      collection of isolated singular points.
+
+
+
+Figure 1: In general, patterns without singularities exhibit uneven
+spacing, and patterns with even spacing must have singularities.
+
+
+
+
+                                                                      Figure 3: To maintain constant stripe width, each “level” of this
+                                                                      surface of revolution must exhibit a different number of stripes.
+                                                                      Judiciously placed branch points are therefore essential to keeping
+                                                                      the pattern continuous. Inset: each pair of stripes from the second
+                                                                      level perfectly branches into three.
+Figure 4: An arbitrary vector field (left) drives stripe orientation     Figure 6: Our method handles line spacing that varies spatially
+and spacing (right); there are no special conditions on the input.       (left), even if the target spacing function is discontinuous (right).
+
+
+
+1.1     Related Work                                                     ergies that do not converge under refinement and are therefore
+                                                                         unstable with respect to tessellation [Knöppel et al. 2013, Fig. 4].
+Synthesis of stripe patterns has a long history due to the preva-        Nonorientable features are handled using either matchings [Ray
+lence of these patterns in nature (Figs. 2, 5, 7, 8, and 20). Place-     et al. 2006; Tong et al. 2006; Bommes et al. 2009], or a branched
+ment of evenly-spaced stripes is also essential in vector field visu-    covering [Kälberer et al. 2007; Kälberer et al. 2010], though
+alization [Jobard and Lefer 1997; Mebarki et al. 2005; Spencer           in retrospect these two approaches are essentially equivalent:
+et al. 2009] and nonphotorealistic rendering [Hertzmann and              matchings determine a covering space, and optimization on a
+Zorin 2000]. Methods based on reaction-diffusion equations               covering is no more costly than on the original domain, as long
+can generate stripe patterns aligned with nonorientable fea-             as one respects conjugate symmetry (App. A). The advantage of
+tures [Turk 1991; Witkin and Kass 1991], but must solve the full         the covering space perspective is that it allows for a meaningful
+time evolution of a nonlinear parabolic PDE whose parameters             formulation in the smooth setting (Sec. 2.3), helps to simplify
+can be difficult to control; moreover, these methods solve directly      implementation (Sec. 4.1), and clarifies interpolation—especially
+for the color function rather than a parameterization, precluding        near branch points (Sec. 4.3). Finally, several quadrangulation
+more complex shaders like Fig. 2, right. Image-based texture syn-        methods automatically insert singularities, but cannot be used for
+thesis can also produce patterns aligned with orientable [Praun          stripe patterns since they do not align to a given field [Ling et al.
+et al. 2000; Lefebvre and Hoppe 2006] and nonorientable vector           2014] or do not generalize to arbitrary n-direction fields [Myles
+fields [Ying et al. 2001; Wei and Levoy 2001; Turk 2001], but            and Zorin 2012; Myles and Zorin 2013]; moreover, these meth-
+features in such patterns result from, e.g., statistical similarity of   ods do not guarantee anything about global optimality.
+image features rather than geometric phenomena. Input to these
+methods can be generated using a variety of techniques [Hertz-           Our method adopts the same energy as Ray et al. [2006], but
+mann and Zorin 2000; Palacios and Zhang 2007; Fisher et al.              differs in several important ways: (i) dropping quartic (unit-
+2007; Ray et al. 2008; Bommes et al. 2009; Crane et al. 2010;            norm) constraints improves performance by about 10x (Sec. 5.1);
+Knöppel et al. 2013; Diamanti et al. 2014].                              (ii) permitting new singularities during parameterization allows
+                                                                         us to directly handle nonintegrable input (Sec. 2.2); (iii) a new
+Field-aligned parameterization is also a key component of global         sub-triangle interpolation scheme (Sec. 4.3) means that pattern
+remeshing algorithms, where there are two popular represen-              frequency is not limited by mesh resolution. We also provide an
+tations: either angle-valued coordinate functions with discrete          interpretation of the energy in the smooth setting (Sec. 2) and
+period jumps [Bommes et al. 2009], or vector-valued functions            show new applications to texture synthesis and design (Sec. 5.3).
+whose angular components provide the final coordinates [Ray
+et al. 2006; Zhang et al. 2010]. Both choices traditionally lead to
+difficult nonconvex problems: the former due to integer variables;
+the latter due to a quartic unit-norm constraint at each point. The
+unit constraint implicit in both representations also leads to en-
+
+
+
+
+                                                                                                                    (Inset photo courtesy Lauren Edgar)
+(Photo courtesy Richard Wheeler)
+                                                                         Figure 7: Randomly perturbing a constant vector field yields a pat-
+Figure 5: We can mimic real fingerprints (left) by using a field with    tern reminiscent of real aeolian wind ripples (inset), here rendered
+prescribed singularities (center) to guide our stripe pattern (right).   as a displacement map over a flat plane.
+2     Smooth Formulation
+Given a surface M , we seek a scalar function α that varies along
+a given unit vector field X at a given rate ν. There are two
+principal challenges having to do with (i) the integrability of
+the vector field Z := ν X and (ii) the representation of α itself.
+Roughly speaking, Z is integrable if it is locally expressible as
+the gradient of a scalar potential, but if we simply adopt a real-
+valued representation then we may not be able to find a potential
+that is globally continuous. Later, we also address nonorientable
+patterns by formulating the same problem on a double cover of M
+(Sec. 2.3). Throughout we use 〈·, ·〉 and |·| to denote the real inner
+product and norm on vectors, || · || for the L 2 norm on functions,
+dA for the usual area measure, and ı for the imaginary unit. We
+also make occasional use of (discrete) differential forms—see
+Crane et al. [2013, Chapter 3] for a brief introduction.
+
+2.1   Periodic Functions
+A key challenge in computing globally con-                                                      (Photos courtesy Trisha Shears and André Karwath)
+
+tinuous parameterizations is choosing a suit-                           Figure 8: Naturally-occurring stripe patterns (top) often include
+able representation for the coordinate func-                            nonorientable singularities, i.e., features that do not follow any
+tions. As a motivating example, consider                                continuously varying vector field (bottom).
+a smooth unit tangent field X on the cir-
+cle α 7→ (cos α, sin α). Locally we can think
+of X as the derivative of the angle α, but
+                                                                        Unless Z is exactly integrable, this equation admits only the trivial
+globally it cannot be expressed as the derivative of a smooth
+                                                                        solution ϕ ≡ 0. We therefore consider its L 2 residual
+function since any such function would have to increase in-
+definitely as we walk multiple times around the circle. We                                            Z
+therefore adopt an alternative representation: rather than a                                ℰ (ϕ) :=         |(d − ιω)ϕ|2 .                         (2)
+real function α, we work with a complex function ψ whose                                                 M
+argument arg ψ := atan2(Im ψ, Re ψ) ∈ [−π, π) serves as a
+proxy for α. Although arg ψ is not globally continuous when             Since the operator e  ∇ := d − ιω defines a connection on M , ℰ can
+viewed as a real-valued function, it still has a well-defined rate      be viewed as a Dirichlet energy on complex functions. However,
+of change when viewed as a map to the unit circle, namely               this energy is not well-defined for unit functions ϕ that encode
+darg ψ := 〈dψ, iψ〉/|ψ|2 . Hence, we obtain a representation             the type of features we observe in natural stripe patterns (e.g.,
+of angle that is globally continuous and differentiable away from       Fig. 2, left), since the angular velocity dα approaches infinity
+zeros (in the case of the circle, we have just ψ = cos α + ı sin α).    as we approach an edge dislocation. Following the approach
+For surfaces, nothing changes except that the domain of ψ is now        advocated in Knöppel et al. [2013, Sec. 3], we therefore define
+a surface rather than a curve. Importantly, we do not need to cut       the energy of a unit function ϕ as the minimum Dirichlet energy
+the surface into a topological disk since coordinates are globally      among all possible rescalings by a real-valued function a ≥ 0:
+continuous by construction.                                                                               Z
+                                                                                         ℰ̂ (ϕ) := min        |∇(aϕ)|
+                                                                                                               e       2
+                                                                                                                         dA.
+2.2   Integrability                                                                               a≥0,||a||=1
+                                                                                                                 M
+
+                    Vector fields with nonzero curl are noninte-        The constraint ||a|| = 1 prevents the solution a ≡ 0. Minimizing
+                    grable, i.e., even on small, simply-connected       this energy over unit functions ϕ is then equivalent to minimizing
+                    patches they cannot be expressed as the gra-        Dirichlet energy over all complex functions ψ:
+                    dient of any scalar function. A common tech-
+                    nique is to reduce or eliminate curl prior to                  min ℰ̂   =     min ℰ (aϕ)         =      min ℰ (ψ).              (3)
+                    parameterization via curl correction [Ray et al.               |ϕ|=1     |ϕ|=1,a≥0,||a||=1             ||ψ||=1
+
+                    2006] or Helmholtz-Hodge decomposition [Käl-
+                                                                        In the case of parameterization, it is precisely the ability to scale
+berer et al. 2007]. We instead work directly with nonintegrable
+                                                                        ψ down to zero that allows us to form new singularities, thereby
+input by allowing new singularities during parameterization—
+                                                                        improving alignment in nonintegrable regions. Just as with stan-
+empirically, these singularities tend to appear in regions where
+                                                                        dard Dirichlet energy, minimizers of this energy among functions
+there is significant curl, or where stripe spacing changes quickly
+                                                                        ψ with unit L 2 -norm are eigenfunctions associated with the small-
+(see Figs. 1, 3, 4, and 6). More explicitly, consider the complex
+                                                                        est eigenvalue of the corresponding Laplace operator [Mullen
+function ψ (Sec. 2.1)—since we care only about its argument
+                                                                        et al. 2008]—discretization of this operator is discussed in Sec. 3.
+α := arg ψ (and not its magnitude), we initially consider opti-
+mization over functions ϕ := e ıα with unit norm at each point.
+Conceptually, we want the angle α to change at rate ν along the         2.3   Nonorientable Patterns
+direction X , and remain constant along the orthogonal direction.
+In other words, we want dα(Y ) = ν〈X , Y 〉 for all vector fields Y ,    The formulation above is suitable in the orientable case, but in
+or equivalently, dα = ω for ω := 〈ν X , ·〉 = 〈Z, ·〉. Differentiating    general we want to produce stripe patterns with nonorientable
+ϕ we get dϕ = ıdαϕ, which means we can achieve the desired              features, which often appear in nature (Fig 8). Another common
+angular velocity dα by solving                                          geometric example is a principal direction field—see for instance
+                                                                        Fig. 17, left. In general, such features can be encoded as a line
+                            dϕ = ιωϕ.                            (1)    field, i.e., a choice of unoriented line in each tangent plane. A
+                                                                              Conjugate Symmetry       We now have an oriented vector field Ze
+                                                                              on a surface M e which—at least conceptually—could be param-
+                                                                              eterized precisely as described in Sec. 2.3, since we can simply
+                                                                              forget that this data comes from a double cover. However, we ulti-
+                                                                              mately need texture coordinates on the base surface M . Suppose
+                                                                              for a moment that the minimizer ψ on M  e is conjugate symmetric,
+                                                                              meaning that it gets conjugated under sheet interchange:
+
+                                                                                                           ψ ◦ τ = ψ.                            (4)
+
+                                                                              The coordinate function α = arg ψ is then antisymmetric with
+                                                                              respect to sheet interchange, i.e., α◦τ = −α, and plugging it into
+                                                                              any even 2π-periodic function (like cosine) hence yields the same
+                                                                              color value whether we use arg(ψ x 1 ) or arg(ψ x 2 ). An arbitrary
+                                                                              minimizer ψ will not in general satisfy Eq. 4, but as shown in
+                                                                              App. A, one of the energy minimizers will always be conjugate-
+                                                                              symmetric. We can therefore always obtain a stripe pattern that is
+Figure 9: To deal with a nonorientable singularity (top left), one
+                                                                              globally continuous away from isolated branch points. Moreover,
+can make two oppositely oriented copies (top right), and cut and
+                                                                              the algorithm can be implemented on the base mesh without
+glue along opposite edges to obtain a branched double cover (bot-
+                                                                              doubling the memory or computation cost, since we need only
+tom right). Untwisting this figure into the plane reveals that the
+                                                                              store a single value to represent both ψ and ψ.
+new vector field has a globally consistent orientation (bottom left).
+
+                                                                              3     Discretization
+
+useful way to work with such fields, pioneered in geometry pro-               As in the smooth setting we begin with oriented vector fields,
+cessing by Kälberer et al. [2007; 2010], is as a vector field on              then use a double cover to reduce the nonorientable case to
+a branched double cover of the original surface. Consider for                 the orientable one. The ultimate goal is to compute a value of
+instance Fig. 9 (top left)—here it is impossible to give the inner-           α ∈ R at each triangle corner—plugging interpolated values of
+most stripe an orientation that is consistent across the dashed               α into any even periodic function will then produce a pattern of
+line. Yet by gluing together two oppositely-oriented copies of the            oscillating stripes orthogonal to X . The input to our algorithm
+surface, we obtain a consistently-oriented vector field Ze on a new           is a manifold simplicial 2-complex K and positive edge lengths
+surface Me called the double cover. Away from singularities, a dou-           `ij satisfying the triangle inequality on each face, along with a
+ble cover looks like two identical copies of the original surface M           unit tangent vector X i and target line frequency νi ∈ R+ which
+(Fig. 10). In practice we never explicitly construct the cover, but           together define a (not necessarily unit) vector Zi := νi X i at each
+will use this mental image to turn algorithms which are naturally             vertex i ∈ V . Overall, the algorithm consists of four basic steps:
+expressed on M  e into algorithms that can be implemented using
+standard data structures on the original surface M .                              1. Project Z onto each edge to get angular displacements ω.
+                                                                                  2. Build a Laplace-like matrix A with entries determined by ω.
+The key idea behind this construction is that features in a given                 3. Find an eigenvector ψ of A with smallest eigenvalue.
+line field determine the topology of a corresponding covering                     4. In each face, compute texture coordinates α from ψ and ω.
+space. In particular, suppose that lines vary continuously except
+at a collection of isolated branch points {p1 , . . . , pk } around which
+the field is nonorientable (Fig. 8). At each such point the “trick”           Notation      For any simplicial complex K, we use V, E, F to denote
+demonstrated in Fig. 9 can be used to produce an orientable                   its vertices, edges, and faces, respectively. Individual simplices
+vector field Ze on the double cover M  e of M  b := M \ {p1 , . . . , pk }.   are expressed as a list of incident vertices, e.g., ijk ∈ F denotes
+Away from these points the double cover has two points x 1 , x 2 ∈            the face with vertices i, j, k ∈ V . The orientation of a simplex
+Me “above” each point x ∈ M    b which are mapped back “down”                 is determined by the order of its indices, and an edge ij ∈ E
+to the base by the projection map π(x 1 ) = π(x 2 ) = x; the sheet            Pcanonically oriented if i < j. An expression of the form x i =
+                                                                              is
+interchange function τ(x 1 ) = x 2 swaps these two points (Fig. 10).             ij∈E yij indicates that a value x i associated with vertex i is
+                                                                              obtained by summing      the quantity yij over all edges incident on i.
+                                                                              Likewise, x i = ijk∈F yijk denotes a sum over all incident faces.
+                                                                                                P
+
+
+                                                                              3.1    Discrete Tangent Spaces
+
+                                                                                                        Rather than thinking of tangent vectors
+                                                                                                        X i as elements of R3 , we view them as
+                                                                                                        angles φi ∈ [−π, π) relative to a refer-
+                                                                                                        ence edge ij0 ∈ E chosen at each vertex
+                                                                                                        i ∈ V , effectively adopting polar coor-
+                                                                                                        dinates. This intrinsic setup simplifies
+Figure 10: Away from singularities, an unoriented line field on a                                       the rest of our algorithm, and does not
+patch of M can be expressed as a pair of oppositely and consistently-                                   require us to define normals at vertices.
+oriented vector fields on two identical copies of this patch in M
+                                                                e . The                        jk
+                                                                              Moreover,Plet θ̂i denote the angle at corner i of triangle ijk, and
+map τ switches between the two copies, and the map π takes us                                     jk
+                                                                              let Θi := ijk∈F θ̂i be the sum of all angles incident on vertex i.
+back down to the original surface.                                            For each oriented edge ija incident on i, we store the angle
+                                                        a−1
+                                                        X       jp jp+1
+                                   θija := 2π
+                                           Θ
+                                                              θ̂i         ,                      where w ij := (cot βij + cot β ji )/2 and βij , β ji are
+                                                    i
+                                                        p=0                                      the two angles opposite edge ij; these cotan-
+where the jp are indexed counter-clockwise around vertex i, and                                  gent weights account for the shape of mesh el-
+p + 1 is taken modulo the degree of the vertex. These rescaled                                   ements [MacNeal 1949, Sec. 3.2]. For boundary
+angles are effectively the polar coordinates of the edges, starting                              edges we set the unknown cotan to zero, corre-
+at θij0 = 0 (see Knöppel et al. [2013, Sec. 6] for further interpre-                             sponding to zero-Neumann boundary conditions.
+tation). Hence, given any unit vector X i encoded by an angle φi ,                               Likewise, we effectively omit branch triangles
+the parallel vector at a neighboring vertex j can be computed via                                (Sec. 3.3) by simply setting their weights to zero.
+
+                              φi 7→ φi −θij + (θ ji + π),                                  (5)   3.3    Discrete Double Cover
+                                       |     {z        }
+                                                          =:ρij
+                                                                                                 To handle nonorientable input, we now define the double cover
+i.e., by using the shared edge ij as a common frame of reference                                 e = (V  e, Fe) induced by vectors Zi at the vertices of our original
+                                                                                                      e, E
+                                                                                                 K
+(see inset below). For convenience, we store the values ρij , noting
+                                                                                                 mesh K, as well as an orientable vector field Z  e on K e (Fig. 11).
+that ρ ji = −ρij .
+                                                                                                 Note that at no point do we actually build K   e —this description
+                                                                                                 merely serves to clarify implementation.
+Complex Representation          In many
+cases, we will instead encode tan-                                                               Vertices: For each vertex i ∈ V , V
+                                                                                                                                   e contains a pair of vertices i1 , i2 ,
+gent vectors as complex numbers                                                                  which we associate with vectors Zi and −Zi , respectively.
+to avoid the difficulty of compar-
+                                                                                                 Edges: For each edge ij ∈ E, let the quantity
+ing angles modulo 2π. An expres-
+sion like Eq. 5 can then be writ-
+                                                                                                                          +1   if φ j − (φi + ρij ) ∈ [−π/2, π/2),
+                                                                                                                      ¨
+ten as X i 7→ e ıρij X i , which in com-                                                                     sij :=
+plex arithmetic expresses a counter-                                                                                      −1   otherwise
+clockwise rotation of X i by the an-
+gle ρij . It is important to note, how-                                                          encode the relative orientation of Zi and Z j . If sij = +1 then E     e
+ever, that these complex values still                                                            contains edges i1 j1 and i2 j2 ; otherwise, it contains i1 j2 and i2 j1 .
+only carry meaning relative to the
+reference edge chosen at each ver-                                                               Faces: For each face ijk ∈ F , let sijk := sij s jk ski . If sijk = +1
+tex, which we identify with the real                                                             then ijk is regular, and the six corresponding edges in E        e form
+axis 1 + 0ı ∈ C.                                                                                 two distinct triangles which we include in Fe. Otherwise, ijk is a
+                                                                                                 branch triangle and these edges form a hexagon which we omit
+                                                                                                 from Fe. We will use B ⊂ F to denote the set of branch triangles.
+3.2     Discrete Energy
+                                                                                                 We also define a 1-form ω
+                                                                                                                         e on K
+                                                                                                                              e corresponding to Z
+                                                                                                                                                 e , given by
+As discussed in Sec. 2.2, we ideally want an angle-valued func-
+tion α such that dα = ω, i.e., such that the angular velocity dα                                       ω          e i2 j1 = 12 (〈eij , Zi 〉 − 〈eij , Z j 〉)
+                                                                                                       e i1 j2 = −ω                                            if sij = −1, and
+matches our input field. To discretize this relationship, we lin-
+early interpolate Z and integrate along each edge ij ∈ E, yielding                                     ω          e i2 j2 = 12 (〈eij , Zi 〉 + 〈eij , Z j 〉)
+                                                                                                       e i1 j1 = −ω                                            if sij = +1,
+
+                   Z               Z                                                             along with a corresponding parallel transport map P      e pq (Z) :=
+      α j − αi =            dα =            ω = 21 (〈eij , Zi 〉 + 〈eij , Z j 〉) =: ωij .   (6)   e ıωe pq Z. Notice that ω
+                                                                                                                         e◦τ = −e ω, i.e., switching sheets flips the
+                       ij              ij                                                        sign of e  ω. For convenience, we define
+
+The resulting quantity ωij = −ω ji ∈ R determines a discrete                                                                            ω           if sij = −1,
+                                                                                                                                    ¨
+                                                                                                                                        e i1 j2 ,
+1-form [Crane et al. 2013, Sec. 3.6] that describes the target                                                             ω
+                                                                                                                           b ij =
+angular displacement as we move from i to j; we will use                                                                                ω
+                                                                                                                                        e i1 j1 ,   if sij = +1,
+
+                                            Pij (X ) := e ıωij X                                 and use P̂ij (Z) := e ıωb ij Z to denote parallel transport by b
+                                                                                                                                                                ω.
+to denote the transport of a vector X from i to j via ω. If extrinsic
+data is available (i.e., vectors and edges in R3 ) then this quantity
+can be computed as above. If only intrinsic data is available (i.e.,
+lengths and angles), one can just as easily write ω as
+            ωij = 21 `ij (νi cos(φi − θij ) + ν j cos(φ j − θ ji )).                       (7)
+
+Recalling that arg ψ is used as a proxy for α (Sec. 2.1), we there-
+fore ask that the rotated value of ψi agrees exactly with ψ j ,
+providing a discrete version of Eq. (1):
+                               e ıωij ψi = ψ j                ∀ij ∈ E.
+As in the smooth setting we cannot expect to satisfy this relation-                              Figure 11: The double cover of a triangle is determined by the
+ship exactly, since not every discrete vector field is integrable.                               relative orientation of vectors Z along each edge. Left: If the vector
+Hence, we instead minimize the L 2 residual                                                      field can be locally oriented, we simply make two copies of the
+                           X                                                                     original triangle. Right: Otherwise we have a branch triangle, and
+                  ℰ (ψ) :=   w ij |ψ j − e ıωij ψi |2 ,        (8)                               use the six corresponding edges to form a hexagonal boundary cycle.
+                                             ij∈E
+3.4    Conjugate Symmetric Energy                                                      4.2   Global Optimization
+
+We now formulate an expression for the discrete energy (Eq. 8)                         We now seek values ψi = ai + bi ı that minimize ℰ̃ , which we
+   e , restricted to conjugate-symmetric functions ψ
+on K                                                 e (Sec. 2.3).                     encode as a vector x ∈ R2|V | of interleaved values ai , bi ∈ R. To
+To do so, we store a single value ψi ∈ C at each vertex i ∈ V of                       avoid the trivial solution ψ ≡ 0, we ask that ψ have unit L 2
+our original mesh, and define (but do not explicitly store)                            norm—using the matrices above, this problem can be stated as
+
+                           ψ
+                           ei := ψi ,          ei := ψ .
+                                               ψ                                                            min xT Ax s.t. xT Bx = 1.                   (10)
+                             1                   2    i                                                    x∈R2|V |
+
+For a given edge ij ∈ E, one then observes that the two corre-                         Differentiating the Lagrangian of this problem yields the general-
+sponding edges on the double cover make identical contributions                        ized eigenvalue problem Ax = λBx for an eigenvector x associated
+to the energy. For example, when sij = +1, we have terms                               with the smallest eigenvalue λ, which we solve by factoring A and
+                                                                                       applying the inverse power method (Alg. 6). Hence, the total cost
+        w ij |ψ j − eιωe i1 j1 ψi |2    and       w ij |ψ j − eιωe i2 j2 ψi |2 ,       of our algorithm is dominated by a single matrix factorization.
+
+which are identical in magnitude since e ıωe i2 j2 = e−ıωe i1 j1 = e ıωe i1 j1 ,       4.3   Texture Coordinates
+and conjugation does not affect the norm (likewise for sij = −1).
+The energy associated with a given edge ij ∈ E is therefore                            After computing ψ, we still need to extract our final texture coor-
+                     ¨                                                                 dinates α. However, simply using the values arg(ψi ) is less than
+                       2w ij |ψ j − e ıωb ij ψi |2 , sij = −1,
+             ℰ̃ij :=                                                    (9)            ideal since (i) we will experience aliasing if the target frequency
+                       2w ij |ψ j − e ıωb ij ψi |2 , sij = +1,                         ν is greater than the mesh spacing (Fig. 12) and (ii) linear in-
+                                  P                                                    terpolation will produce discontinuities along the boundaries of
+yielding a total energy ℰ̃ := ij∈E ℰ̃ ij . Notice that this energy is                  triangles containing zeros or branch points (Fig. 13, 14). We
+defined entirely in terms of a single value ψ per vertex and a                         therefore adjust α as described below. On K    e these coordinates
+single value ω
+             b per edge of our original mesh K: we do not need                         are antisymmetric with respect to sheet interchange and encode
+to double the degrees of freedom.                                                      a globally continuous map to the unit circle, as shown in App. B.
+                                                                                       Hence, for any given base triangle we can use coordinates from
+4     Implementation                                                                   either of the two covering triangles to obtain a globally continu-
+                                                                                       ous stripe pattern. Note that for sufficiently fine meshes one can
+We now describe essential aspects of implementation; detailed                          often ignore singular triangles and simply use linear interpolation
+pseudocode can be found in App. C.                                                     everywhere, as done in Figs. 2, 5, 19, 20, 21, and 7.
+
+4.1    Matrix Representation                                                           The Spinning Form        Along each edge
+                                                                                       pq ∈ E e we had a target angular dis-
+Although ℰ̃ is expressed using complex variables, it must be                           placement ω  e pq , which in general we
+encoded as a real matrix in order to represent conjugation of                          cannot achieve due to nonintegrabil-
+the stored values of ψ, which is not a complex-linear operation.                       ity. The spinning form σ   e is the angular
+In particular, for complex numbers u = a + bı, v = c + dı and                          displacement closest to ω    e that agrees
+z = x + y ı the following relations are easily verified:                               with the obtained minimizer of ℰ̃ , i.e.,
+                                                                                       for which arg(e ıσe pq ψ
+                                                                                                              ep ) = arg(ψ eq ). These values will be used to
+       〈zu, v〉 = (a b) z (c d)T ,            〈zu, v〉 = (a b) z (c d)T ,
+                                                           
+                                                                                       adjust our texture coordinates. In particular, let
+
+where                                                                                                        δ pq := arg( P
+                                                                                                                          e pq (ψ
+                                                                                                                                ep )/ψ
+                                                                                                                                     eq )
+
+                                                                                       be the smallest angular distance from the obtained vector ψ
+                                                                                                                                             eq at
+                    x      y                                x      −y
+       z :=                            and        z :=                             .                                  e pq (ψ
+                                                                                       vertex q to the desired vector P     ep ). Then
+                     −y      x                                 −y      −x
+
+Expanding Eq. 9 and applying these expressions then allow us to                                                   σ
+                                                                                                                  e pq := ω
+                                                                                                                          e pq − δ pq .
+express ℰ̃ as a matrix A ∈ R2|V |×2|V | with diagonal blocks                                           ω, σ
+                                                                                       Note that, like e                            e , i.e., σ
+                                                                                                          e is a discrete 1-form on K         e pq = −e
+                                                                                                                                                      σqp .
+                                 X 
+                          Aii =         w ij
+                                        ij∈E
+
+for each vertex i ∈ V , and off-diagonal blocks
+               ¨
+                 −w ij e ıωb ij , sij = −1
+                              
+         Aij =         ıωb               ,    A ji = ATij
+                 −w ij e ij , sij = +1
+
+for each canonically oriented edge ij ∈ E. The resulting matrix is
+symmetric positive-definite with the same structure as the usual
+cotan-Laplace matrix. Finally, letting 𝒜ijk denote the area of
+triangle ijk, we encode the usual L 2 norm on functions via the
+block diagonal lumped mass matrix B ∈ R2|V |×2|V | with entries
+                               1
+                                 X                                                     Figure 12: Left: for coarse meshes or high frequency stripes, naïve
+                         Bii = 3    𝒜ijk ,                                             interpolation of angles leads to severe aliasing. Right: by augment-
+                                         ijk∈F
+                                                                                       ing the angles according to the target frequency, we can render
+i.e., one-third the total area of triangles incident on vertex i.                      stripes far above the resolution of the mesh.
+Figure 13: In triangles containing zeros, piecewise linear interpo-
+lation (left) can be substantially improved (middle) by using a
+closed-form, nonlinear interpolant (right).
+                                                                                   Figure 14: Left: stripe pattern on a coarse mesh of 708 vertices.
+                                                                                   Center: tip of the nose with a branch point in the middle and nearby
+                                                                                   triangles containing zeros of index 1 and 3. Right: piecewise linear
+Frequency Adjustment We first adjust the texture coordinates
+                                                                                   texture coordinates used to draw branch points.
+locally in each triangle to properly account for the target fre-
+quency ν. More explicitly, let α̃qr     p
+                                           denote the coordinate at corner
+p of a triangle pqr ∈ Fe. We let α̃qr         := arg(ψ ep ) at the first corner,
+                                          p                                        Branch Points Finally, we extend our texture coordinates to
+and use the spinning form to define coordinates at the other two                   any branch triangle ijk ∈ B, which on the double cover K    e cor-
+corners: α̃qr p := α̃qr p
+                           +σe pq and α̃ pq r
+                                                := α̃qr
+                                                     p
+                                                        +σ  e pr . To render a     responds to a hexagonal boundary cycle (p, q, r, s, t, u) starting
+given base triangle ijk ∈ F we need only extract the coordinates                   at p = i1 (Fig. 11, right). Conceptually, we imagine triangulat-
+from one of its two covering triangles, which we can do using                      ing the hexagon by inserting a new vertex m e at the middle and
+the values ψ and ω      b stored on our original mesh K. In particular,            extending coordinates linearly over each face. In practice, we
+if we let                 ¨                                                        simply draw the barycentric subdivision of the base triangle ijk
+                            arg( P̂ij (ψi )/ψ j ), sij = −1,                       (Fig. 14, right) using texture coordinates
+                 δ̂ ij :=
+                            arg( P̂ij (ψi )/ψ j ), sij = +1,
+                                                                                          βi := arg(ψi )                                β j := βi + σ
+                                                                                                                                                    e pq
+and σ̂ := ω̂ + δ̂, then our local coordinates are just                                   βm := βi + (e
+                                                                                                     σ pq + σ
+                                                                                                            e qr + σ
+                                                                                                                   e rs )/2             βk := β j + σ
+                                                                                                                                                    e qr
+                                                                                                                                        βl := βk + σe rs
+                           jk
+                          αi := arg(ψi ),
+                          αki := arg(ψi ) + σ̂ ij ,                                with linear interpolation in each sub-triangle. (See App. B for
+                            j
+                            ij                                                     further discussion; an explicit implementation is given in Alg. 7.)
+                           αk := arg(ψi ) + σ̂ ik .
+
+In nonsingular regions, α can then be interpolated linearly over                   5     Results
+each triangle. In general, however, we must account for singular-
+ities due to either (i) zeros of the function ψ or (ii) branch points              5.1   Performance
+arising from the field Z; each of these cases is treated below.
+                                                                                   We implemented our method in C++ using SuiteSparse [Chen
+                                                                                   et al. 2008]; performance was measured on a single core of a
+Zeros   As we walk around the boundary of any regular triangle
+                                                                                   2.6 GHz Intel Core i7. Typical run times were less than a second;
+ijk ∈ F \ B covered by a triangle i1 qr ∈ Fe, the spinning form
+                                                                                   for example, we required 591ms, 14ms, 804ms, and 386ms to
+describes a net change in angle of
+                                                                                   generate patterns in Figs. 2, 12, 18, and 21 on meshes with
+                       σ
+                       e i1 q + σ
+                                e qr + σ
+                                       e r i1 =: 2πnijk                            28k, 1k, 44k, and 39k faces (resp.). This level of performance
+                                                                                   makes it possible to interactively edit or even animate patterns.
+for some integer nijk ∈ Z which we refer to as the index of ψ.                     We also compared the performance of our eigenvector scheme
+If nijk 6= 0, this means that the angle α on the base domain                       to the quartic penalty scheme suggested by Ray et al. [2006,
+must “jump” somewhere and hence cannot be interpolated by                          Sec. 2.5] using the same matrix for the quadratic term and their
+any continuous function (including a linear one). We instead use                   suggested solver parameters. Across a broad range of examples
+an interpolant that mimics the behavior of the complex function                    our eigenvector method performed over an order of magnitude
+z 7→ arg(z), but remains linear along the boundary so that it                      faster (Fig. 15); moreover, the penalty scheme sometimes gets
+agrees with interpolants in adjacent triangles. Explicitly, let                    trapped in local minima, yielding unwanted distortion.
+                              
+                                πn      t j −t i 
+                                 3
+                                    1 + 1−3t       , t k ≤ t i and t k ≤ t j ,
+                                               k
+                                πn      t k −t j 
+                              
+  lArgn (t i , t j , t k ) :=       3 + 1−3t , t i ≤ t j and t i ≤ t k , (11)              50
+                               π3n             i
+                                        t i −t k 
+                                 3
+                                    5 + 1−3t       , t j ≤ t k and t j ≤ t i ,
+                                         j                                                  5
+
+
+where t i , t j , t k ∈ R are barycentric coordinates (Fig. 13, right).                   0.50
+One can easily check that the function lArg is piecewise linear
+along the boundary, and describes a continuous map to the unit                            0.05
+
+circle away from an isolated singularity at the barycenter m. To
+get our final interpolant, we first subtract the value of lArgnijk                                      5000   1 × 104        5 × 104   1 × 105
+                                      jk
+from our texture coordinates αi at all three triangle corners
+(Alg. 7, lines 22–24). Texture coordinates are then computed by                    Figure 15: Our method (blue) produces results of comparable
+evaluating Eq. 11 in a fragment shader and adding the result to                    quality to expensive, nonlinear optimization (yellow), yet is on
+the usual linearly interpolated values of α.                                       average 10.54 times faster across a broad collection of examples.
+Figure 16: Due to the elliptic nature of our problem, the method is    Figure 17: Minimum principal curvature directions with either
+robust to noise, holes, and other severe errors in the input.          nonuniform (left) or uniform spacing (center) provide a natural
+                                                                       pattern orientation. Right: this kind of pattern can be used to
+                                                                       automatically drive a real-time hatching shader, requiring no user
+                                                                       input apart from a single global scale parameter.
+5.2   Robustness
+
+In Fig. 16 we severely distort the input mesh, yet still obtain a
+well-behaved stripe pattern; this type of behavior is a hallmark
+of elliptic variational problems based on Laplace-like operators.
+The method also has no trouble handling sharp discontinuities
+in the input vector field Z (Fig. 6, right); likewise, outliers and
+noise in Z are handled gracefully (Fig. 7.)
+
+5.3   Applications
+
+Figures throughout show applications of stripe patterns to de-
+sign and texture synthesis. For real-time hatching [Rost 2005],
+a precomputed stripe pattern pattern circumvents the need to
+trace integral curves, etc.(Fig. 17). In Fig. 21 we used marching
+triangles to generate geometric stripes. In Figs. 2 and 18, we
+combined two orthogonal stripe patterns to drive a 2D displace-
+ment map with bilateral symmetry across each axis. In Fig. 19          Figure 18: Two orthogonal stripe patterns (red and blue) are com-
+we mimic the artistic style of a ceramic mug. All of the preceding     puted separately and combined to drive a displacement map with
+examples used optimally smooth or curvature-aligned fields as          bilateral symmetry across both axes.
+input [Knöppel et al. 2013], but in principle any technique can
+be applied—Fig. 4 shows an example where Z is described by
+artist-driven input; Fig. 5 uses the smoothest field with prescribed
+singularities [Crane et al. 2010] to emulate fingerprints.
+
+6     Conclusion
+Remarkably, many disparate natural phenomena are well-
+captured by one simple energy (Eq. 2), making stripe patterns a
+versatile tool for design. More broadly, stripe patterns contribute
+to a growing collection of tasks in geometry processing and sim-
+                                                                       (Photo courtesy DJ Crane)
+ulation where singular features and sparse approximations are
+efficiently obtained by minimizing Dirichlet energy on a partic-       Figure 19: Left: Photograph of a real mug with uniform, branching
+ular Hermitian line bundle—other recent examples include the           stripes. Right: Virtual mug synthesized using our method.
+design of smooth vector fields [Knöppel et al. 2013], extraction
+of smoke rings [Weißmann et al. 2014], and conformal volume
+deformation [Chern et al. 2015]. A better understanding of this
+phenomenon will no doubt lead to valuable future developments.
+
+Acknowledgments
+This work was supported by the DFG Collaborative Research
+Center TRR 109, “Discretization in Geometry and Dynamics,”
+an NSF Mathematical Sciences Postdoctoral Research Fellowship          (Photo courtesy Carl Clifford)
+(Award #1304254), and Intel. Meshes in Figs. 2, 14, 18, 22 are
+courtesy the Stanford Computer Graphics Lab; in Figs. 5, 15, 16,       Figure 20: Stripe patterns are ubiquitous in nature—here we cari-
+17 courtesy AIM@Shape; and in Fig. 21 courtesy Martin Newell.          cature a real angelfish (left) using a stripe pattern (right).
+                                                                      MEBARKI, A., ALLIEZ, P., AND DEVILLERS, O. 2005. Farthest Point
+                                                                        Seeding for Efficient Placement of Streamlines. Proc. IEEE Vis.
+                                                                      MULLEN, P., TONG, Y., ALLIEZ, P., AND DESBRUN, M. 2008. Spectral
+                                                                       Conformal Parameterization. In Proc. Symp. Geom. Proc.
+                                                                      MYLES, A., AND ZORIN, D. 2012. Global Parameterization by
+                                                                        Incremental Flattening. ACM Trans. Graph. 31, 4.
+                                                                      MYLES, A., AND ZORIN, D. 2013. Controlled-Distortion Con-
+                                                                        strained Global Parameterization. ACM Trans. Graph. 32, 4.
+                                                                      PALACIOS, J., AND ZHANG, E. 2007. Rotational Symmetry Field
+                                                                        Design on Surfaces. ACM Trans. Graph. 26, 3.
+
+Figure 21: Stripe patterns can also be used to achieve a variety of   PRAUN, E., FINKELSTEIN, A., AND HOPPE, H. 2000. Lapped Textures.
+artistic effects, here inspired by the work of M.C. Escher.             In Proc. ACM/SIGGRAPH Conf.
+                                                                      RAY, N., LI, W. C., LÉVY, B., SHEFFER, A., AND ALLIEZ, P. 2006.
+References                                                              Periodic Global Parameterization. ACM Trans. Graph. 25, 4.
+                                                                      RAY, N., VALLET, B., LI, W. C., AND LÉVY, B. 2008. N-Symmetry
+B OMMES, D., ZIMMER, H., AND KOBBELT, L. 2009. Mixed-Integer            Direction Field Design. ACM Trans. Graph. 27, 2.
+   Quadrangulation. ACM Trans. Graph. 28, 3.
+                                                                      ROST, R. J. 2005. OpenGL(R) Shading Language (2nd Edition).
+CHEN, Y., DAVIS, T. A., HAGER, W. W., AND RAJAMANICKAM, S. 2008.        Addison-Wesley Professional.
+  CHOLMOD, Supernodal Sparse Cholesky Factorization, and
+  Update/Downdate. ACM Trans. Math. Softw. 35.                        SPENCER, B., LARAMEE, R. S., CHEN, G., AND ZHANG, E. 2009.
+                                                                        Evenly Spaced Streamlines for Surfaces: An Image-Based Ap-
+CHERN, A., PINKALL, U., AND SCHRÖDER, P. 2015. Close-to-                proach. Comp. Graph. Forum 28, 6.
+  Conformal Deformations of Volumes. ACM Trans. Graph. 34.
+                                                                      TONG, Y., ALLIEZ, P., COHEN-STEINER, D., AND DESBRUN, M. 2006.
+CRANE, K., DESBRUN, M., AND SCHRÖDER, P. 2010. Trivial Connec-          Designing Quadrangulations with Discrete Harmonic Forms.
+  tions on Discrete Surfaces. Comp. Graph. Forum 29, 5.                 In Proc. Symp. Geom. Proc.
+CRANE, K., DE GOES, F., DESBRUN, M., AND SCHRÖDER, P. 2013.           TURK, G. 1991. Generating Textures on Arbitrary Surfaces using
+  Digital Geometry Processing with Discrete Exterior Calculus.          Reaction Diffusion. Proc. ACM/SIGGRAPH Conf .
+  In ACM SIGGRAPH 2013 courses.
+                                                                      TURK, G. 2001. Texture Synthesis on Surfaces.                 In Proc.
+DIAMANTI, O., VAXMAN, A., PANOZZO, D., AND SORKINE-HORNUNG,             ACM/SIGGRAPH Conf.
+  O. 2014. Designing N-PolyVector Fields with Complex Polyno-
+  mials. Comp. Graph. Forum 33, 5.                                    WEI, L.-Y., AND LEVOY, M. 2001. Texture Synthesis over Arbitrary
+                                                                       Manifold Surfaces. In Proc. ACM/SIGGRAPH Conf.
+FISHER, M., SCHRÖDER, P., DESBRUN, M., AND HOPPE, H. 2007.
+                                                                      WEISSMANN, S., PINKALL, U., AND SCHRÖDER, P. 2014. Smoke Rings
+   Design of Tangent Vector Fields. ACM Trans. Graph. 26, 3.
+                                                                       from Smoke. ACM Trans. Graph. 33, 4.
+HERTZMANN, A., AND ZORIN, D. 2000. Illustrating Smooth Surfaces.
+                                                                      WITKIN, A., AND KASS, M. 1991. Reaction-Diffusion Textures. Proc.
+  Proc. ACM/SIGGRAPH Conf .
+                                                                        ACM/SIGGRAPH Conf .
+JOBARD, B., AND LEFER, W. 1997. Creating Evenly-Spaced Stream-        YING, L., HERTZMANN, A., BIERMANN, H., AND ZORIN, D. 2001.
+  lines of Arbitrary Density. In Vis. Sci. Comp., W. Lefer and          Texture and Shape Synthesis on Surfaces. Proc. EG W. Rend.
+  M. Grave, Eds.
+                                                                      ZHANG, M., HUANG, J., LIU, X., AND BAO, H. 2010. Wave-Based
+KÄLBERER, F., NIESER, M., AND POLTHIER, K. 2007. QuadCover:             Anisotropic Quadrangulation. ACM Trans. Graph. 29, 4.
+  Surface Parameterization using Branched Coverings. Comp.
+  Graph. Forum 26, 3.
+                                                                      A     Conjugate Symmetry
+KÄLBERER, F., NIESER, M., AND POLTHIER, K. 2010. Stripe Parame-
+  terization of Tubular Surfaces. Top. Meth. Data Anal. Vis.          Here we show that the energy ℰ on M  e always has a global mini-
+                                                                      mizer ψ that is conjugate symmetric, i.e., such that
+KALPAKJIAN, S., AND SCHMID, S. R. 2009. Manufacturing Engineer-
+  ing and Technology, 6th Ed. Prentice Hall, New York.                                          ψ = T ψ := ψ ◦ τ.
+KNÖPPEL, F., CRANE, K., PINKALL, U., AND SCHRÖDER, P. 2013.           Notice that T (ιψ) = −ιT ψ, in other words, T is complex anti-
+  Globally Optimal Direction Fields. ACM Trans. Graph. 32, 4.         linear. Hence, we can decompose ψ as
+LEFEBVRE, S., AND HOPPE, H. 2006. Appearance-Space Texture                ψ = 12 (Id + T )ψ + 21 (Id − T )ψ = ψ1 + ι ( 12 (Id + T )(−ιψ)),
+  Synthesis. ACM Trans. Graph. 25, 3.                                         |     {z    }                          |         {z       }
+                                                                                   =:ψ1                                      =:ψ2
+LING, R., HUANG, J., JÜTTLER, B., SUN, F., BAO, H., AND WANG, W.
+  2014. Spectral Quadrangulation with Feature Curve Alignment         i.e., ψ = ψ1 + ιψ2 . Since T = Id, one easily checks that both ψ1
+                                                                                                    2
+
+   and Element Size Control. ACM Trans. Graph. 34, 1.                 and ψ2 are conjugate symmetric and T ψ = ψ1 − ιψ2 . Moreover,
+                                                                      since ψ1 and ιψ2 are orthogonal ((Id − T )(Id + T ) = 0) we get
+MACNEAL, R. 1949. The Solution of Partial Differential Equations
+  by means of Electrical Networks. PhD thesis, Caltech.                                     kψk2 = kψ1 k2 + kψ2 k2 .
+Further, ℰ (ψ) = ℰ (T ψ), i.e., conjugation does not change the              Finally, consider any branch triangle ijk ∈ B, which corresponds
+energy. Applying the polarization identity then yields                       to a hexagonal boundary cycle on the double cover K     e (Sec. 3.3).
+                                                                             We will extend α̃ over a triangulation connecting each boundary
+             ℰ (ψ) = 12 (ℰ (ψ) + ℰ (T ψ))                                    vertex to a “middle” vertex m. In particular, consider a path
+                                                                             γ̃ = (p, q, r, s) on K
+                                                                                                  e between vertices τ(p) = s that projects to the
+                    = 12 (ℰ (ψ1 + ιψ2 ) + ℰ (ψ1 − ιψ2 ))                                                          R
+                                                                             path γ = (i, j, k, i) on K. Let ξ := γ̃ σ
+                                                                                                                     e , and assume γ̃ is oriented
+                    = ℰ (ψ1 ) + ℰ (ψ2 ).                                     such that α̃s = α̃ p + ξ. From Eq. (13) we have
+
+Suppose now that ψ with kψk2 = 1 solves (Eq. (3)). Then for any                                            R
+                                                                                                          ı γ̃ σ
+other nonzero function φ we have ℰ (φ)/kφk2 ≥ ℰ (ψ), which                                            e          ϕ   p = ϕs = ϕ p ,
+                                                                                                               e
+
+when applied to ψ1 (resp. ψ2 ) implies
+                                                                             which implies that ξ + α̃s = −α̃s + 2aπ for some a ∈ Z, or
+          ℰ (ψ1 ) ≥ ℰ (ψ)kψ1 k2             ℰ (ψ2 ) ≥ ℰ (ψ)kψ2 k2 .          equivalently that the texture coordinate α̃m := α̃s + ξ/2 equals
+                                                                             aπ. Hence, u(α̃ p ) = u(aπ − ξ/2) = u(aπ + ξ/2) = u(α̃s ), which
+But these inequalities must actually be equalities, otherwise sum-           means that the piecewise linear extension of α̃ satisfies Eq. 12.
+ming them would yield a contradiction. Hence, there will al-
+ways be some unit, conjugate symmetric function ψ1 /kψ1 k or
+ψ2 /kψ2 k with the same energy as ψ. In other words, restricting
+optimization to conjugate symmetric functions will still yield a
+global minimizer.
+
+B    Texture Coordinates
+We now show that the coordinate function α̃ : M  e → R/2πZ                   C     Pseudocode
+on the double cover is (i) antisymmetric with respect to sheet
+interchange, i.e.,                                                           The input to the main algorithm STRIPEPATTERN is a simplicial
+                          α̃ ◦ τ = −α̃,                   (12)               surface K = (V, E, F ), a collection of edge lengths ` ∈ R|E| satis-
+                                                                             fying the triangle inequality in each face, unit vectors X ∈ C|V |
+and (ii) encodes a globally continuous map to the unit circle,
+                                                                             describing the desired pattern orientation, and positive values
+away from isolated singularities. Together, these properties guar-
+                                                                             ν ∈ R|V | giving the target line frequency. The output is a collec-
+antee that α̃ can be used to draw a continuous stripe pattern.
+                                                                             tion of coordinates α ∈ R3|F |+2|B| (one for each triangle corner,
+More formally, they ensure that for any even 2π-periodic func-
+                                                                             and two more for the midpoint m and duplicate vertex l of each
+tion u : R → R, there exists a function c : K \ B → R such that
+                                                                             branch triangle), along with indices nijk , Sijk ∈ Z|F | for each trian-
+away from branch triangles B,
+                                                                             gle indicating whether one should apply nonlinear interpolation
+                                                                             or draw the barycentric subdivision (resp.).
+                            u ◦ α̃ = c ◦ π,
+
+i.e., u(α̃) descends to some function c on the base. We will first
+define α̃ on edges, and then extend it to triangle interiors.                Algorithm 1 The main stripe pattern algorithm (Sec. 2).
+                                                                              1: procedure STRIPEPATTERN(K, `, X , ν)        . K = (V, E, F )
+To begin, let ψe be a minimizer of our discrete energy (Eq. 9),
+which is conjugate-symmetric by construction, and let ϕ :=                    2:    θ ← VERTEXANGLES(K, `)
+ψ/| e
+ e  ψ|. If σ
+           e is the corresponding spinning form (Sec. 4.3), one               3:    ω, s ← EDGEDATA(K, `, θ , X , ν)
+                                                                              4:    A ← ENERGYMATRIX(K, `, ω, s)
+easily checks that e ıσe pq ϕ p = ϕq along any edge pq ∈ Ee. Hence,
+                                                                              5:    B ← MASSMATRIX(K, `)
+for any path γ̃ from p to q along edges of K  e , we have
+                                                                              6:    ψ ← PRINCIPALEIGENVECTOR(A, B)
+                              R
+                                                                              7:    α, n, S ← TEXTURECOORDINATES(K, ψ, ω, s)
+                            e ı γ̃ σe ϕ p = ϕq ,                      (13)    8:    return α, n, S
+                                                                              9: end procedure
+where the integral is just the sum of σ
+                                      e over all the oriented edges
+of γ̃. From Eq. (13) it follows that the integral of σ  e over any
+closed path (p = q) has a value in 2πZ. Thus, if we integrate                Algorithm 2 Computes polar coordinates of outgoing halfedges
+σ
+e over the whole domain (starting at an arbitrary vertex), we                around each vertex (Sec. 3.1).
+obtain a piecewise-linear function α̃ on edges such that                      1: procedure VERTEXANGLES(K, `)
+                                  ıα̃ p                                       2:    for each i ∈ V do
+                              e           = ϕp .                      (14)
+                                                                              3:        Θi ← 0                                . cumulative angle
+                                                                              4:        for p ← {0, . . . , DEGREE(K, i) − 1} do
+at each vertex p. By conjugate symmetry of e    ψ, and since ω
+                                                                              5:           θijp ← Θi
+                                                              e
+changes sign under τ, we see that σ e also changes sign under τ.
+                                                                                                                                                  jk
+Together with Eq. (14) this yields Eq. (12).                                  6:          Θi ← Θi + TIPANGLE(K, `, i, jp , jp+1 ) . returns θ̂i
+                                                                              7:       end for
+We now extend α̃ to triangle interiors. For triangles pqr ∈ Fe                8:       for p ← {0, . . . , DEGREE(K, i) − 1} do
+where the index ñ pqr := (e σ pq + σ
+                                    e qr + σ
+                                           e r p )/2π equals zero (i.e.,      9:          θijp ← 2πθijp /Θi
+where ψ e is regular), we can simply extend α̃ linearly—clearly
+                                                                             10:       end for
+Eq. (12) stays valid in this case. When ñ pqr is nonzero, we interpo-       11:    end for
+late boundary values using the nonlinear function lArg described             12:    return θ
+in Sec. 4.3. Here Eq. 12 follows from the behavior of σ    e under τ:        13: end procedure
+changing sheets flips the sign of ñ pqr and thus of lArgñpqr.
+Algorithm 3 Initializes basic edge data (Sec. 3.1).                        Algorithm 7 Computes final texture coordinates. (Sec. 4.3).
+ 1: procedure EDGEDATA(K, `, θ , X , ν)                                     1: procedure TEXTURECOORDINATES(K, ψ, ω, s)
+ 2:    for each ij ∈ E do                 . canonically oriented (i < j)    2:    for each ijk ∈ F do
+ 3:        ρij ← −θij + θ ji + π                                            3:        cij ← i < j ? 1 : −1                     . is each edge canonical?
+ 4:        sij ← sgn(〈e ıρij X i , X j 〉)                                   4:        c jk ← j < k ? 1 : −1
+ 5:        φi ← arg(X i )                                                   5:        cki ← k < i ? 1 : −1
+ 6:        φ j ← arg(sij X j )                                              6:        zi , z j , zk ← ψi , ψ j , ψk . get local copies of edge data
+ 7:
+                    `ij
+          ωij ← 2 (νi cos(φi − θij ) + ν j cos(φ j − θ ji ))                7:        υij , υ jk , υki ← cij ωij , c jk ω jk , cki ωki
+                                                                            8:        Sijk ← sij s jk ski                       . compute branch index
+ 8:    end for
+                                                                            9:        if Sijk < 0 then                                  . branch triangle
+ 9:    return ω, s
+                                                                           10:              υki ← −υki              . want transport to τ(i1 ), not i1
+10: end procedure
+                                                                           11:        end if
+                                                                           12:        if sij < 0 then             . make values at j consistent w/ i
+Algorithm 4 Builds the matrix defining the energy (Sec. 4.1).              13:              zj ← z j
+                                                                           14:              υij ← cij υij
+ 1: procedure ENERGYMATRIX(K, `, ω, s)
+                                                                           15:              υ jk ← −c jk υ jk
+ 2:    A ← 0 ∈ R2|V |×2|V |                   . start with all zeros       16:        end if
+ 3:    for each ij ∈ E do          . canonically oriented (i < j)          17:        if Sijk ski < 0 then . make values at k consistent w/ i
+ 4:        βi , β j ← OPPOSITEANGLES(K, `, ij)                             18:              zk ← z k
+ 5:       w ij ← 12 (cot βij + cot β ji )                                  19:              υki ← −cki υki
+ 6:       Aii ← Aii + [w ij ]                                              20:              υ jk ← c jk υ jk
+ 7:       A j j ← A j j + [w ij ]                                          21:        end if
+                                                                                         jk
+ 8:       if sij ≥ 0 then                                                  22:        αi ← arg(zi ) . compute angles at triangle corners
+ 9:             Aij ← −w ij [e ıωij ]                                      23:          αki
+                                                                                                  jk
+                                                                                            ← αi + υij − arg(e ıυij zi /z j )
+                                                                                         j
+10:       else                                                                            ij
+11:             Aij ← −w ij [e ıωij ]                                      24:          αk ← αki
+                                                                                              j
+                                                                                                 + υ jk − arg(e ıυ jk z j /zk )
+                                                                                          ijk     ij
+12:       end if                                                           25:          αl ← αk + υki − arg(e ıυki zk /zi )
+13:       A ji ← AijT                                                      26:          αijk
+                                                                                                   jk       ijk
+                                                                                             ← αi + (αl − αi )/2
+                                                                                                                jk
+                                                                                                                         . midpoint coordinate
+                                                                                         m
+14:    end for                                                                                  1       ijk
+                                                                           27:          nijk ← 2π (αl − αi )              . compute zero index
+15:    return A
+16: end procedure                                                          28:          αki
+                                                                                          j
+                                                                                             ← α ki
+                                                                                                 j
+                                                                                                      −  2πn/3                  . adjust zeros
+                                                                                          ij     ij
+                                                                           29:       αk ← αk − 4πn/3
+                                                                           30:    end for
+Algorithm 5 Builds the mass matrix associated with vertices
+                                                                           31:    return α, n, S
+(Sec. 4.1).
+                                                                           32: end procedure
+ 1: procedure MASSMATRIX(K, `)
+ 2:    B ← 0 ∈ R2|V |×2|V |                     . start with all zeros     The remaining routines are standard, but are defined here for
+ 3:    for each ijk ∈ F do                                                 completeness:
+ 4:        𝒜ijk ← TRIANGLEAREA(K, `, ijk)
+ 5:        Bii ← Bii + 𝒜ijk /3                                                • DEGREE(K, i) - returns the degree of vertex i ∈ V .
+ 6:        B j j ← B j j + 𝒜ijk /3                                            • TIPANGLE(K, `, i, j, k) - returns the angle at vertex i ∈ V in
+ 7:        Bkk ← Bkk + 𝒜ijk /3                                                  triangle ijk ∈ F .
+ 8:    end for                                                                • OPPOSITEANGLES(K, `, ij) - returns the two angles opposite
+ 9:    return B                                                                 edge ij ∈ E (Sec. 3.2).
+10: end procedure                                                             • TRIANGLEAREA(K, `, ijk) - returns area of triangle ijk ∈ F .
+                                                                              • CHOLESKYFACTOR(A) - returns Cholesky factor of matrix A.
+                                                                              • UNIFORMRAND(n) - returns a vector of n numbers in the
+Algorithm 6 Computes an eigenvector corresponding to the                        interval [−1, 1], picked uniformly at random.
+smallest eigenvalue via the inverse power method (Sec. 4.2).                  • SIZE(A) - returns the dimension of a square matrix A.
+ 1: procedure PRINCIPALEIGENVECTOR(A, B)                                      • BACKSOLVE(L, b) - if L is a Cholesky factor of A, solves the
+ 2:    L ← CHOLESKYFACTOR(A)                                                    linear system Ax = b.
+ 3:    x ← UNIFORMRAND(SIZE(A))
+ 4:    for i = 1, . . . , N do
+ 5:        x ← BACKp SOLVE(L, Bx)
+ 6:        x ← x/ xT Bx
+ 7:    end for
+ 8:    return x
+ 9: end procedure
+
+
+
+
+                                                                           Figure 22: Two independent stripe patterns (left, center left) ori-
+                                                                           ented along orthogonal fields are combined (center right) to drive
+                                                                           the periodic texture and displacement maps (right) used in Fig. 2.
+

@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#110b2a" />
+    <meta name="description" content="Switch one vertex vector field among vertex arrows, edge 1-forms, and reconstructed face vectors without hiding the transfers." />
+    <title>One field, three addresses · Geometry Processing Lab</title>
+  </head>
+  <body>
+    <header class="rep-header">
+      <a href="./index.html">← Vector field tour</a>
+      <div><span>BREAKOUT · REPRESENTATION AUDIT</span><strong>One field, three addresses</strong></div>
+      <a href="./references.html#fields">Field literature →</a>
+    </header>
+
+    <main>
+      <section class="rep-hero">
+        <div>
+          <p class="eyebrow">SAME GEOMETRIC INTENT · DIFFERENT DISCRETE DATA</p>
+          <h1>Switch the address.<br /><em>Keep the transfer visible.</em></h1>
+          <p>Begin with two tangent components at every vertex. Integrate them along edges, reconstruct one constant vector per face, then average those face vectors back to vertices. The pictures can resemble each other while their degrees of freedom and exact identities do not.</p>
+        </div>
+        <aside>
+          <span>THE RULE FOR THIS PAGE</span>
+          <strong>Vertex values remain the source of truth.</strong>
+          <p>The edge and face views are derived audits. Switching tabs never pretends that a different Hodge complex appeared.</p>
+        </aside>
+      </section>
+
+      <nav class="representation-rail" aria-label="Displayed field representation">
+        <button data-representation="vertex" aria-pressed="true"><span>01 · NATIVE</span><strong>Vertex tangent vectors</strong><small>2 values / vertex</small></button>
+        <i>trapezoid integral →</i>
+        <button data-representation="edge" aria-pressed="false"><span>02 · DERIVED</span><strong>Oriented edge 1-form</strong><small>1 value / edge</small></button>
+        <i>local reconstruction →</i>
+        <button data-representation="face" aria-pressed="false"><span>03 · DERIVED</span><strong>Face vectors</strong><small>2 values / face</small></button>
+      </nav>
+
+      <section class="rep-lab">
+        <div class="rep-stage">
+          <header><div><span id="representation-status">NATIVE VERTEX FIELD</span><strong id="representation-caption">two tangent components at each mesh vertex</strong></div><code id="representation-count">—</code></header>
+          <canvas id="representation-canvas" aria-label="A vector field displayed at vertices, edges, or faces"></canvas>
+          <div class="rep-legend"><span><i class="cyan"></i> positive / source</span><span><i class="pink"></i> negative / curl</span><span><i class="gold"></i> reconstructed</span><span id="representation-legend-note">arrows live at vertices</span></div>
+          <dl class="rep-metrics">
+            <div><dt>displayed DOFs</dt><dd id="representation-dofs">—</dd></div>
+            <div><dt>triangle curl RMS</dt><dd id="representation-curl">—</dd></div>
+            <div><dt>face fit residual</dt><dd id="representation-residual">—</dd></div>
+            <div><dt>round-trip RMS</dt><dd id="representation-roundtrip">—</dd></div>
+          </dl>
+        </div>
+
+        <aside class="rep-notebook">
+          <div class="control-card">
+            <p class="eyebrow">MANUFACTURED INPUT</p>
+            <label><span><strong>Vertex field</strong><small>choose an answer with known curl</small></span><select id="representation-field"><option value="gradient">Gradient / closed</option><option value="constant">Constant calibration</option><option value="rotation">Rotation / curl = 2</option></select></label>
+            <label><span><strong>Grid resolution</strong><small>vertices along one side</small></span><output id="representation-resolution-output">9 × 9</output><input id="representation-resolution" type="range" min="5" max="17" step="2" value="9" /></label>
+            <label class="roundtrip-toggle"><input id="representation-roundtrip-toggle" type="checkbox" /><span><strong>Overlay the round trip</strong><small>gold = face averages transferred back to vertices</small></span></label>
+          </div>
+          <article class="address-card">
+            <span id="address-kicker">NATIVE UNKNOWN</span>
+            <h2 id="address-title">Vertex tangent vectors</h2>
+            <code id="address-equation">uᵢ ∈ TᵢM ≅ ℝ²</code>
+            <p id="address-copy"></p>
+            <dl><div><dt>one value means</dt><dd id="address-value"></dd></div><div><dt>curl lives</dt><dd id="address-curl"></dd></div><div><dt>do not assume</dt><dd id="address-warning"></dd></div></dl>
+          </article>
+          <details class="transfer-details" open>
+            <summary>Read the transfer, not only the arrows</summary>
+            <ol>
+              <li><code>uᵢ → αᵢⱼ</code><p>Endpoint trapezoids integrate a vertex vector along an oriented edge.</p></li>
+              <li><code>α|∂f → w_f</code><p>A two-variable least-squares fit reconstructs a constant face vector. Nonzero circulation is exactly the incompatible third equation.</p></li>
+              <li><code>w_f → ũᵢ</code><p>Area averaging returns display arrows to vertices, but does not invert the earlier transfers.</p></li>
+            </ol>
+          </details>
+        </aside>
+      </section>
+
+      <section class="rep-conclusion">
+        <div><p class="eyebrow">WHY THIS IS A BREAKOUT</p><h2>The course spine can remain vertex-first.</h2><p>Students only need this comparison once: to understand why a reconstructed vertex picture is not a native vertex discretization. Then the live objective can keep one unknown association, one circulation operator, and one research question in view.</p></div>
+        <div class="next-links"><a href="./energy-playground.html"><strong>Continue with native vertex unknowns</strong><span>Drag handles and change the energy →</span></a><a href="./dec-playground.html"><strong>Go down to forms and operators</strong><span>Move through d and the Hodge star →</span></a><a href="./references.html#fields"><strong>Read the representation source trail</strong><span>Course notes, connections, and Directional →</span></a></div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/experiments/representations-page.ts"></script>
+  </body>
+</html>

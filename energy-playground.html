@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#21194a" />
+    <meta name="description" content="A live, shareable workshop for vertex-based integrable unit fields." />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Geometry Processing Lab · Live unit-field energy" />
+    <meta property="og:description" content="Edit a vertex-field energy, assemble a sparse Hessian, and carry the experiment into TinyAD." />
+    <meta property="og:image" content="./og.png" />
+    <meta property="og:image:alt" content="A luminous tangent vector field flowing over a violet triangulated surface." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>Unit Field Workshop · Geometry Processing Lab</title>
+    <script>if (new URLSearchParams(location.search).get("embed") === "1") document.documentElement.classList.add("embed-mode");</script>
+  </head>
+  <body>
+    <header class="energy-header">
+      <a href="./index.html" class="back-link">← Geometry Processing Lab</a>
+      <div class="energy-title"><span>LIVE OBJECTIVE 01</span><h1>Integrable, as unit as possible</h1></div>
+      <div class="energy-header-actions">
+        <a href="./references.html" class="header-text-link">Reading map</a>
+        <a href="./getting-started.html" class="header-text-link">Start locally</a>
+        <button id="share-energy" class="candy-button">Copy experiment link</button>
+      </div>
+    </header>
+
+    <section class="embed-bar" aria-label="Embedded experiment heading">
+      <div>
+        <span>INTERACTIVE FIGURE · SPARSE AUTODIFF IN YOUR BROWSER</span>
+        <strong>Integrable, as unit as possible</strong>
+        <p>Change the competing terms, take Newton steps, then open the complete lesson and source.</p>
+      </div>
+      <a id="embed-open-full" href="./energy-playground.html" target="_blank" rel="noreferrer">Open full lab ↗</a>
+    </section>
+
+    <main class="energy-layout">
+      <aside class="walkthrough-panel">
+        <p class="eyebrow">A vertex-field walkthrough</p>
+        <ol class="walkthrough-steps">
+          <li><span>01</span><div><strong>Put vectors on vertices.</strong><p>Every grid vertex owns two unknowns, <code>ux</code> and <code>uy</code>.</p></div></li>
+          <li><span>02</span><div><strong>Measure triangle circulation.</strong><p>Trapezoidal line integration gives one signed curl residual per face.</p></div></li>
+          <li><span>03</span><div><strong>Ask for unit length.</strong><p>The quartic residual <code>(ux² + uy² − length²)²</code> is editable below.</p></div></li>
+          <li><span>04</span><div><strong>Watch the compromise.</strong><p>A rotating target, zero curl, and unit norm cannot all win near the center.</p></div></li>
+        </ol>
+        <div class="formula-card">
+          <span>GLOBAL OBJECTIVE</span>
+          <code>Σᵢ e(uᵢ,tᵢ) + κ/2 Σ<sub>f</sub> circ<sub>f</sub>² + s/2 Σ<sub>ij</sub> ‖uᵢ−uⱼ‖²</code>
+          <p>The first term is live. The geometric coupling is kept visible rather than hidden inside the editor.</p>
+        </div>
+        <details class="lesson-note" open>
+          <summary>What makes this vertex based?</summary>
+          <p>The optimization variables live at vertices. Each triangle samples its three endpoint vectors, so adjacent circulation residuals share unknowns and assemble a sparse coupled system.</p>
+        </details>
+        <div class="journey-card">
+          <span>ONE EXPERIMENT, THREE CONTEXTS</span>
+          <ol>
+            <li><b>Read</b><small>Run the compact figure in a blog.</small></li>
+            <li><b>Fork</b><small>Edit the same program in a local clone.</small></li>
+            <li><b>Research</b><small>Generate TinyAD, inspect in Polyscope.</small></li>
+          </ol>
+          <a href="./dec-playground.html">Trace d and ⋆ on a mesh →</a>
+          <a href="./getting-started.html">Student setup and publishing guide →</a>
+        </div>
+      </aside>
+
+      <section class="field-stage">
+        <div class="stage-heading">
+          <div><span>FIELD VIEW</span><strong>cyan = current · pink = target</strong></div>
+          <div id="energy-state" class="energy-state">live expression ready</div>
+        </div>
+        <canvas id="energy-field" aria-label="Vertex vector field experiment"></canvas>
+        <div class="energy-metrics">
+          <div><span>energy</span><strong id="live-energy">—</strong></div>
+          <div><span>curl RMS</span><strong id="live-curl">—</strong></div>
+          <div><span>unit defect</span><strong id="live-unit">—</strong></div>
+          <div><span>sparse H nnz</span><strong id="live-nnz">—</strong></div>
+          <div><span>accepted steps</span><strong id="live-steps">0</strong></div>
+        </div>
+        <div class="solver-row">
+          <button id="reset-energy" class="candy-button secondary">Reset field</button>
+          <button id="step-energy" class="candy-button">One sparse Newton step</button>
+          <button id="ten-energy" class="candy-button sparkle">Take 10 steps</button>
+        </div>
+        <div class="history-card">
+          <div><span>ENERGY HISTORY</span><small>backtracking makes every accepted step descend</small></div>
+          <canvas id="energy-history" aria-label="Energy history plot"></canvas>
+        </div>
+      </section>
+
+      <aside class="expression-panel">
+        <div class="embed-control-header">
+          <p class="eyebrow">Controls for this figure</p>
+          <h2>Change the compromise</h2>
+          <p>Try <strong>Curl dominates</strong>, then take ten steps. The full lab exposes the expression, element program, and generated source.</p>
+        </div>
+        <p class="eyebrow">No compiler required</p>
+        <h2>Edit the per-vertex energy</h2>
+        <p class="panel-intro">Use numbers, parentheses, <code>+ − * / ^</code>, and the symbols below. The lab differentiates the expression through second order in the browser.</p>
+        <textarea id="energy-expression" spellcheck="false" aria-label="Per-vertex energy expression"></textarea>
+        <div class="symbol-ribbon">
+          <span><code>ux uy</code> unknown</span><span><code>tx ty</code> target</span><span><code>data unit length</code> controls</span>
+        </div>
+        <button id="apply-energy" class="candy-button wide">Apply live energy</button>
+        <p id="expression-status" class="expression-status" aria-live="polite"></p>
+
+        <div class="control-stack">
+          <label><span><strong>Grid size</strong><small>vertices along one side</small></span><output id="grid-output"></output><input id="grid-size" type="range" min="5" max="25" step="2"></label>
+          <label><span><strong>Data weight</strong><small>follow the rotating target</small></span><output id="data-output"></output><input id="data-weight" type="range" min="0" max="4" step="0.05"></label>
+          <label><span><strong>Unit weight</strong><small>prefer ‖uᵢ‖ = target length</small></span><output id="unit-output"></output><input id="unit-weight" type="range" min="0" max="12" step="0.1"></label>
+          <label><span><strong>Triangle circulation</strong><small>prefer zero primal-face curl</small></span><output id="curl-output"></output><input id="curl-weight" type="range" min="0" max="30" step="0.25"></label>
+          <label><span><strong>Connection smoothing</strong><small>flat transport between neighbors</small></span><output id="smooth-output"></output><input id="smooth-weight" type="range" min="0" max="3" step="0.05"></label>
+          <label><span><strong>Target length</strong><small>the symbol <code>length</code></small></span><output id="length-output"></output><input id="target-length" type="range" min="0.2" max="1.8" step="0.05"></label>
+        </div>
+        <label class="target-control"><span><strong>Target field</strong><small>choose a manufactured field or sketch one with handles</small></span><select id="target-kind"><option value="rotating">Rotating / singular</option><option value="constant">Constant / integrable</option><option value="gradient-wave">Gradient wave</option><option value="handles">Draggable handles</option></select></label>
+        <details id="handle-design-card" class="handle-design-card" hidden>
+          <summary><span>SHARED INPUT FIELD</span><strong>Drag the gold handle arrows in the field view</strong><em>compare ↓</em></summary>
+          <p>The pink target arrows are the component-wise harmonic extension of the handle vectors. Every projection below starts from this same field.</p>
+          <label><span><strong>Data support</strong><small>fit the interpolated target everywhere, or only the authored handles</small></span><select id="data-support"><option value="field">Whole harmonic field</option><option value="handles">Handles only</option></select></label>
+          <div class="handle-projection-row"><button id="project-edge-hodge" class="preset-button">Closest exact / edge Hodge</button><button id="project-aligned-unit" class="preset-button">Aligned + unit</button><button id="project-handle-unit" class="preset-button">Handles + unit</button><button id="send-handles-to-stripes" class="preset-button">Send directions to stripes</button></div>
+          <p id="handle-status" class="program-status">Choose a projection, then compare curl and unit defects without changing the target.</p>
+        </details>
+
+        <div class="preset-row">
+          <button data-preset="unit" class="preset-button">Integrable + unit</button>
+          <button data-preset="curl" class="preset-button">Curl dominates</button>
+          <button data-preset="data" class="preset-button">Target only</button>
+        </div>
+        <p class="safety-note">This editor intentionally accepts math, not arbitrary JavaScript. Move to the C++ callback in the main lab when the element stencil or representation itself needs to change.</p>
+        <details class="program-file-card">
+          <summary><span>SHARED SOURCE OF TRUTH</span><strong>Edit the complete element program</strong><em>JSON ↘</em></summary>
+          <p>The same file runs here, records the vertex/edge/face stencil, and drives generated research code.</p>
+          <textarea id="element-program-editor" spellcheck="false" aria-label="Shared element program JSON"></textarea>
+          <div class="program-file-actions"><button id="apply-program" class="preset-button">Run this file</button><button id="import-program" class="preset-button">Import file</button><button id="download-program" class="preset-button">Download file</button></div>
+          <input id="program-file-input" type="file" accept="application/json,.json" hidden>
+          <p id="program-status" class="program-status" aria-live="polite"></p>
+        </details>
+        <div class="transition-card">
+          <span>TAKE IT INTO A LARGER PROJECT</span>
+          <strong>The same expression, in readable source</strong>
+          <p>Generate a TinyAD callback or a plain Python energy. The surrounding starter project supplies sparse element assembly, meshes, and Polyscope.</p>
+          <div><button id="download-tinyad" class="preset-button">Download TinyAD header</button><button id="copy-python" class="preset-button">Copy Python function</button><button id="download-research-bundle" class="preset-button">Download research bundle</button></div>
+          <a href="./index.html?lesson=vertex-field-unit-integrable">Open this projection in the Wasm / Polyscope bridge →</a>
+        </div>
+        <div class="publish-card">
+          <span>PUBLISH THIS EXACT STATE</span>
+          <strong>Turn the live experiment into a blog figure</strong>
+          <p>The compact view keeps the complete validated program in its URL. Use the iframe when a blog permits embeds, or the linked fallback when it does not.</p>
+          <div>
+            <button id="copy-blog-embed" class="preset-button">Copy iframe</button>
+            <a id="preview-blog-embed" class="preset-button" href="./energy-playground.html?embed=1" target="_blank" rel="noreferrer">Preview figure</a>
+            <button id="download-blog-kit" class="preset-button">Download blog kit</button>
+          </div>
+          <p id="publish-status" class="publish-status" aria-live="polite"></p>
+        </div>
+      </aside>
+    </main>
+
+    <section id="stripe-projection" class="stripe-section">
+      <div class="stripe-heading">
+        <div><span>RESCALED PERIODIC INTEGRABILITY</span><h2>A direction field becomes a stripe pattern.</h2><p>A real potential is awkward across periods and branch points. Instead, store a complex phase <code>ψᵢ</code> at each vertex, convert the target vector field into an edge phase increment <code>ωᵢⱼ</code>, and minimize the mismatch after phase transport.</p></div>
+        <code class="stripe-formula">min<sub>ψ</sub> Σ<sub>ij</sub> w<sub>ij</sub> |ψ<sub>j</sub> − exp(iω<sub>ij</sub>)ψ<sub>i</sub>|²<br />subject to &nbsp; ‖ψ‖²<sub>M</sub> = 1</code>
+      </div>
+      <div class="two-optimization-rail">
+        <article><span>OPTIMIZATION A · FIELD DESIGN</span><strong>Make a unit direction field as curl-free/geodesic as possible.</strong><code>min ½‖δ‖² + λ/2‖∇(w + δ)‖²<br />s.t. C(w + δ)=0, ‖wᵢ‖=1</code><p>This curved-surface stage chooses the foliation direction. The flat browser demo starts from a supplied field so the second optimization stays legible.</p></article>
+        <i>→</i>
+        <article><span>OPTIMIZATION B · REALIZATION</span><strong>Recover a periodic phase—and allow rescaling where compatibility fails.</strong><code>∇θ ≈ s w⊥ &nbsp; or &nbsp; (d − iω)ψ ≈ 0</code><p>The live solve below uses the sparse connection energy. Global normalization avoids the zero solution; local amplitude can fall near incompatible regions and signal stripe singularities.</p></article>
+      </div>
+      <div class="stripe-lab">
+        <div class="stripe-copy">
+          <p class="eyebrow">How to read it</p>
+          <ol><li><span>1</span><p><strong>Arrows are the requested phase-gradient direction.</strong> Stripes should run orthogonal to them.</p></li><li><span>2</span><p><strong>Color is a periodic function of arg ψ.</strong> No global cut or unwrapped real coordinate is needed.</p></li><li><span>3</span><p><strong>Brightness is |ψ|.</strong> Dark points are where rescaling makes room for incompatibility or a branch point.</p></li></ol>
+          <details><summary>Why this is not “just curl reduction”</summary><p>Local curl, global periods, periodic phase, and amplitude zeros are different modeling choices. This energy measures edge-wise phase transport and solves a globally normalized sparse eigenproblem; the earlier triangle-circulation penalty acts directly on vertex vectors.</p></details>
+          <details><summary>Research extension: alternating s and θ</summary><p>An explicit rescaling field <code>s</code> can first be optimized so <code>s w⊥ + δ</code> lies near the integrable subspace, then alternated with the periodic phase solve. Keeping these two optimizations visible is useful when moving to geodesic foliations.</p></details>
+        </div>
+        <div class="stripe-stage"><div class="stripe-stage-head"><span>PERIODIC PHASE VIEW</span><strong id="stripe-state">unsolved field</strong></div><canvas id="stripe-canvas" aria-label="Periodic stripe phase aligned to a direction field"></canvas><div class="stripe-metrics"><div><span>connection energy</span><strong id="stripe-energy">—</strong></div><div><span>edge mismatch RMS</span><strong id="stripe-residual">—</strong></div><div><span>min |ψ|</span><strong id="stripe-amplitude">—</strong></div><div><span>iterations</span><strong id="stripe-iterations">0</strong></div></div></div>
+        <div class="stripe-controls">
+          <label><span><strong>Input direction field</strong><small>constant is the calibration; swirl is deliberately incompatible</small></span><select id="stripe-field"><option value="constant">Constant / integrable</option><option value="bend">Bent field</option><option value="swirl" selected>Swirl / branch point</option><option value="custom" disabled>Handle-designed field</option></select></label>
+          <label><span><strong>Target stripe frequency</strong><small>phase turns across the patch</small></span><output id="stripe-frequency-output">4.5</output><input id="stripe-frequency" type="range" min="1" max="9" step="0.5" value="4.5" /></label>
+          <label><span><strong>Phase-grid resolution</strong><small>raise this until each stripe has enough cells</small></span><output id="stripe-resolution-output">19 × 19</output><select id="stripe-resolution"><option value="19" selected>19 × 19 · quick</option><option value="31">31 × 31 · clearer</option><option value="43">43 × 43 · high resolution</option><option value="49">49 × 49 · maximum</option></select></label>
+          <div id="stripe-sampling" class="stripe-sampling" data-quality="usable"><strong>4.0 cells / stripe</strong><span>usable preview · choose 43 × 43 to resolve the pattern</span></div>
+          <div class="stripe-actions"><button id="stripe-reset" class="preset-button">Reset phase</button><button id="stripe-step" class="preset-button">100 iterations</button><button id="stripe-solve" class="preset-button">Solve 800</button></div>
+          <p class="stripe-resolution-note">This teaching canvas samples phase on the displayed grid, so coarse/high-frequency combinations alias. The original <a href="https://www.cs.cmu.edu/~kmcrane/Projects/StripePatterns/" target="_blank" rel="noreferrer">Stripe Patterns</a> method also develops a nonlinear interpolant for rendering above mesh resolution.</p>
+          <p>The solver is deliberately small: a sparse connection-Laplacian matvec, gradient step, and mass normalization. The research version replaces this iteration with a sparse generalized eigensolver and adds the explicit <code>s</code>/<code>θ</code> alternation.</p>
+        </div>
+      </div>
+      <aside class="stripe-reading" aria-label="Canonical stripe-pattern references">
+        <div><span>SOURCE TRAIL</span><strong>From direction fields to globally continuous stripes</strong><p>The live model is a deliberately small teaching analogue. These papers provide the geometric formulation, the geodesic-foliation extension, and a differentiable inverse-design continuation.</p></div>
+        <a href="https://www.cs.cmu.edu/~kmcrane/Projects/StripePatterns/" target="_blank" rel="noreferrer"><b>Stripe Patterns on Surfaces</b><small>Knöppel, Crane, Pinkall & Schröder · 2015</small></a>
+        <a href="https://www.cs.utexas.edu/~josh/papers/weaving.pdf" target="_blank" rel="noreferrer"><b>Weaving Geodesic Foliations</b><small>Vekhter et al. · 2019</small></a>
+        <a href="https://doi.org/10.1145/3592114" target="_blank" rel="noreferrer"><b>Differentiable Stripe Patterns</b><small>Montes Maestre et al. · 2023</small></a>
+        <a href="./references.html#stripes"><b>Open the annotated reading map</b><small>why each work is in the course →</small></a>
+      </aside>
+    </section>
+
+    <section class="polycurl-section">
+      <details>
+        <summary><span>BONUS EXPERIMENT</span><strong>PolyCurl coefficient reduction</strong><em>open ↘</em></summary>
+        <div class="polycurl-grid">
+          <div class="polycurl-copy">
+            <p class="eyebrow">Face frames instead of vertex vectors</p>
+            <h2>Compare frames without choosing an ordering</h2>
+            <p>A 4-RoSy frame is encoded by two tangent vectors α and β. Polynomial coefficients stay unchanged when those directions are permuted or sign-flipped; shared-edge residuals can therefore compare frames more symmetrically.</p>
+            <code>C₀ = α²β² &nbsp;&nbsp; C₂ = −(α² + β²)</code>
+            <p>This compact explorer shows the smooth coefficient mismatch and the edge-projected PolyCurl mismatch. The full TinyAD example adds quotient and barrier residuals and optimizes four variables per face.</p>
+            <a href="https://github.com/patr-schm/TinyAD-Examples/blob/main/apps/polycurl_reduction.cc" target="_blank" rel="noreferrer">Read the complete TinyAD PolyCurl example ↗</a>
+          </div>
+          <div class="polycurl-demo">
+            <canvas id="polycurl-canvas" aria-label="Two adjacent face frames"></canvas>
+            <label><span>Right-frame rotation</span><output id="frame-rotation-output"></output><input id="frame-rotation" type="range" min="-90" max="90" step="1" value="24"></label>
+            <label><span>Right-frame skew</span><output id="frame-skew-output"></output><input id="frame-skew" type="range" min="-45" max="45" step="1" value="10"></label>
+            <div class="polycurl-metrics"><div><span>smooth coefficients</span><strong id="polycurl-smooth">—</strong></div><div><span>edge-projected</span><strong id="polycurl-edge">—</strong></div></div>
+          </div>
+        </div>
+      </details>
+    </section>
+
+    <script type="module" src="/src/experiments/energy-playground.ts"></script>
+  </body>
+</html>

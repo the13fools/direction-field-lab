@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import unittest
 
-from tools.polyscope_bridge import native_arguments, validate_project
+from tools.polyscope_bridge import local_capabilities, native_arguments, validate_project
 
 
 class ConnectedProjectTests(unittest.TestCase):
@@ -48,6 +48,13 @@ class ConnectedProjectTests(unittest.TestCase):
         self.assertEqual(arguments[arguments.index("--grid") + 1], "9")
         self.assertEqual(arguments[arguments.index("--integrability") + 1], "5")
         self.assertEqual(arguments[arguments.index("--steps") + 1], "3")
+
+    def test_reports_connected_actions_without_exposing_host_paths(self) -> None:
+        capabilities = local_capabilities(viewer_available=True)
+        self.assertEqual(capabilities["mode"], "connected")
+        self.assertTrue(capabilities["actions"]["openPolyscope"])
+        self.assertTrue(capabilities["actions"]["buildNativeVertexField"])
+        self.assertEqual(capabilities["workspace"], ".lab-workspace/current")
 
 
 if __name__ == "__main__":

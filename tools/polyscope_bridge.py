@@ -8,6 +8,7 @@ import json
 import os
 from pathlib import Path
 import subprocess
+import threading
 from http import HTTPStatus
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
@@ -23,6 +24,17 @@ ALLOWED_CALLBACKS = {
     "cpp/include/HodgeProjectionCallbacks.hh",
     "cpp/include/VertexFieldCallbacks.hh",
 }
+
+
+def local_capabilities(viewer_available: bool) -> dict:
+    return {
+        "mode": "connected",
+        "actions": {
+            "openPolyscope": viewer_available,
+            "buildNativeVertexField": True,
+        },
+        "workspace": ".lab-workspace/current",
+    }
 
 
 def parse_args() -> argparse.Namespace:
@@ -111,10 +123,23 @@ def main() -> None:
     viewer_process: subprocess.Popen[bytes] | None = None
     native_process: subprocess.Popen[bytes] | None = None
     workspace = (Path.cwd() / ".lab-workspace" / "current").resolve()
+    native_build_lock = threading.Lock()
 
     class Handler(SimpleHTTPRequestHandler):
         def __init__(self, *handler_args, **handler_kwargs):
             super().__init__(*handler_args, directory=str(root), **handler_kwargs)
+
+        def do_GET(self) -> None:  # noqa: N802
+            if self.path != "/api/local-capabilities":
+                super().do_GET()
+                return
+            body = (json.dumps(local_capabilities(args.viewer is not None)) + "\n").encode()
+            self.send_response(HTTPStatus.OK)
+            self.send_header("content-type", "application/json")
+            self.send_header("cache-control", "no-store")
+            self.send_header("content-length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
 
         def do_POST(self) -> None:  # noqa: N802
             nonlocal viewer_process, native_process
@@ -138,52 +163,58 @@ def main() -> None:
                     response = {"ok": True}
                 else:
                     problem, source_files = validate_project(payload)
-                    atomic_write(
-                        workspace / "experiments" / "problem.json",
-                        json.dumps(problem, indent=2) + "\n",
-                    )
-                    for relative_path, contents in source_files.items():
-                        atomic_write(workspace / relative_path, contents)
-                    callback_directory = workspace / "cpp" / "include"
-                    configure = subprocess.run(
-                        [
-                            "cmake",
-                            "--preset",
-                            "native",
-                            f"-DGEOMETRY_LAB_CALLBACK_DIR={callback_directory}",
-                        ],
-                        cwd=Path.cwd(),
-                        capture_output=True,
-                        text=True,
-                        timeout=180,
-                    )
-                    if configure.returncode:
-                        raise RuntimeError(configure.stdout + configure.stderr)
-                    build = subprocess.run(
-                        [
-                            "cmake",
-                            "--build",
-                            "--preset",
-                            "native",
-                            "--target",
-                            "geometry-lab-vertex-field",
-                        ],
-                        cwd=Path.cwd(),
-                        capture_output=True,
-                        text=True,
-                        timeout=300,
-                    )
-                    if build.returncode:
-                        raise RuntimeError(build.stdout + build.stderr)
-                    executable = args.native_experiment.resolve()
-                    if not executable.is_file():
-                        raise RuntimeError(f"Native experiment was not built: {executable}")
-                    if native_process is not None and native_process.poll() is None:
-                        native_process.terminate()
-                    native_process = subprocess.Popen(
-                        [str(executable), *native_arguments(problem)],
-                        cwd=Path.cwd(),
-                    )
+                    if not native_build_lock.acquire(blocking=False):
+                        self.send_error(HTTPStatus.CONFLICT, "A native build is already running")
+                        return
+                    try:
+                        atomic_write(
+                            workspace / "experiments" / "problem.json",
+                            json.dumps(problem, indent=2) + "\n",
+                        )
+                        for relative_path, contents in source_files.items():
+                            atomic_write(workspace / relative_path, contents)
+                        callback_directory = workspace / "cpp" / "include"
+                        configure = subprocess.run(
+                            [
+                                "cmake",
+                                "--preset",
+                                "native",
+                                f"-DGEOMETRY_LAB_CALLBACK_DIR={callback_directory}",
+                            ],
+                            cwd=Path.cwd(),
+                            capture_output=True,
+                            text=True,
+                            timeout=180,
+                        )
+                        if configure.returncode:
+                            raise RuntimeError(configure.stdout + configure.stderr)
+                        build = subprocess.run(
+                            [
+                                "cmake",
+                                "--build",
+                                "--preset",
+                                "native",
+                                "--target",
+                                "geometry-lab-vertex-field",
+                            ],
+                            cwd=Path.cwd(),
+                            capture_output=True,
+                            text=True,
+                            timeout=300,
+                        )
+                        if build.returncode:
+                            raise RuntimeError(build.stdout + build.stderr)
+                        executable = args.native_experiment.resolve()
+                        if not executable.is_file():
+                            raise RuntimeError(f"Native experiment was not built: {executable}")
+                        if native_process is not None and native_process.poll() is None:
+                            native_process.terminate()
+                        native_process = subprocess.Popen(
+                            [str(executable), *native_arguments(problem)],
+                            cwd=Path.cwd(),
+                        )
+                    finally:
+                        native_build_lock.release()
                     response = {
                         "ok": True,
                         "workspace": str(workspace),

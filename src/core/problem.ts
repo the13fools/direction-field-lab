@@ -88,6 +88,20 @@ export interface Tutorial {
   problem: Problem;
 }
 
+export interface TutorialSection {
+  id: string;
+  marker: string;
+  title: string;
+  description: string;
+  explainer: {
+    question: string;
+    idea: string;
+    experiment: string;
+  };
+  tutorialIds: string[];
+  initiallyOpen?: boolean;
+}
+
 function finiteNumber(value: unknown, label: string, min: number, max: number): number {
   const number = Number(value);
   if (!Number.isFinite(number) || number < min || number > max) {
@@ -258,8 +272,8 @@ export const TUTORIALS: readonly Tutorial[] = [
   },
   {
     id: "soft-constraints",
-    title: "02 · Soft constraints",
-    question: "What changes when the boundary penalty competes with the springs?",
+    title: "02 · Competing soft constraints",
+    question: "A soft pin is another energy, not a command. Where does the optimum compromise?",
     problem: validateProblem({
       schema: PROBLEM_SCHEMA,
       name: "Soft corner constraints",
@@ -278,7 +292,7 @@ export const TUTORIALS: readonly Tutorial[] = [
   {
     id: "sparsity-scaling",
     title: "03 · Sparsity scaling",
-    question: "How do degrees of freedom and Hessian nonzeros grow with resolution?",
+    question: "Double the grid width: why does sparse storage grow like n² while a dense Hessian grows like n⁴?",
     problem: validateProblem({
       schema: PROBLEM_SCHEMA,
       name: "Sparse scaling study",
@@ -317,7 +331,7 @@ export const TUTORIALS: readonly Tutorial[] = [
   {
     id: "hodge-one-form",
     title: "05 · Edge 1-forms",
-    question: "How does DEC make closed, co-closed, and harmonic pieces exact?",
+    question: "What does the incidence complex guarantee before a metric Hodge star is chosen?",
     problem: validateProblem({
       schema: PROBLEM_SCHEMA,
       name: "Hodge decomposition on a flat torus",
@@ -401,5 +415,68 @@ export const TUTORIALS: readonly Tutorial[] = [
       },
       solver: { iterationsPerStep: 1 },
     }),
+  },
+  {
+    id: "vertex-field-unit-integrable",
+    title: "09 · Integrable + unit",
+    question: "Where must a rotating target give up curl-freedom, unit length, or data fidelity?",
+    problem: validateProblem({
+      schema: PROBLEM_SCHEMA,
+      name: "Vertex field: integrable and as unit as possible",
+      kernel: "vertex-field",
+      parameters: {
+        gridSize: 16,
+        initializationNoise: 0.18,
+        seed: 17,
+        objective: {
+          dataWeight: 0.35,
+          connectionSmoothnessWeight: 0.15,
+          integrabilityWeight: 15,
+          lengthWeight: 6,
+          targetLength: 1,
+        },
+      },
+      solver: { iterationsPerStep: 4 },
+    }),
+  },
+] as const;
+
+export const TUTORIAL_SECTIONS: readonly TutorialSection[] = [
+  {
+    id: "variational-foundations",
+    marker: "A",
+    title: "Variational foundations",
+    description: "Local energies, soft constraints, and sparse assembly before geometry-specific operators.",
+    explainer: {
+      question: "How does a sum of tiny element energies become one global Newton system?",
+      idea: "Each element sees only its local variables. Autodiff supplies a local gradient and Hessian; indexed scatter-add produces the sparse global system.",
+      experiment: "Open the callback, predict its stencil, then compare DOFs and Hessian nonzeros as grid size changes.",
+    },
+    tutorialIds: ["first-newton-step", "soft-constraints", "sparsity-scaling"],
+  },
+  {
+    id: "hodge-representations",
+    marker: "B",
+    title: "Hodge representations",
+    description: "Put face vectors, edge 1-forms, and reconstructed vertex fields under the same audit.",
+    explainer: {
+      question: "Which facts come from oriented incidence, and which require a metric?",
+      idea: "The coboundary d is topological and satisfies d² = 0. Inner products and the Hodge star introduce lengths, areas, adjoints, and the meaning of closest.",
+      experiment: "Let the decomposition run, switch among its components, then change only the displayed representation and identify what no longer follows automatically.",
+    },
+    tutorialIds: ["hodge-face", "hodge-one-form", "hodge-vertex"],
+    initiallyOpen: true,
+  },
+  {
+    id: "integrable-projection",
+    marker: "C",
+    title: "Integrable projection",
+    description: "Build a native vertex objective, add local circulation, then negotiate integrability with unit length.",
+    explainer: {
+      question: "What should integrable mean for vectors stored in different tangent planes?",
+      idea: "First choose a connection or a vertex-to-edge transfer. Triangle circulation then measures local closedness; global periods and unit norm are separate conditions.",
+      experiment: "Start with data fitting, turn on circulation, and only then add the unit penalty. Track which certificate improves and which objective term must yield.",
+    },
+    tutorialIds: ["vertex-field-objective", "vertex-field-integrability", "vertex-field-unit-integrable"],
   },
 ] as const;

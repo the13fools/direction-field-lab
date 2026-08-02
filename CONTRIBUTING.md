@@ -9,7 +9,8 @@ Run. A contribution that adds a numerical method should include:
 - diagnostics and at least one automated invariant;
 - documentation of units, conventions, and failure modes.
 
-Run `npm test` and `npm run build` before opening a pull request. C++ changes
+Run `npm run check` before opening a pull request. It runs the numerical tests,
+the production build, and a static-host/subpath audit. C++ changes
 must also rebuild `public/wasm` and state the Emscripten version used. Do not
 commit personal meshes, access tokens, SDK installations, or unlicensed assets.
 

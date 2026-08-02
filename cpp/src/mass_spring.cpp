@@ -3,6 +3,8 @@
 #include <TinyAD/Utils/NewtonDecrement.hh>
 #include <TinyAD/Utils/NewtonDirection.hh>
 
+#include "MassSpringCallbacks.hh"
+
 #include <Eigen/Core>
 #include <emscripten/bind.h>
 #include <emscripten/val.h>
@@ -81,20 +83,18 @@ public:
     };
     for (const int vertex : pinned) {
       function_.add_elements<1>(std::vector<int>{vertex}, [&, vertex](auto& element) {
-        using Scalar = TINYAD_SCALAR_TYPE(element);
-        const Eigen::Vector2<Scalar> point = element.variables(vertex);
-        const Eigen::Vector2d target = rest_positions_.row(vertex);
-        return 0.5 * pin_weight_ * (point - target).squaredNorm();
+        const std::array<double, 2> target{
+            rest_positions_(vertex, 0),
+            rest_positions_(vertex, 1),
+        };
+        return mass_spring_pin_callback(element, vertex, target, pin_weight_);
       });
     }
 
     function_.add_elements<2>(TinyAD::range(edges_.size()), [&](auto& element) {
-      using Scalar = TINYAD_SCALAR_TYPE(element);
       const auto [first, second] = edges_.at(static_cast<std::size_t>(element.handle));
-      const Eigen::Vector2<Scalar> p0 = element.variables(first);
-      const Eigen::Vector2<Scalar> p1 = element.variables(second);
-      const Scalar extension = (p1 - p0).norm() - rest_length_;
-      return 0.5 * spring_weight_ * extension * extension;
+      return mass_spring_edge_callback(
+          element, first, second, rest_length_, spring_weight_);
     });
 
     variables_ = function_.x_from_data([&](const int vertex) {

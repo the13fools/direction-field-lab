@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#23164d" />
+    <meta name="description" content="A vertex-based linear shallow-water starter with conservation and integrability audits." />
+    <meta property="og:title" content="Geometry Processing Lab · Toward shallow water" />
+    <meta property="og:description" content="Advance height and tangent velocity, inspect derived flux and vorticity, and compare future state choices." />
+    <meta property="og:image" content="./og.png" />
+    <title>Toward shallow water · Geometry Processing Lab</title>
+  </head>
+  <body>
+    <header class="water-header">
+      <a href="./index.html">← Vector field tour</a>
+      <div><span>LESSON D · RUNNABLE BASELINE</span><strong>Toward shallow water</strong></div>
+      <nav><a href="./dec-playground.html">DEC playground</a><a href="./references.html#flow">Source trail</a><a href="./getting-started.html">Student setup</a></nav>
+    </header>
+
+    <main>
+      <section class="water-hero">
+        <div>
+          <p class="eyebrow">One conservative pressure step + one passive transport audit</p>
+          <h1>Make the variables<br /><em>earn their place.</em></h1>
+          <p>This first model keeps height and tangent velocity on vertices, derives an oriented edge 1-form for audits, and advances the linear gravity-wave equations. A passive dye visualizes velocity without entering pressure or energy. The physical wave state remains intentionally simple so the operator pair is tested before curvature, nonlinear transport, or wet/dry fronts.</p>
+        </div>
+        <div class="equation-card">
+          <span>BASELINE EQUATIONS</span>
+          <code>uⁿ⁺¹ = uⁿ − Δt g G hⁿ</code>
+          <code>hⁿ⁺¹ = hⁿ − Δt H D uⁿ⁺¹</code>
+          <code>qⁿ⁺¹(x) = qⁿ(x − Δt u) <small>diagnostic only</small></code>
+          <p><strong>D = −Gᵀ</strong> under the uniform vertex mass. The adjointness defect below tests the implementation rather than asking you to trust the notation.</p>
+        </div>
+      </section>
+
+      <section class="state-ladder" aria-label="State representation ladder">
+        <article data-state="baseline"><span>RUNNING NOW</span><strong>h at vertices + u in vertex tangent frames</strong><code>physical = { h, u } · diagnostic = { q }</code><p>Directly visual and continuous with the integrability lessons. Pressure adds a gradient, so initially irrotational velocity stays curl-free.</p></article>
+        <i>→</i>
+        <article data-state="derived"><span>DERIVED, NEVER HIDDEN</span><strong>α on oriented edges</strong><code>αᵢⱼ = ½(uᵢ + uⱼ) · eᵢⱼ</code><p>Use this transfer for flux and circulation audits. It is a representation map, not a claim that vertex vectors are already 1-forms.</p></article>
+        <i>→</i>
+        <article data-state="future"><span>RESEARCH BRANCH</span><strong>vorticity ζ + divergence δ (or streamfunction ψ)</strong><code>ζ = curl u · n</code><p>A vorticity-based formulation exposes rotational modes and global harmonic content differently. The “seed vortex” button makes the missing mode visible before students replace the state.</p></article>
+      </section>
+
+      <section class="water-lab">
+        <aside class="lesson-panel">
+          <p class="eyebrow">Guided reading</p>
+          <ol>
+            <li><span>01</span><div><strong>Run the pressure pulse.</strong><p>Play should launch rings while mass drift and curl stay near roundoff.</p></div></li>
+            <li><span>02</span><div><strong>Stress the timestep.</strong><p>The CFL badge turns amber before an attractive animation can hide instability.</p></div></li>
+            <li><span>03</span><div><strong>Add a vortex.</strong><p>Height stays flat because the velocity is divergence-free; a passive dye moves so the rotational mode is still visible.</p></div></li>
+          </ol>
+          <details open><summary>What is vertex-based integrability here?</summary><p>The velocity update is assembled from a scalar vertex height through <code>G h</code>. On this periodic grid the discrete mixed derivatives commute, so the curl of that pressure increment is zero. The displayed curl RMS is the certificate.</p></details>
+          <details><summary>What is still missing?</summary><p>A triangle surface needs metric mass matrices, tangent-frame transport, mesh-aware gradient/divergence, a time integrator study, and physical advection of the water state. The dye is only a diagnostic. Curved geometry should replace this baseline only after the same invariants pass.</p></details>
+        </aside>
+
+        <section class="water-stage">
+          <div class="stage-head"><div><span>LIVE STATE</span><strong id="water-caption">height perturbation + vertex velocity</strong></div><div id="cfl-badge">CFL —</div></div>
+          <canvas id="water-canvas" aria-label="Linear shallow-water height and velocity on a periodic grid"></canvas>
+          <div class="view-switch" aria-label="Displayed scalar"><button class="active" data-water-view="height">Height h</button><button data-water-view="vorticity">Vorticity ζ</button><button data-water-view="speed">Speed ‖u‖</button><button data-water-view="tracer">Dye q</button></div>
+          <div class="water-metrics">
+            <div><span>time</span><strong id="water-time">0</strong></div>
+            <div><span>mass drift</span><strong id="water-mass">—</strong></div>
+            <div><span>energy</span><strong id="water-energy">—</strong></div>
+            <div><span>curl RMS</span><strong id="water-curl">—</strong></div>
+            <div><span>G/D adjoint defect</span><strong id="water-adjoint">—</strong></div>
+          </div>
+          <div class="water-actions"><button id="water-reset">Reset pulse</button><button id="water-step">One step</button><button id="water-play" class="primary" aria-pressed="false">Play</button><button id="water-vortex">Seed vortex + moving dye</button></div>
+          <div class="history"><div><span>DIAGNOSTIC HISTORY</span><small>cyan = energy · pink = |mass drift|</small></div><canvas id="water-history" aria-label="Energy and mass history"></canvas></div>
+        </section>
+
+        <aside class="water-controls">
+          <p class="eyebrow">Experiment controls</p>
+          <label><span><strong>Resolution</strong><small>vertices per periodic direction</small></span><output id="water-resolution-output"></output><input id="water-resolution" type="range" min="16" max="56" step="8" value="32" /></label>
+          <label><span><strong>Time step Δt</strong><small>raise this until stability fails</small></span><output id="water-dt-output"></output><input id="water-dt" type="range" min="0.0005" max="0.016" step="0.0005" value="0.0035" /></label>
+          <label><span><strong>Gravity g</strong><small>pressure-wave stiffness</small></span><output id="water-gravity-output"></output><input id="water-gravity" type="range" min="1" max="20" step="0.01" value="9.81" /></label>
+          <label><span><strong>Mean depth H</strong><small>linearized water column</small></span><output id="water-depth-output"></output><input id="water-depth" type="range" min="0.2" max="2" step="0.05" value="1" /></label>
+          <div class="height-energy-card"><span>LIVE LOCAL ENERGY · NO RECOMPILE</span><strong>Edit the height potential V(h)</strong><p>The velocity update uses <code>−G V′(h)</code>. The browser differentiates this scalar expression through second order; the mesh stencil and sparse operator pair stay fixed.</p><textarea id="height-energy" spellcheck="false">0.5 * g * h^2</textarea><div><button id="apply-height-energy">Apply energy</button><button data-height-preset="linear">Linear gravity</button><button data-height-preset="quartic">Nonlinear stiffening</button></div><p id="height-energy-status" aria-live="polite">Symbols: <code>h</code> height perturbation, <code>g</code> gravity. Operators: <code>+ − * / ^</code>.</p></div>
+          <div class="starter-card"><span>STUDENT STARTER</span><strong>The displayed TypeScript is the complete numerical model.</strong><p>It has no rendering or DOM boilerplate: only state, operators, stepping, edge-flux transfer, and diagnostics. Copy or download it, then replace the state or operator pair.</p><div><button id="copy-water-source">Copy source</button><button id="download-water-source">Download .ts</button></div></div>
+          <details class="water-source"><summary><span>EDITING TARGET</span><strong>shallow-water-model.ts</strong><em>source ↓</em></summary><pre id="water-source"></pre></details>
+        </aside>
+      </section>
+
+      <section class="assignment-bridge">
+        <div><span>NEXT RESEARCH QUESTION</span><h2>Choose new variables without losing the audits.</h2><p>A vorticity/divergence or vorticity/streamfunction state should reconstruct velocity, preserve global harmonic modes, and still provide the edge flux used by continuity. Keep the same manufactured tests while swapping only that middle representation.</p></div>
+        <ol><li><span>A</span><div><strong>Replace the state.</strong><p>Store ζ and δ (or ψ), plus the two harmonic periods on a torus.</p></div></li><li><span>B</span><div><strong>Reconstruct u.</strong><p>Use the Hodge split and report the residual and gauge conditions.</p></div></li><li><span>C</span><div><strong>Reuse the contracts.</strong><p>Mass drift, energy, curl, adjointness, and edge flux must still be visible.</p></div></li></ol>
+        <nav><a href="./dec-playground.html">Review d and the Hodge star</a><a href="./energy-playground.html">Edit a sparse energy live</a><a href="https://faculty.cc.gatech.edu/~turk/paper_pages/2007_shallow_waves/index.html" target="_blank" rel="noreferrer">Wang–Miller–Turk surface waves ↗</a><a href="./getting-started.html">Clone and run locally</a></nav>
+      </section>
+    </main>
+    <script type="module" src="/src/experiments/shallow-water-page.ts"></script>
+  </body>
+</html>

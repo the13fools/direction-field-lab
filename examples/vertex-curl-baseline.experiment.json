@@ -1,0 +1,101 @@
+{
+  "schema": "geometry-lab/experiment@2",
+  "id": "vertex-curl-baseline",
+  "title": "Vertex curl discretization observatory",
+  "question": "Which parts of a measured curl come from the field, and which come from the discrete representation?",
+  "inputs": {
+    "mesh": {
+      "operator": "mesh.torus-grid",
+      "parameters": {
+        "resolution": 16,
+        "majorRadius": 2.35,
+        "minorRadius": 0.8
+      }
+    },
+    "field": {
+      "operator": "field.analytic-torus",
+      "parameters": {
+        "preset": "gradient"
+      }
+    }
+  },
+  "methods": [
+    {
+      "id": "primal-trapezoid",
+      "label": "Triangle-boundary circulation with endpoint trapezoids",
+      "operator": "curl.vertex-trapezoid-primal"
+    },
+    {
+      "id": "dual-barycentric",
+      "label": "Barycentric dual-cell circulation",
+      "operator": "curl.vertex-barycentric-dual"
+    },
+    {
+      "id": "normal-rotation",
+      "label": "Endpoint minimal normal rotation",
+      "operator": "connection.endpoint-normal-rotation"
+    },
+    {
+      "id": "polar-baseline",
+      "label": "One-ring intrinsic polar-map baseline",
+      "operator": "connection.one-ring-polar-baseline"
+    }
+  ],
+  "sweep": {
+    "path": "inputs.mesh.parameters.resolution",
+    "values": [6, 8, 12, 16, 24, 32]
+  },
+  "metrics": [
+    "curl.primal-rms",
+    "curl.primal-truth-error",
+    "curl.dual-rms",
+    "curl.dual-truth-error",
+    "connection.extrinsic-angle-rms",
+    "connection.intrinsic-angle-rms",
+    "period.u",
+    "period.v"
+  ],
+  "defaultPreset": "leakage",
+  "presets": [
+    {
+      "id": "leakage",
+      "label": "Gradient leakage",
+      "overrides": {
+        "fieldPreset": "gradient",
+        "resolution": 16,
+        "minorRadius": 0.8,
+        "edgeFamily": "u"
+      }
+    },
+    {
+      "id": "harmonic",
+      "label": "Harmonic trap",
+      "overrides": {
+        "fieldPreset": "harmonic",
+        "resolution": 16,
+        "minorRadius": 0.8,
+        "edgeFamily": "u"
+      }
+    },
+    {
+      "id": "vortex",
+      "label": "Rotational control",
+      "overrides": {
+        "fieldPreset": "vortex",
+        "resolution": 16,
+        "minorRadius": 0.8,
+        "edgeFamily": "diagonal"
+      }
+    },
+    {
+      "id": "coarse",
+      "label": "Coarse-mesh stress test",
+      "overrides": {
+        "fieldPreset": "gradient",
+        "resolution": 6,
+        "minorRadius": 1.1,
+        "edgeFamily": "diagonal"
+      }
+    }
+  ]
+}

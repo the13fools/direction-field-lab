@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#07120f" />
+    <meta name="description" content="A standalone comparison of vertex-based curl and connection operators on a torus." />
+    <title>Curl Operator Observatory · Geometry Processing Lab</title>
+  </head>
+  <body>
+    <header class="obs-header">
+      <a href="./index.html" class="back-link">← Geometry Processing Lab</a>
+      <div class="obs-brand"><span>EXPERIMENT 10</span><strong>Curl operator observatory</strong></div>
+      <div class="obs-actions">
+        <a href="./references.html#fields" class="obs-button">Source trail</a>
+        <button id="import-experiment" class="obs-button">Import manifest</button>
+        <button id="download-result" class="obs-button accent">Download result@2</button>
+        <input id="experiment-file" type="file" accept="application/json,.json" hidden />
+      </div>
+    </header>
+
+    <main class="obs-shell">
+      <section class="obs-hero">
+        <div>
+          <p class="obs-eyebrow">One smooth field · several discrete addresses</p>
+          <h1>Curl is circulation.<br /><em>But around which cell?</em></h1>
+          <p>Run the same manufactured tangent field through a primal triangle loop and a barycentric dual loop. Then separate that measurement question from the choice of tangent connection.</p>
+        </div>
+        <svg class="curl-compass" viewBox="0 0 420 250" role="img" aria-label="A primal triangle loop, a dual-cell loop, and transported tangent frames">
+          <defs>
+            <marker id="mint-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z"></path></marker>
+            <marker id="gold-arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L0,6 L7,3 z"></path></marker>
+          </defs>
+          <g class="compass-grid"><path d="M20 40H400M20 88H400M20 136H400M20 184H400M20 232H400"></path><path d="M54 20V238M118 20V238M182 20V238M246 20V238M310 20V238M374 20V238"></path></g>
+          <path class="primal-loop" d="M70 203 L194 42 L327 203 Z" marker-end="url(#mint-arrow)"></path>
+          <path class="dual-loop" d="M130 112 L196 74 L265 113 L267 183 L199 221 L130 183 Z" marker-end="url(#gold-arrow)"></path>
+          <path class="frame" d="M70 203L118 194M70 203L79 159M327 203L371 181M327 203L323 158"></path>
+          <path class="transport-arc" d="M93 181 C154 132 249 130 302 179" marker-end="url(#gold-arrow)"></path>
+          <text x="39" y="225">PRIMAL FACE</text><text x="278" y="225">DUAL CELL</text>
+        </svg>
+      </section>
+
+      <section class="experiment-flow" aria-label="Experiment presets">
+        <div><span>START HERE</span><strong>Choose one known field. The page runs it immediately.</strong></div>
+        <nav id="preset-rail"></nav>
+      </section>
+
+      <section class="reading-path" aria-label="How to read this experiment">
+        <article><span>1 · FIELD</span><strong>Pick a manufactured answer</strong><p>Gradient should have zero curl; harmonic has zero local curl but nonzero periods; the positive control has nonzero curl.</p></article>
+        <i>→</i>
+        <article><span>2 · MEASUREMENT</span><strong>Compare loops, not colors</strong><p>Triangle and dual-cell circulation return scalars at different mesh locations. “Truth error” compares each with the analytic curl.</p></article>
+        <i>→</i>
+        <article><span>3 · REFINEMENT</span><strong>Ask whether errors shrink</strong><p>One resolution is a picture. The bottom chart is the actual consistency experiment.</p></article>
+      </section>
+
+      <div class="obs-grid">
+        <section class="instrument">
+          <div class="instrument-bar"><span>RESULTS · SAME VERTEX FIELD, TWO CURL ADDRESSES</span><span id="run-state">manifest ready</span></div>
+          <output id="verdict" class="verdict" aria-live="polite">Run the default preset to establish a zero-curl calibration.</output>
+
+          <div class="curl-pair">
+            <article class="curl-card">
+              <header><div><span>ONE VALUE PER FACE</span><strong>Triangle boundary circulation</strong></div><code>(Σ αᵢⱼ) / A<sub>f</sub></code></header>
+              <canvas id="primal-canvas" aria-label="Triangle-centered curl heatmap"></canvas>
+              <dl><div><dt>truth error</dt><dd id="primal-error">—</dd></div><div><dt>curl RMS</dt><dd id="primal-rms">—</dd></div><div><dt>samples</dt><dd id="primal-count">—</dd></div></dl>
+            </article>
+            <article class="curl-card">
+              <header><div><span>ONE VALUE PER VERTEX</span><strong>Barycentric dual-cell circulation</strong></div><code>(∮ X♭) / A★<sub>v</sub></code></header>
+              <canvas id="dual-canvas" aria-label="Dual-cell curl heatmap"></canvas>
+              <dl><div><dt>truth error</dt><dd id="dual-error">—</dd></div><div><dt>curl RMS</dt><dd id="dual-rms">—</dd></div><div><dt>samples</dt><dd id="dual-count">—</dd></div></dl>
+            </article>
+          </div>
+
+          <section class="topology-audit">
+            <div><span>LOCAL ≠ GLOBAL</span><strong>A curl test cannot see every torus loop.</strong></div>
+            <dl><div><dt>u period</dt><dd id="period-u">—</dd></div><div><dt>v period</dt><dd id="period-v">—</dd></div><div><dt>analytic curl RMS</dt><dd id="truth-rms">—</dd></div></dl>
+          </section>
+
+          <section class="connection-card">
+            <header><div><span>CONNECTION MICROSCOPE</span><strong>Embedding rotation versus one-ring polar baseline</strong></div><p>The analytic torus Levi–Civita angle is the manufactured reference. These are connection errors, not curl values.</p></header>
+            <canvas id="connection-canvas" aria-label="Connection angle error by latitude"></canvas>
+            <dl><div><dt>extrinsic RMS</dt><dd id="extrinsic-rms">—</dd></div><div><dt>intrinsic RMS</dt><dd id="intrinsic-rms">—</dd></div><div><dt>edge family</dt><dd id="edge-family">—</dd></div></dl>
+          </section>
+
+          <section class="refinement-card">
+            <header><span>REFINEMENT SWEEP</span><strong>Agreement belongs to a sequence, not one screenshot.</strong></header>
+            <canvas id="refinement-canvas" aria-label="Log-scale convergence plots comparing primal and dual curl errors and intrinsic and extrinsic connection errors"></canvas>
+            <div class="table-wrap"><table><thead><tr><th>grid</th><th>triangle curl error</th><th>dual curl error</th><th>extrinsic angle error</th><th>intrinsic angle error</th></tr></thead><tbody id="refinement-body"></tbody></table></div>
+          </section>
+        </section>
+
+        <div id="notebook-resizer" class="notebook-resizer" role="separator" aria-label="Resize manifest and source notebook" aria-orientation="vertical" tabindex="0"></div>
+        <aside class="notebook">
+          <div class="notebook-intro"><span>OPTIONAL LAB NOTEBOOK</span><strong>The presets above are enough for the lesson.</strong><p>Open these panels only when you want the portable manifest or the reusable implementation.</p></div>
+          <details class="manifest-editor">
+            <summary><div><span>ADVANCED INPUT</span><strong>Edit experiment@2 manifest</strong></div><span>open ↓</span></summary>
+            <div class="notebook-head"><p>The manifest chooses operators, manufactured fields, metrics, and the refinement sweep.</p><button id="run-experiment" class="obs-button accent">Validate + run</button></div>
+            <textarea id="experiment-editor" spellcheck="false" aria-label="Editable experiment manifest"></textarea>
+            <p class="notebook-note">This is portable experiment state, not the energy callback. Most students can stay with the presets first.</p>
+          </details>
+          <details class="operator-source">
+            <summary><div><span>ACTUAL RUNTIME</span><strong>Reusable TypeScript reference adapter</strong></div><span>source ↓</span></summary>
+            <p>These are the files this page executes: the adapter maps a portable manifest to results, and the operator file implements the discretizations. The unit-field workshop separately demonstrates browser-side sparse Hessian autodiff; the native TinyAD objective remains available for larger projects.</p>
+            <div class="source-toolbar"><div class="source-switch"><button id="show-adapter-source" class="obs-button active">Adapter</button><button id="show-operator-source" class="obs-button">Operators</button></div><span id="source-filename">vertex-curl-adapter.ts · read-only runtime source</span><div><button id="copy-operator-source" class="obs-button">Copy</button><button id="download-operator-source" class="obs-button">Download .ts</button></div></div>
+            <pre id="operator-source"></pre>
+          </details>
+        </aside>
+      </div>
+
+      <section class="operator-ledger">
+        <div><span>OPERATOR LEDGER</span><strong>Keep representation transfers explicit.</strong></div>
+        <article><b>VERTEX → EDGE</b><code>αᵢⱼ = ½(Xᵢ + Xⱼ) · (pⱼ − pᵢ)</code><p>Endpoint trapezoids turn tangent samples into oriented line integrals.</p></article>
+        <article><b>PRIMAL CURL</b><code>curl<sub>f</sub> = Σ<sub>∂f</sub> α / A<sub>f</sub></code><p>Three boundary values produce one face-centered scalar.</p></article>
+        <article><b>DUAL CURL</b><code>curl<sub>v</sub> = ∮<sub>∂v★</sub> X♭ / A★<sub>v</sub></code><p>Midpoints and barycenters bound one positive vertex dual cell.</p></article>
+        <article><b>CONNECTION</b><code>DᵢⱼX = Xⱼ − QᵢⱼXᵢ</code><p>Transport compares vectors across tangent planes; circulation compares scalar integrals.</p></article>
+      </section>
+    </main>
+    <script type="module" src="/src/experiments/vertex-curl-page.ts"></script>
+  </body>
+</html>

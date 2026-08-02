@@ -5,8 +5,8 @@ import type { HodgeFieldLayout } from "../solver/messages";
 
 import {
   periodicGridFaces,
+  periodicVertexFieldFromOneForm,
   torusPositions,
-  vertexFieldFromOneForm,
 } from "./hodge-visualization";
 
 export class WebViewer {
@@ -109,26 +109,32 @@ export class WebViewer {
     color: number,
     label: string,
     layout: HodgeFieldLayout,
+    scaleReference: Float64Array = values,
   ): void {
     this.removeField();
     if (!this.periodic) return;
     if (layout === "face-vector") {
-      this.showFaceVectorField(values, color, label);
+      this.showFaceVectorField(values, color, label, scaleReference);
       return;
     }
     if (layout === "vertex-vector") {
-      this.showVertexVectorField(values, color, label);
+      this.showVertexVectorField(values, color, label, scaleReference);
       return;
     }
     if (values.length * 2 !== this.edgeIndices.length) return;
     if (layout === "edge-form") {
-      this.showEdgeForm(values, color, label);
+      this.showEdgeForm(values, color, label, scaleReference);
       return;
     }
-    this.showVertexField(values, color, label);
+    this.showVertexField(values, color, label, scaleReference);
   }
 
-  showVertexVectorField(values: Float64Array, color: number, label: string): void {
+  showVertexVectorField(
+    values: Float64Array,
+    color: number,
+    label: string,
+    scaleReference: Float64Array = values,
+  ): void {
     this.removeField();
     if (!this.periodic || values.length !== this.gridSize * this.gridSize * 2) return;
     const samples: VectorGlyph[] = [];
@@ -152,7 +158,12 @@ export class WebViewer {
         vector: vectorTuple(vector),
       });
     }
-    this.renderVectorGlyphs(samples, color, `${label} · native per-vertex tangent vectors`);
+    this.renderVectorGlyphs(
+      samples,
+      color,
+      `${label} · native per-vertex tangent vectors`,
+      maximumVector2Magnitude(scaleReference),
+    );
   }
 
   currentPositions(): number[] {
@@ -224,17 +235,33 @@ export class WebViewer {
     this.viewerNote.textContent = "vertex tangent field · drag to orbit · scroll to zoom";
   }
 
-  private showVertexField(values: Float64Array, color: number, label: string): void {
-    const samples = vertexFieldFromOneForm(
-      this.positions3d,
+  private showVertexField(
+    values: Float64Array,
+    color: number,
+    label: string,
+    scaleReference: Float64Array,
+  ): void {
+    const reconstructed = periodicVertexFieldFromOneForm(
+      this.gridSize,
       this.edgeIndices,
-      this.faceIndices,
       values,
     );
-    this.renderVectorGlyphs(samples, color, `${label} · vertex tangent vectors`);
+    const reconstructedReference = periodicVertexFieldFromOneForm(
+      this.gridSize,
+      this.edgeIndices,
+      scaleReference,
+    );
+    this.showVertexVectorField(reconstructed, color, label, reconstructedReference);
+    this.viewerNote.textContent =
+      `${label} · flat Whitney reconstruction · input-relative scale · drag to orbit`;
   }
 
-  private showFaceVectorField(values: Float64Array, color: number, label: string): void {
+  private showFaceVectorField(
+    values: Float64Array,
+    color: number,
+    label: string,
+    scaleReference: Float64Array,
+  ): void {
     if (values.length !== (this.faceIndices.length / 3) * 2) return;
     const samples: VectorGlyph[] = [];
     for (let face = 0; face < this.faceIndices.length / 3; face += 1) {
@@ -265,12 +292,21 @@ export class WebViewer {
         vector: [vector.x, vector.y, vector.z],
       });
     }
-    this.renderVectorGlyphs(samples, color, `${label} · one constant vector per face`);
+    this.renderVectorGlyphs(
+      samples,
+      color,
+      `${label} · one constant vector per face · input-relative scale`,
+      maximumVector2Magnitude(scaleReference),
+    );
   }
 
-  private showEdgeForm(values: Float64Array, color: number, label: string): void {
-    let maxAbsolute = 1e-12;
-    for (const value of values) maxAbsolute = Math.max(maxAbsolute, Math.abs(value));
+  private showEdgeForm(
+    values: Float64Array,
+    color: number,
+    label: string,
+    scaleReference: Float64Array,
+  ): void {
+    const maxAbsolute = maximumAbsolute(scaleReference);
     const segments: number[] = [];
     const maximumLength = 0.68 * (2 * Math.PI * 1.02) / this.gridSize;
     for (let edge = 0; edge < values.length; edge += 1) {
@@ -296,12 +332,22 @@ export class WebViewer {
       appendArrow(segments, arrowTail, arrowTip, direction, normal, length);
     }
     this.installGlyphGeometry(segments, color);
-    this.viewerNote.textContent = `${label} · signed integrals on oriented edges · drag to orbit`;
+    this.viewerNote.textContent =
+      `${label} · signed integrals on oriented edges · input-relative scale · drag to orbit`;
   }
 
-  private renderVectorGlyphs(samples: VectorGlyph[], color: number, note: string): void {
-    let maxMagnitude = 1e-12;
-    for (const sample of samples) maxMagnitude = Math.max(maxMagnitude, Math.hypot(...sample.vector));
+  private renderVectorGlyphs(
+    samples: VectorGlyph[],
+    color: number,
+    note: string,
+    referenceMagnitude?: number,
+  ): void {
+    let maxMagnitude = referenceMagnitude ?? 1e-12;
+    if (referenceMagnitude === undefined) {
+      for (const sample of samples) {
+        maxMagnitude = Math.max(maxMagnitude, Math.hypot(...sample.vector));
+      }
+    }
 
     const segments: number[] = [];
     const maximumLength = 0.78 * (2 * Math.PI * 1.02) / this.gridSize;
@@ -415,4 +461,18 @@ function vectorAt(positions: Float32Array<ArrayBufferLike>, index: number): THRE
 
 function vectorTuple(vector: THREE.Vector3): [number, number, number] {
   return [vector.x, vector.y, vector.z];
+}
+
+function maximumAbsolute(values: Float64Array): number {
+  let maximum = 1e-12;
+  for (const value of values) maximum = Math.max(maximum, Math.abs(value));
+  return maximum;
+}
+
+function maximumVector2Magnitude(values: Float64Array): number {
+  let maximum = 1e-12;
+  for (let index = 0; index + 1 < values.length; index += 2) {
+    maximum = Math.max(maximum, Math.hypot(values[index]!, values[index + 1]!));
+  }
+  return maximum;
 }

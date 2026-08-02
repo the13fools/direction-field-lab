@@ -17,9 +17,10 @@ the input edge 1-form is decomposed as
 δ₂ = ★₁⁻¹ d₁ᵀ ★₂.
 ```
 
-The first implementation deliberately uses a uniform flat mesh, so the Hodge
-stars are identity weights. The two potentials are recovered from sparse least
-squares:
+The first implementation deliberately chooses the identity cochain inner
+product as a transparent algebraic baseline. These unit weights are not the
+geometry-dependent circumcentric or barycentric Hodge stars of a general DEC
+mesh. The two potentials are recovered from sparse least squares:
 
 ```text
 φ = argmin ½‖d₀φ - ω‖²,
