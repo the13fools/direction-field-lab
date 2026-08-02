@@ -8,6 +8,7 @@
 #include <polyscope/polyscope.h>
 
 #include <imgui.h>
+#include <implot.h>
 
 #include <Eigen/Core>
 
@@ -40,6 +41,10 @@ double energy = 0.0;
 double gradient_norm = 0.0;
 double curl_rms = 0.0;
 int accepted_steps = 0;
+std::vector<double> iteration_history;
+std::vector<double> energy_history;
+std::vector<double> gradient_history;
+std::vector<double> curl_history;
 
 void build_problem() {
   mesh = sgi_starter::make_grid(controls.grid);
@@ -112,6 +117,10 @@ void build_problem() {
   });
   solver = std::make_unique<TinyAD::LinearSolver<>>();
   accepted_steps = 0;
+  iteration_history.clear();
+  energy_history.clear();
+  gradient_history.clear();
+  curl_history.clear();
 }
 
 void update_diagnostics() {
@@ -123,6 +132,13 @@ void update_diagnostics() {
 
   curls = sgi_starter::face_curl(mesh, field);
   curl_rms = sgi_starter::curl_rms(mesh, curls);
+}
+
+void record_diagnostics() {
+  iteration_history.push_back(static_cast<double>(accepted_steps));
+  energy_history.push_back(std::max(energy, 1e-16));
+  gradient_history.push_back(std::max(gradient_norm, 1e-16));
+  curl_history.push_back(std::max(curl_rms, 1e-16));
 }
 
 void take_steps(const int count) {
@@ -139,6 +155,8 @@ void take_steps(const int count) {
       break;
     field = next;
     ++accepted_steps;
+    update_diagnostics();
+    record_diagnostics();
   }
   update_diagnostics();
 }
@@ -146,6 +164,7 @@ void take_steps(const int count) {
 void reset_viewer() {
   build_problem();
   update_diagnostics();
+  record_diagnostics();
   sgi_starter::reset_polyscope_mesh(mesh, field, curls);
 }
 
@@ -180,12 +199,32 @@ void user_interface() {
   ImGui::Text("gradient norm     %.6e", gradient_norm);
   ImGui::Text("triangle curl RMS %.6e", curl_rms);
   ImGui::Text("accepted steps    %d", accepted_steps);
+  if (ImPlot::BeginPlot("Convergence", ImVec2(-1, 220))) {
+    ImPlot::SetupAxes("accepted Newton step", "diagnostic");
+    ImPlot::SetupAxis(ImAxis_X1, nullptr, ImPlotAxisFlags_AutoFit);
+    ImPlot::SetupAxis(ImAxis_Y1, nullptr, ImPlotAxisFlags_AutoFit);
+    ImPlot::SetupAxisScale(ImAxis_Y1, ImPlotScale_Log10);
+    ImPlot::SetupLegend(
+        ImPlotLocation_NorthEast,
+        ImPlotLegendFlags_Outside | ImPlotLegendFlags_Horizontal);
+    const int count = static_cast<int>(iteration_history.size());
+    if (count > 0) {
+      ImPlot::PlotLine(
+          "energy", iteration_history.data(), energy_history.data(), count);
+      ImPlot::PlotLine(
+          "gradient norm", iteration_history.data(), gradient_history.data(), count);
+      ImPlot::PlotLine(
+          "curl RMS", iteration_history.data(), curl_history.data(), count);
+    }
+    ImPlot::EndPlot();
+  }
 }
 
 int run_headless() {
   controls.grid = 8;
   build_problem();
   update_diagnostics();
+  record_diagnostics();
   const double initial_energy = energy;
   take_steps(8);
   std::cout << "energy: " << initial_energy << " -> " << energy << '\n'

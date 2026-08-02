@@ -2,7 +2,9 @@
 
 This is a small C++ project for your first geometry-processing experiment. It
 creates a triangle grid, puts a two-dimensional vector at every vertex,
-optimizes those vectors with TinyAD, and displays the result in Polyscope.
+optimizes those vectors with TinyAD, and displays the result in Polyscope. The
+sidebar includes an ImPlot convergence chart for energy, gradient norm, and
+triangle-curl RMS, following the diagnostic pattern used by Mint3D.
 
 You do **not** need to understand the Direction Field Lab web application
 to use this folder. You can copy `geometry-processing-starter-kit/` into a new repository and

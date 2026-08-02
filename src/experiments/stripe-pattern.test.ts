@@ -22,6 +22,20 @@ describe("periodic stripe projection", () => {
     expect(model.report().residualRms).toBeLessThan(0.04);
   });
 
+  it("records convergence samples and restarts the trace on reset", () => {
+    const model = new PeriodicStripeModel(11, "bend", 3);
+    expect(model.history).toHaveLength(1);
+    expect(model.history[0]?.iteration).toBe(0);
+
+    model.step(25);
+    expect(model.history.map((sample) => sample.iteration)).toEqual([0, 10, 20, 25]);
+    expect(model.history.at(-1)?.energy).toBeCloseTo(model.report().energy, 12);
+
+    model.reset();
+    expect(model.history).toHaveLength(1);
+    expect(model.history[0]?.iteration).toBe(0);
+  });
+
   it("identifies a high-resolution stripe grid", () => {
     expect(stripeSamplingReport(19, 4.5)).toEqual({
       cellsPerStripe: 4,

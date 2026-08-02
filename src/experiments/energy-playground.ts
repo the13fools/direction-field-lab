@@ -1034,6 +1034,57 @@ function drawFrame(origin: Vec2, angles: [number, number], color: string): void 
   polycurlContext.fill();
 }
 
+function drawEdgeProjection(
+  sourceOrigin: Vec2,
+  vector: Complex,
+  baseY: number,
+  edgeX: number,
+  color: string,
+  label: string,
+  labelSide: "left" | "right",
+): void {
+  const projectionScale = 34;
+  const sourceTip = {
+    x: sourceOrigin.x + 38 * vector[0],
+    y: sourceOrigin.y - 38 * vector[1],
+  };
+  const projectionTip = { x: edgeX, y: baseY - projectionScale * vector[1] };
+
+  polycurlContext.save();
+  polycurlContext.setLineDash([4, 4]);
+  polycurlContext.strokeStyle = `${color}88`;
+  polycurlContext.lineWidth = 1.2;
+  polycurlContext.beginPath();
+  polycurlContext.moveTo(sourceTip.x, sourceTip.y);
+  polycurlContext.lineTo(projectionTip.x, projectionTip.y);
+  polycurlContext.stroke();
+  polycurlContext.restore();
+
+  polycurlContext.strokeStyle = color;
+  polycurlContext.fillStyle = color;
+  polycurlContext.lineWidth = 4;
+  polycurlContext.beginPath();
+  polycurlContext.moveTo(edgeX, baseY);
+  polycurlContext.lineTo(projectionTip.x, projectionTip.y);
+  polycurlContext.stroke();
+  const sign = Math.sign(baseY - projectionTip.y) || 1;
+  polycurlContext.beginPath();
+  polycurlContext.moveTo(projectionTip.x, projectionTip.y);
+  polycurlContext.lineTo(projectionTip.x - 4, projectionTip.y + 7 * sign);
+  polycurlContext.lineTo(projectionTip.x + 4, projectionTip.y + 7 * sign);
+  polycurlContext.closePath();
+  polycurlContext.fill();
+
+  polycurlContext.font = "700 9px SFMono-Regular, Consolas, monospace";
+  polycurlContext.textAlign = labelSide === "left" ? "right" : "left";
+  polycurlContext.textBaseline = "middle";
+  polycurlContext.fillText(
+    `${label} ${vector[1] >= 0 ? "+" : ""}${vector[1].toFixed(2)}`,
+    edgeX + (labelSide === "left" ? -9 : 9),
+    baseY + 9,
+  );
+}
+
 function drawPolyCurl(): void {
   const { width, height } = fitCanvas(polycurlCanvas, polycurlContext);
   const rotation = Number(frameRotation.value);
@@ -1067,11 +1118,19 @@ function drawPolyCurl(): void {
 
   const leftAngles: [number, number] = [25, 110];
   const rightAngles: [number, number] = [25 + rotation, 110 + rotation + skew];
-  drawFrame({ x: midpoint * 0.52, y: height / 2 }, leftAngles, "#9a55d0");
-  drawFrame({ x: midpoint + midpoint * 0.48, y: height / 2 }, rightAngles, "#0599a9");
+  const leftOrigin = { x: midpoint * 0.52, y: height / 2 };
+  const rightOrigin = { x: midpoint + midpoint * 0.48, y: height / 2 };
+  const leftVectors: [Complex, Complex] = [direction(leftAngles[0]), direction(leftAngles[1])];
+  const rightVectors: [Complex, Complex] = [direction(rightAngles[0]), direction(rightAngles[1])];
+  drawFrame(leftOrigin, leftAngles, "#9a55d0");
+  drawFrame(rightOrigin, rightAngles, "#0599a9");
+  drawEdgeProjection(leftOrigin, leftVectors[0], height * 0.34, midpoint - 6, "#9a55d0", "αL·e", "left");
+  drawEdgeProjection(rightOrigin, rightVectors[0], height * 0.34, midpoint + 6, "#0599a9", "αR·e", "right");
+  drawEdgeProjection(leftOrigin, leftVectors[1], height * 0.68, midpoint - 6, "#9a55d0", "βL·e", "left");
+  drawEdgeProjection(rightOrigin, rightVectors[1], height * 0.68, midpoint + 6, "#0599a9", "βR·e", "right");
 
-  const left = frameCoefficients(direction(leftAngles[0]), direction(leftAngles[1]));
-  const right = frameCoefficients(direction(rightAngles[0]), direction(rightAngles[1]));
+  const left = frameCoefficients(leftVectors[0], leftVectors[1]);
+  const right = frameCoefficients(rightVectors[0], rightVectors[1]);
   const smoothResidual = Math.sqrt(
     complexNormSquared(complexDifference(left.c0, right.c0)) +
     complexNormSquared(complexDifference(left.c2, right.c2)),
@@ -1086,9 +1145,15 @@ frameSkew.addEventListener("input", drawPolyCurl);
 
 const stripeCanvas = byId<HTMLCanvasElement>("stripe-canvas");
 const stripeContext = context2d(stripeCanvas);
+const stripeHistoryCanvas = byId<HTMLCanvasElement>("stripe-history");
+const stripeHistoryContext = context2d(stripeHistoryCanvas);
 const stripeField = byId<HTMLSelectElement>("stripe-field");
 const stripeFrequency = byId<HTMLInputElement>("stripe-frequency");
 const stripeResolution = byId<HTMLSelectElement>("stripe-resolution");
+const stripePlayButton = byId<HTMLButtonElement>("stripe-play");
+let stripePlaying = false;
+let stripeAnimationFrame = 0;
+let stripeLastTick = 0;
 let stripeModel = new PeriodicStripeModel(
   Number(stripeResolution.value),
   stripeField.value as StripeFieldKind,
@@ -1169,9 +1234,95 @@ function drawStripePattern(): void {
   byId("stripe-amplitude").textContent = report.minAmplitude.toExponential(2);
   byId("stripe-iterations").textContent = report.iterations.toLocaleString();
   byId("stripe-state").textContent = `${stripeModel.fieldKind} · ${stripeModel.resolution}² grid · ${stripeModel.frequency.toFixed(1)} turns`;
+  drawStripeConvergence();
+}
+
+function drawStripeConvergence(): void {
+  const { width, height } = fitCanvas(stripeHistoryCanvas, stripeHistoryContext);
+  stripeHistoryContext.clearRect(0, 0, width, height);
+  const samples = stripeModel.history;
+  const pad = { left: 39, right: 10, top: 10, bottom: 20 };
+  const plotWidth = Math.max(1, width - pad.left - pad.right);
+  const plotHeight = Math.max(1, height - pad.top - pad.bottom);
+  const maxIteration = Math.max(1, samples.at(-1)?.iteration ?? 1);
+  const values = samples.flatMap((sample) => [sample.energy, sample.residualRms]);
+  const minLog = Math.floor(Math.log10(Math.max(1e-12, Math.min(...values))));
+  const maxLog = Math.ceil(Math.log10(Math.max(1e-12, Math.max(...values))));
+  const logSpan = Math.max(1, maxLog - minLog);
+  const x = (iteration: number) => pad.left + plotWidth * iteration / maxIteration;
+  const y = (value: number) => pad.top + plotHeight * (maxLog - Math.log10(Math.max(1e-12, value))) / logSpan;
+
+  stripeHistoryContext.strokeStyle = "rgba(150,136,170,.35)";
+  stripeHistoryContext.lineWidth = 1;
+  stripeHistoryContext.font = "7px SFMono-Regular, Consolas, monospace";
+  stripeHistoryContext.fillStyle = "#9688aa";
+  stripeHistoryContext.textAlign = "right";
+  stripeHistoryContext.textBaseline = "middle";
+  for (let exponent = minLog; exponent <= maxLog; exponent += 1) {
+    const rowY = y(10 ** exponent);
+    stripeHistoryContext.beginPath();
+    stripeHistoryContext.moveTo(pad.left, rowY);
+    stripeHistoryContext.lineTo(width - pad.right, rowY);
+    stripeHistoryContext.stroke();
+    stripeHistoryContext.fillText(`1e${exponent}`, pad.left - 4, rowY);
+  }
+
+  const plot = (key: "energy" | "residualRms", color: string): void => {
+    stripeHistoryContext.strokeStyle = color;
+    stripeHistoryContext.lineWidth = 2;
+    stripeHistoryContext.beginPath();
+    samples.forEach((sample, index) => {
+      const px = x(sample.iteration);
+      const py = y(sample[key]);
+      if (index === 0) stripeHistoryContext.moveTo(px, py);
+      else stripeHistoryContext.lineTo(px, py);
+    });
+    stripeHistoryContext.stroke();
+  };
+  plot("energy", "#ff5fc8");
+  plot("residualRms", "#3de1ee");
+  stripeHistoryContext.textAlign = "left";
+  stripeHistoryContext.textBaseline = "bottom";
+  stripeHistoryContext.fillStyle = "#ff5fc8";
+  stripeHistoryContext.fillText("energy", pad.left + 3, height - 2);
+  stripeHistoryContext.fillStyle = "#3de1ee";
+  stripeHistoryContext.fillText("residual", pad.left + 45, height - 2);
+  stripeHistoryContext.textAlign = "right";
+  stripeHistoryContext.fillStyle = "#9688aa";
+  stripeHistoryContext.fillText(`${maxIteration} iters`, width - pad.right, height - 2);
+}
+
+function setStripePlaying(playing: boolean): void {
+  stripePlaying = playing;
+  stripePlayButton.textContent = playing ? "Pause" : "Play";
+  stripePlayButton.setAttribute("aria-pressed", String(playing));
+  if (!playing && stripeAnimationFrame) {
+    cancelAnimationFrame(stripeAnimationFrame);
+    stripeAnimationFrame = 0;
+  }
+  if (playing && !stripeAnimationFrame) {
+    stripeLastTick = 0;
+    stripeAnimationFrame = requestAnimationFrame(animateStripePattern);
+  }
+}
+
+function animateStripePattern(time: number): void {
+  stripeAnimationFrame = 0;
+  if (!stripePlaying) return;
+  if (time - stripeLastTick >= 70) {
+    stripeModel.step(20);
+    drawStripePattern();
+    stripeLastTick = time;
+  }
+  if (stripeModel.iterations >= 20_000) {
+    setStripePlaying(false);
+    return;
+  }
+  stripeAnimationFrame = requestAnimationFrame(animateStripePattern);
 }
 
 function resetStripePattern(): void {
+  setStripePlaying(false);
   const resolution = Number(stripeResolution.value);
   stripeModel = new PeriodicStripeModel(
     resolution,
@@ -1199,8 +1350,13 @@ byId<HTMLButtonElement>("stripe-step").addEventListener("click", () => {
   drawStripePattern();
 });
 byId<HTMLButtonElement>("stripe-solve").addEventListener("click", () => {
+  setStripePlaying(false);
   stripeModel.step(800);
   drawStripePattern();
+});
+stripePlayButton.addEventListener("click", () => setStripePlaying(!stripePlaying));
+document.addEventListener("visibilitychange", () => {
+  if (document.hidden) setStripePlaying(false);
 });
 byId<HTMLButtonElement>("send-handles-to-stripes").addEventListener("click", () => {
   const customOption = stripeField.querySelector<HTMLOptionElement>('option[value="custom"]')!;

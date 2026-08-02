@@ -11,6 +11,12 @@ export interface StripePatternReport {
   iterations: number;
 }
 
+export interface StripeConvergenceSample {
+  iteration: number;
+  energy: number;
+  residualRms: number;
+}
+
 export interface StripeSamplingReport {
   cellsPerStripe: number;
   quality: "under-resolved" | "usable" | "well-resolved";
@@ -57,6 +63,7 @@ export class PeriodicStripeModel {
   readonly directions: StripePoint[] = [];
   readonly edges: StripeEdge[] = [];
   phase: ComplexValue[] = [];
+  readonly history: StripeConvergenceSample[] = [];
   iterations = 0;
   fieldKind: StripeFieldKind;
   frequency: number;
@@ -138,6 +145,23 @@ export class PeriodicStripeModel {
     });
     this.normalize();
     this.iterations = 0;
+    this.history.length = 0;
+    this.recordConvergence();
+  }
+
+  private recordConvergence(): void {
+    const report = this.report();
+    const previous = this.history.at(-1);
+    if (previous?.iteration === report.iterations) {
+      previous.energy = report.energy;
+      previous.residualRms = report.residualRms;
+      return;
+    }
+    this.history.push({
+      iteration: report.iterations,
+      energy: report.energy,
+      residualRms: report.residualRms,
+    });
   }
 
   private normalize(): void {
@@ -180,6 +204,9 @@ export class PeriodicStripeModel {
       }
       this.normalize();
       this.iterations += 1;
+      if (this.iterations % 10 === 0 || iteration + 1 === count) {
+        this.recordConvergence();
+      }
     }
   }
 

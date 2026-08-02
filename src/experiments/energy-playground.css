@@ -91,7 +91,7 @@ code { font-family: var(--mono); }
 .journey-card small { color: #d2c7e6; font-size: 9px; line-height: 1.4; }
 .journey-card a { display: block; margin-top: 5px; color: var(--cyan); font-size: 9px; font-weight: 800; }
 
-.field-stage { display: grid; grid-template-rows: auto minmax(380px, 1fr) auto auto auto; min-width: 0; padding: 18px; background: rgba(28, 20, 59, .96); }
+.field-stage { align-self: start; display: grid; grid-template-rows: auto clamp(420px, 60vh, 680px) auto auto auto; min-width: 0; padding: 18px; background: rgba(28, 20, 59, .96); }
 .field-stage canvas, .history-card, .polycurl-stage, .stripe-stage { overflow-anchor: none; }
 .stage-heading { display: flex; justify-content: space-between; gap: 20px; align-items: end; padding: 2px 3px 13px; color: white; }
 .stage-heading > div:first-child span, .stage-heading strong { display: block; }
@@ -99,7 +99,7 @@ code { font-family: var(--mono); }
 .stage-heading strong { margin-top: 4px; color: #daceee; font-size: 10px; }
 .energy-state { padding: 5px 8px; color: var(--cyan); border: 1px solid #5a4d7a; border-radius: 999px; font: 8px var(--mono); }
 .energy-state[data-kind="bad"] { color: #ff8b9e; }
-#energy-field { width: 100%; height: 100%; min-height: 380px; border: 1px solid #544570; border-radius: 8px; background: #11102a; touch-action: none; }
+#energy-field { contain: strict; display: block; width: 100%; height: 100%; min-width: 0; min-height: 0; border: 1px solid #544570; border-radius: 8px; background: #11102a; touch-action: none; }
 .energy-metrics { display: grid; grid-template-columns: repeat(5, minmax(82px, 1fr)); margin-top: 10px; border: 1px solid #544570; border-radius: 6px; overflow: hidden; }
 .energy-metrics > div { padding: 10px 12px; color: white; border-right: 1px solid #544570; background: #241b46; }
 .energy-metrics > div:last-child { border-right: 0; }
@@ -111,7 +111,7 @@ code { font-family: var(--mono); }
 .history-card span, .history-card small { display: block; }
 .history-card span { color: #b59fe0; font: 800 8px var(--mono); letter-spacing: .09em; }
 .history-card small { margin-top: 5px; color: #756d92; font-size: 8px; line-height: 1.4; }
-#energy-history { width: 100%; height: 54px; }
+#energy-history { contain: strict; display: block; width: 100%; height: 54px; }
 
 .expression-panel h2 { margin: 0 0 8px; font-size: 20px; letter-spacing: -.03em; }
 .runtime-callout { display: grid; gap: 4px; margin: 12px 0; padding: 10px 12px; color: #43235f; border: 1px solid #d8a9f0; border-radius: 6px; background: linear-gradient(135deg, #f7e7ff, #e8fbff); }
@@ -265,16 +265,21 @@ code { font-family: var(--mono); }
 .stripe-copy summary { cursor: pointer; color: var(--plum); font-size: 9px; font-weight: 800; }
 .stripe-copy details p { color: #756a7c; font-size: 8px; line-height: 1.55; }
 .stripe-copy code, .stripe-controls code { color: var(--violet); }
-.stripe-stage { display: grid; grid-template-rows: auto minmax(480px,1fr) auto; min-width: 0; padding: 16px; color: white; background: radial-gradient(circle at 50% 40%, rgba(61,225,238,.09), transparent 45%), #15102c; }
+.stripe-stage { display: grid; grid-template-rows: auto minmax(480px,1fr) auto auto; min-width: 0; padding: 16px; color: white; background: radial-gradient(circle at 50% 40%, rgba(61,225,238,.09), transparent 45%), #15102c; }
 .stripe-stage-head { display: flex; justify-content: space-between; gap: 18px; padding: 2px 2px 11px; }
 .stripe-stage-head span { color: var(--cyan); font: 800 7px var(--mono); letter-spacing: .09em; }
 .stripe-stage-head strong { color: #d9cde8; font: 8px var(--mono); }
-#stripe-canvas { display: block; width: 100%; height: 100%; min-height: 480px; border: 1px solid #51416c; border-radius: 5px; background: #100b25; }
+#stripe-canvas { contain: strict; display: block; width: 100%; height: 100%; min-height: 480px; border: 1px solid #51416c; border-radius: 5px; background: #100b25; }
 .stripe-metrics { display: grid; grid-template-columns: repeat(4,1fr); gap: 1px; margin-top: 9px; border: 1px solid #51416c; background: #51416c; }
 .stripe-metrics > div { min-width: 0; padding: 9px; background: #1c1534; }
 .stripe-metrics span, .stripe-metrics strong { display: block; }
 .stripe-metrics span { color: #9688aa; font: 700 7px var(--mono); text-transform: uppercase; }
 .stripe-metrics strong { margin-top: 5px; color: var(--yellow); font: 9px var(--mono); overflow-wrap: anywhere; }
+.stripe-history-card { display: grid; grid-template-columns: 120px minmax(0,1fr); gap: 10px; align-items: center; min-height: 118px; margin-top: 9px; padding: 9px; border: 1px solid #51416c; background: #1c1534; }
+.stripe-history-card span, .stripe-history-card small { display: block; }
+.stripe-history-card span { color: var(--cyan); font: 800 7px var(--mono); letter-spacing: .08em; }
+.stripe-history-card small { margin-top: 5px; color: #9688aa; font: 7px/1.4 var(--mono); }
+#stripe-history { contain: strict; display: block; width: 100%; height: 96px; }
 .stripe-controls { border-left: 1px solid #d9cce5; }
 .stripe-controls label { display: grid; grid-template-columns: 1fr auto; gap: 5px 10px; padding: 13px 0; border-bottom: 1px solid #ded3e8; }
 .stripe-controls label span strong, .stripe-controls label span small { display: block; }
