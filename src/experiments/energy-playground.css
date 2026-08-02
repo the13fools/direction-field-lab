@@ -92,6 +92,7 @@ code { font-family: var(--mono); }
 .journey-card a { display: block; margin-top: 5px; color: var(--cyan); font-size: 9px; font-weight: 800; }
 
 .field-stage { display: grid; grid-template-rows: auto minmax(380px, 1fr) auto auto auto; min-width: 0; padding: 18px; background: rgba(28, 20, 59, .96); }
+.field-stage canvas, .history-card, .polycurl-stage, .stripe-stage { overflow-anchor: none; }
 .stage-heading { display: flex; justify-content: space-between; gap: 20px; align-items: end; padding: 2px 3px 13px; color: white; }
 .stage-heading > div:first-child span, .stage-heading strong { display: block; }
 .stage-heading span { color: #9d87c8; font: 800 8px var(--mono); letter-spacing: .12em; }
@@ -113,6 +114,9 @@ code { font-family: var(--mono); }
 #energy-history { width: 100%; height: 54px; }
 
 .expression-panel h2 { margin: 0 0 8px; font-size: 20px; letter-spacing: -.03em; }
+.runtime-callout { display: grid; gap: 4px; margin: 12px 0; padding: 10px 12px; color: #43235f; border: 1px solid #d8a9f0; border-radius: 6px; background: linear-gradient(135deg, #f7e7ff, #e8fbff); }
+.runtime-callout b { font: 8px var(--mono); letter-spacing: .07em; }
+.runtime-callout span { font-size: 10px; line-height: 1.45; }
 .embed-control-header { display: none; }
 .panel-intro { margin: 0 0 14px; color: #6a627c; font-size: 11px; line-height: 1.55; }
 #energy-expression { width: 100%; min-height: 142px; resize: vertical; padding: 13px; color: #e9e3fa; border: 1px solid #544570; border-radius: 6px; outline: 0; background: #211941; font: 11px/1.65 var(--mono); }

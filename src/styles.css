@@ -81,7 +81,7 @@ a.button { display: inline-grid; place-items: center; text-decoration: none; }
 .workspace {
   display: grid;
   grid-template-areas: "sidebar stage resizer editor";
-  grid-template-columns: clamp(210px, 17vw, 260px) minmax(0, 1fr) 9px var(--editor-width);
+  grid-template-columns: clamp(210px, 17vw, 260px) minmax(0, 1fr) 13px var(--editor-width);
   height: calc(100vh - 126px);
   min-height: 620px;
   width: 100%;
@@ -104,7 +104,7 @@ a.button { display: inline-grid; place-items: center; text-decoration: none; }
 .editor-resizer::after {
   content: "";
   position: absolute;
-  inset: 0 3px;
+  inset: 0 5px;
   background: #a7b1ab;
   transition: background .15s, box-shadow .15s;
 }
@@ -294,6 +294,19 @@ body.resizing-editor { cursor: col-resize; user-select: none; }
 #source-state[data-kind="modified"] { color: #a13c2c; }
 .source-explainer { padding: 0 16px 12px; color: var(--quiet); font-size: 10px; line-height: 1.55; }
 .source-explainer code { color: var(--ink); font-family: var(--mono); font-weight: 700; }
+.execution-guide { margin: 0 16px 13px; overflow: hidden; border: 1px solid #bbc7c0; border-radius: 5px; background: #fbfcf8; }
+.execution-guide header { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-bottom: 1px solid #d8ded9; }
+.execution-guide header span { padding: 3px 6px; color: #5b286e; border: 1px solid #c8a5d5; border-radius: 999px; background: #f2e5fa; font: 8px var(--mono); letter-spacing: .06em; }
+.execution-guide header strong { font-size: 10px; }
+.execution-guide-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.execution-guide-grid > div { padding: 9px 10px; border-right: 1px solid #d8ded9; }
+.execution-guide-grid > div:last-child { border-right: 0; }
+.execution-guide-grid b, .execution-guide-grid small { display: block; }
+.execution-guide-grid b { margin-bottom: 4px; color: #147058; font: 8px var(--mono); letter-spacing: .05em; }
+.execution-guide-grid .needs-build b { color: #a13c2c; }
+.execution-guide-grid small { color: var(--quiet); font-size: 8.5px; line-height: 1.45; }
+.execution-guide p { margin: 0; padding: 8px 11px; color: var(--quiet); border-top: 1px solid #d8ded9; font-size: 8.5px; line-height: 1.5; }
+.execution-guide a { color: #4f2b74; font-weight: 750; }
 .code-editor-shell {
   position: relative;
   height: 360px;
@@ -346,7 +359,7 @@ body.resizing-editor { cursor: col-resize; user-select: none; }
 
 @media (min-width: 1181px) {
   .workspace[data-code-focus="true"] {
-    grid-template-columns: clamp(210px, 17vw, 260px) minmax(330px, .72fr) 9px minmax(540px, 1.28fr);
+    grid-template-columns: clamp(210px, 17vw, 260px) minmax(330px, 1fr) 13px var(--editor-width);
   }
   .workspace[data-code-focus="true"] .editor-panel { overflow: hidden; }
   .workspace[data-code-focus="true"] .editor-head h2,
@@ -357,8 +370,18 @@ body.resizing-editor { cursor: col-resize; user-select: none; }
   .workspace[data-code-focus="true"] .editor-note { display: none; }
   .workspace[data-code-focus="true"] .editor-head { flex: 0 0 auto; justify-content: flex-end; padding: 8px 10px; }
   .workspace[data-code-focus="true"] .source-panel[open] { display: flex; flex: 1 1 auto; min-height: 0; flex-direction: column; overflow: hidden; border-top: 0; }
-  .workspace[data-code-focus="true"] .source-explainer { flex: 0 0 auto; }
-  .workspace[data-code-focus="true"] .code-editor-shell { flex: 1 1 auto; height: auto; min-height: 0; max-height: none; resize: none; }
+  .workspace[data-code-focus="true"] .source-explainer,
+  .workspace[data-code-focus="true"] .execution-guide { flex: 0 0 auto; }
+  /* Chromium places the non-summary contents of <details> in an anonymous
+     wrapper, so flex-grow on this child can collapse to its borders. Give the
+     focused editor an explicit viewport-derived height instead. */
+  .workspace[data-code-focus="true"] .code-editor-shell {
+    flex: 0 0 auto;
+    height: clamp(220px, calc(100vh - 490px), 70vh);
+    min-height: 220px;
+    max-height: 70vh;
+    resize: vertical;
+  }
   .workspace[data-code-focus="true"] .source-actions,
   .workspace[data-code-focus="true"] .connected-note { flex: 0 0 auto; }
 }
@@ -396,6 +419,9 @@ body.resizing-editor { cursor: col-resize; user-select: none; }
 }
 
 @media (max-width: 760px) {
+  .execution-guide-grid { grid-template-columns: 1fr; }
+  .execution-guide-grid > div { border-right: 0; border-bottom: 1px solid #d8ded9; }
+  .execution-guide-grid > div:last-child { border-bottom: 0; }
   .app-header { padding-inline: 16px; }
   .identity { align-items: flex-start; }
   .identity p { line-height: 1.5; }

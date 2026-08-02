@@ -1212,12 +1212,25 @@ byId<HTMLButtonElement>("send-handles-to-stripes").addEventListener("click", () 
   document.getElementById("stripe-projection")?.scrollIntoView({ behavior: "smooth", block: "start" });
 });
 
-new ResizeObserver(() => {
-  drawField();
-  drawHistory();
-  drawPolyCurl();
-  drawStripePattern();
-}).observe(document.body);
+// Observe the things whose drawing buffers actually depend on their CSS size.
+// Observing document.body creates a feedback loop in some browsers: a canvas
+// redraw can perturb the document height, which triggers another body resize
+// and lets scroll anchoring walk the page upward.
+let resizeFrame = 0;
+const canvasResizeObserver = new ResizeObserver(() => {
+  if (resizeFrame) return;
+  resizeFrame = requestAnimationFrame(() => {
+    resizeFrame = 0;
+    drawField();
+    drawHistory();
+    drawPolyCurl();
+    drawStripePattern();
+  });
+});
+
+for (const canvas of [fieldCanvas, historyCanvas, polycurlCanvas, stripeCanvas]) {
+  canvasResizeObserver.observe(canvas);
+}
 
 applyProgram(initialProgram());
 drawPolyCurl();

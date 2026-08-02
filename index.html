@@ -143,9 +143,9 @@
           <div class="metric"><span>Accepted steps</span><strong id="metric-iterations">—</strong></div>
         </div>
       </section>
-      <div id="editor-resizer" class="editor-resizer" role="separator" aria-label="Resize experiment editor" aria-orientation="vertical" tabindex="0"></div>
+      <div id="editor-resizer" class="editor-resizer" role="separator" aria-label="Resize code and experiment editor; double-click to maximize" aria-orientation="vertical" tabindex="0" title="Drag to resize · double-click to maximize"></div>
       <aside class="editor-panel">
-        <div class="editor-head"><h2>Experiment controls</h2><div class="editor-tools"><button id="code-focus" class="button" type="button" aria-pressed="false">Code column</button><button id="guided-mode" class="button editor-mode active" type="button">Guided</button><button id="json-mode" class="button editor-mode" type="button">JSON</button><button id="format" class="button">Validate</button></div></div>
+        <div class="editor-head"><h2>Experiment controls</h2><div class="editor-tools"><button id="code-focus" class="button" type="button" aria-pressed="false">Expand code</button><button id="guided-mode" class="button editor-mode active" type="button">Guided</button><button id="json-mode" class="button editor-mode" type="button">JSON</button><button id="format" class="button">Validate</button></div></div>
         <div id="problem-controls" class="problem-controls" aria-label="Guided problem controls"></div>
         <textarea id="problem-editor" spellcheck="false" aria-label="Editable problem JSON"></textarea>
         <p id="editor-note" class="editor-note">Adjust the labeled controls, then choose <code>Reset + build</code>. JSON remains available as the portable source of truth.</p>
@@ -154,6 +154,15 @@
           <div id="source-explainer" class="source-explainer">
             This is the literal C++ callback behind the experiment. Comments marked <code>LAB NOTE</code> explain what TinyAD differentiates; <code>TRY</code> suggests a safe first change. The browser view keeps running its committed Wasm; connected mode can compile the edited vertex callback into the native target, while static mode can export it.
           </div>
+          <section class="execution-guide" aria-label="What changes run without compiling">
+            <header><span>WHAT RUNS?</span><strong>The browser and C++ editor have different execution boundaries.</strong></header>
+            <div class="execution-guide-grid">
+              <div><b>LIVE · NO REBUILD</b><small>Guided controls and JSON change numbers passed into the already-compiled objective.</small></div>
+              <div><b>LIVE · BROWSER AD</b><small>The Energy Playground's scalar expression is parsed and differentiated in TypeScript.</small></div>
+              <div class="needs-build"><b>REBUILD REQUIRED</b><small>Editing this C++ callback changes source text, not the Wasm currently running.</small></div>
+            </div>
+            <p>On GitHub Pages, download or commit C++ edits and rebuild. Locally, start the bridge to enable <b>Build + open native</b>. <a href="./getting-started.html#execution-boundary">See the complete workflow →</a></p>
+          </section>
           <div class="code-editor-shell">
             <pre id="callback-highlight" aria-hidden="true"></pre>
             <textarea id="callback-editor" wrap="off" spellcheck="false" aria-label="Editable TinyAD C++ callback source"></textarea>

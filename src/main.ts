@@ -858,18 +858,31 @@ guidedModeButton.addEventListener("click", () => setConfigMode("guided"));
 jsonModeButton.addEventListener("click", () => setConfigMode("json"));
 
 const CODE_FOCUS_KEY = "geometry-lab:code-focus";
-function setCodeFocus(enabled: boolean): void {
+const EDITOR_WIDTH_KEY = "geometry-lab:editor-width";
+const EDITOR_WIDTH_BEFORE_FOCUS_KEY = "geometry-lab:editor-width-before-focus";
+
+function setCodeFocus(enabled: boolean, persist = true): void {
+  const wasEnabled = workspace.dataset.codeFocus === "true";
+  if (enabled && !wasEnabled) {
+    const current = Number(editorResizer.getAttribute("aria-valuenow")) || 420;
+    localStorage.setItem(EDITOR_WIDTH_BEFORE_FOCUS_KEY, String(current));
+  }
   workspace.dataset.codeFocus = String(enabled);
   codeFocusButton.classList.toggle("active", enabled);
   codeFocusButton.setAttribute("aria-pressed", String(enabled));
-  codeFocusButton.textContent = enabled ? "Exit code column" : "Code column";
-  if (enabled) sourcePanel.open = true;
-  localStorage.setItem(CODE_FOCUS_KEY, String(enabled));
+  codeFocusButton.textContent = enabled ? "Restore controls" : "Expand code";
+  codeFocusButton.title = enabled
+    ? "Return to the controls and previous editor width"
+    : "Give the TinyAD source the largest available column";
+  if (enabled) {
+    sourcePanel.open = true;
+    setEditorWidth(editorWidthBounds().max, false);
+  } else if (wasEnabled) {
+    const previous = Number(localStorage.getItem(EDITOR_WIDTH_BEFORE_FOCUS_KEY));
+    setEditorWidth(Number.isFinite(previous) && previous > 0 ? previous : 420, false);
+  }
+  if (persist) localStorage.setItem(CODE_FOCUS_KEY, String(enabled));
 }
-codeFocusButton.addEventListener("click", () => {
-  setCodeFocus(workspace.dataset.codeFocus !== "true");
-});
-setCodeFocus(localStorage.getItem(CODE_FOCUS_KEY) === "true");
 
 for (const button of sparsityGuide.querySelectorAll<HTMLButtonElement>("[data-scaling-grid]")) {
   button.addEventListener("click", () => {
@@ -883,8 +896,6 @@ for (const button of sparsityGuide.querySelectorAll<HTMLButtonElement>("[data-sc
     initialize();
   });
 }
-
-const EDITOR_WIDTH_KEY = "geometry-lab:editor-width";
 
 function editorWidthBounds(): { min: number; max: number } {
   const sidebar = workspace.querySelector<HTMLElement>(".sidebar");
@@ -911,6 +922,11 @@ if (Number.isFinite(savedEditorWidth) && savedEditorWidth > 0) {
 } else {
   setEditorWidth(420, false);
 }
+
+codeFocusButton.addEventListener("click", () => {
+  setCodeFocus(workspace.dataset.codeFocus !== "true");
+});
+setCodeFocus(localStorage.getItem(CODE_FOCUS_KEY) === "true", false);
 
 editorResizer.addEventListener("pointerdown", (event) => {
   if (window.matchMedia("(max-width: 1180px)").matches) return;
@@ -944,6 +960,18 @@ editorResizer.addEventListener("keydown", (event) => {
   if (next === undefined) return;
   event.preventDefault();
   setEditorWidth(next);
+});
+
+editorResizer.addEventListener("dblclick", () => {
+  const current = Number(editorResizer.getAttribute("aria-valuenow")) || 420;
+  const bounds = editorWidthBounds();
+  setEditorWidth(current >= bounds.max - 2 ? 420 : bounds.max);
+});
+
+window.addEventListener("resize", () => {
+  if (window.matchMedia("(max-width: 1180px)").matches) return;
+  const current = Number(editorResizer.getAttribute("aria-valuenow")) || 420;
+  setEditorWidth(workspace.dataset.codeFocus === "true" ? editorWidthBounds().max : current, false);
 });
 
 const tutorialRoot = element("#tutorials");

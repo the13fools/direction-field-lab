@@ -152,16 +152,17 @@ npm run check</code></pre>
         </div>
       </section>
 
-      <section class="runtime-table-section">
+      <section id="execution-boundary" class="runtime-table-section">
         <div class="section-heading"><p class="eyebrow">KNOW THE BOUNDARY</p><h2>What works where</h2></div>
         <div class="runtime-table" role="table" aria-label="Capabilities by environment">
           <div class="table-row heading" role="row"><b role="columnheader">Capability</b><b role="columnheader">Blog / Pages</b><b role="columnheader">Local web</b><b role="columnheader">Native</b></div>
           <div class="table-row" role="row"><span role="cell">Edit scalar energy</span><strong role="cell">yes</strong><strong role="cell">yes</strong><strong role="cell">in C++</strong></div>
           <div class="table-row" role="row"><span role="cell">Sparse Hessian + Newton/PCG</span><strong role="cell">browser</strong><strong role="cell">browser</strong><strong role="cell">TinyAD</strong></div>
-          <div class="table-row" role="row"><span role="cell">Compile arbitrary C++</span><em role="cell">no</em><strong role="cell">fixed bridge</strong><strong role="cell">yes</strong></div>
+          <div class="table-row" role="row"><span role="cell">Compile edited TinyAD C++</span><em role="cell">no · rebuild site</em><strong role="cell">yes · bridge + toolchain</strong><strong role="cell">yes</strong></div>
           <div class="table-row" role="row"><span role="cell">Open Polyscope</span><em role="cell">download only</em><strong role="cell">loopback bridge</strong><strong role="cell">yes</strong></div>
           <div class="table-row" role="row"><span role="cell">Share by URL</span><strong role="cell">yes</strong><strong role="cell">yes</strong><em role="cell">export result</em></div>
         </div>
+        <p class="runtime-boundary-note"><b>The key distinction:</b> JSON and guided controls supply data to code that is already compiled. The Energy Playground expression uses a separate TypeScript autodiff engine. A C++ callback editor on the static site is a source editor and exporter; its changes execute only after a native or Wasm rebuild.</p>
       </section>
     </main>
 

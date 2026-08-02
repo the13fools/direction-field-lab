@@ -96,7 +96,8 @@
         </div>
         <p class="eyebrow">No compiler required</p>
         <h2>Edit the per-vertex energy</h2>
-        <p class="panel-intro">Use numbers, parentheses, <code>+ − * / ^</code>, and the symbols below. The lab differentiates the expression through second order in the browser.</p>
+        <p class="panel-intro">Use numbers, parentheses, <code>+ − * / ^</code>, and the symbols below. This expression is parsed and differentiated through second order by the TypeScript browser runtime—not by TinyAD. Generated TinyAD is an equivalent C++ handoff for your native project.</p>
+        <div class="runtime-callout"><b>RUNNING NOW · TYPESCRIPT SPARSE AD</b><span>Edit and apply instantly. No C++ compiler or server is involved.</span></div>
         <textarea id="energy-expression" spellcheck="false" aria-label="Per-vertex energy expression"></textarea>
         <div class="symbol-ribbon">
           <span><code>ux uy</code> unknown</span><span><code>tx ty</code> target</span><span><code>data unit length</code> controls</span>
