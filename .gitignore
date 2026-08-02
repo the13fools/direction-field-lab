@@ -1,13 +1,51 @@
+# JavaScript / TypeScript
 node_modules/
 dist/
-build/
+coverage/
+.vite/
 .cache/
-.lab-bridge/
-.DS_Store
+*.tsbuildinfo
 *.log
+
+# CMake, native, and WebAssembly build products
+build/
+cmake-build-*/
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile
+compile_commands.json
+CMakeUserPresets.json
 *.user
-*.pyc
+
+# Python
 __pycache__/
+*.py[cod]
 .venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local lab servers and generated research scratch space
+.lab-bridge/
+.lab-workspace/
+tmp/
+
+# Local environment files; committed examples remain allowed
+.env
+.env.*
+!.env.example
+
+# Polyscope and ImGui session state
 imgui.ini
 .polyscope.ini
+
+# Editors and operating systems
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
