@@ -137,9 +137,9 @@ function rebuildSurface(): void {
       ? new THREE.TorusGeometry(1.25, 0.46, 30, 72)
       : new THREE.PlaneGeometry(2.8, 2.8, 28, 28);
   const material = new THREE.MeshPhysicalMaterial({
-    color: 0x185159,
-    emissive: 0x082b31,
-    emissiveIntensity: 0.65,
+    color: 0x7a3f2a,
+    emissive: 0x2b120c,
+    emissiveIntensity: 0.72,
     roughness: 0.55,
     metalness: 0.06,
     transparent: true,
@@ -152,9 +152,9 @@ function rebuildSurface(): void {
   const wire = new THREE.LineSegments(
     new THREE.WireframeGeometry(geometry),
     new THREE.LineBasicMaterial({
-      color: 0x8be8de,
+      color: 0xf0a15c,
       transparent: true,
-      opacity: surface === "sphere" ? 0.09 : surface === "torus" ? 0.11 : 0.16,
+      opacity: surface === "sphere" ? 0.24 : surface === "torus" ? 0.27 : 0.34,
     }),
   );
   wire.renderOrder = 2;
