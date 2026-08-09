@@ -34,6 +34,8 @@ export interface FieldSample {
   velocity: Vec3;
   divergence: number;
   vorticity: number;
+  u?: number;
+  v?: number;
 }
 
 export interface RandomFluidDiagnostics {
@@ -940,17 +942,38 @@ export class RandomSurfaceFluidModel {
     };
   }
 
+  fieldSampleAtVertex(position: Vec3, u?: number, v?: number): FieldSample {
+    if (this.parameters.surface === "sphere") {
+      const unit = normalize(position);
+      return {
+        position: unit,
+        normal: unit,
+        velocity: this.velocityAtSphere(unit),
+        ...this.sphereDifferentials(unit),
+      };
+    }
+    if (u === undefined || v === undefined) {
+      throw new Error(`${this.parameters.surface} vertex samples require periodic coordinates`);
+    }
+    const wrappedU = wrapAngle(u);
+    const wrappedV = wrapAngle(v);
+    const geometry = parameterGeometry(this.parameters.surface, wrappedU, wrappedV);
+    const velocity = this.parameters.surface === "square"
+      ? this.velocityAtSquare(wrappedU, wrappedV)
+      : this.velocityAtTorus(wrappedU, wrappedV);
+    return {
+      position,
+      normal: geometry.normal,
+      velocity,
+      ...this.parameterDifferentials(this.parameters.surface, wrappedU, wrappedV),
+      u: wrappedU,
+      v: wrappedV,
+    };
+  }
+
   fieldSamples(): FieldSample[] {
     if (this.parameters.surface === "sphere") {
-      return fibonacciSphere(150).map((unit) => {
-        const differentials = this.sphereDifferentials(unit);
-        return {
-          position: scale(unit, 1.012),
-          normal: unit,
-          velocity: this.velocityAtSphere(unit),
-          ...differentials,
-        };
-      });
+      return fibonacciSphere(150).map((unit) => this.fieldSampleAtVertex(unit));
     }
     const result: FieldSample[] = [];
     const rows = this.parameters.surface === "square" ? 16 : 10;
@@ -960,16 +983,7 @@ export class RandomSurfaceFluidModel {
         const u = TAU * (column + 0.5) / columns;
         const v = TAU * (row + 0.5) / rows;
         const geometry = parameterGeometry(this.parameters.surface, u, v);
-        const velocity = this.parameters.surface === "square"
-          ? this.velocityAtSquare(u, v)
-          : this.velocityAtTorus(u, v);
-        const differentials = this.parameterDifferentials(this.parameters.surface, u, v);
-        result.push({
-          position: add(geometry.position, scale(geometry.normal, this.parameters.surface === "square" ? 0.012 : 0.018)),
-          normal: geometry.normal,
-          velocity,
-          ...differentials,
-        });
+        result.push(this.fieldSampleAtVertex(geometry.position, u, v));
       }
     }
     return result;
@@ -1024,8 +1038,8 @@ export class RandomSurfaceFluidModel {
         const rows = this.parameters.surface === "square" ? 16 : 10;
         const row = Math.floor(index / columns);
         const column = index % columns;
-        const u = TAU * (column + 0.5) / columns;
-        const v = TAU * (row + 0.5) / rows;
+        const u = sample.u ?? TAU * (column + 0.5) / columns;
+        const v = sample.v ?? TAU * (row + 0.5) / rows;
         initialVelocity = scale(
           this.parameterRawVelocity(this.parameters.surface, u, v, 0),
           this.velocityScale,

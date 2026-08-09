@@ -52,6 +52,9 @@ let vorticityVisible = true;
 let trailsVisible = true;
 let frame = 0;
 let trailHistory: Vec3[][] = [];
+let fieldVertices: Array<{ position: Vec3; u?: number; v?: number }> = [];
+
+const TAU = 2 * Math.PI;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0d081f);
@@ -129,6 +132,27 @@ function clearGroup(group: THREE.Group): void {
   }
 }
 
+function fieldVerticesFromGeometry(geometry: THREE.BufferGeometry): Array<{ position: Vec3; u?: number; v?: number }> {
+  const positions = geometry.getAttribute("position");
+  const uvs = geometry.getAttribute("uv");
+  const layout = surface === "sphere"
+    ? { columns: 57, rowStart: 1, rowEnd: 34, rowStride: 2, columnEnd: 56, columnStride: 4 }
+    : surface === "torus"
+      ? { columns: 73, rowStart: 0, rowEnd: 30, rowStride: 3, columnEnd: 72, columnStride: 4 }
+      : { columns: 29, rowStart: 0, rowEnd: 29, rowStride: 2, columnEnd: 29, columnStride: 2 };
+  const vertices: Array<{ position: Vec3; u?: number; v?: number }> = [];
+  for (let row = layout.rowStart; row < layout.rowEnd; row += layout.rowStride) {
+    for (let column = 0; column < layout.columnEnd; column += layout.columnStride) {
+      const index = row * layout.columns + column;
+      const position = { x: positions.getX(index), y: positions.getY(index), z: positions.getZ(index) };
+      vertices.push(surface === "sphere"
+        ? { position }
+        : { position, u: TAU * uvs.getX(index), v: TAU * uvs.getY(index) });
+    }
+  }
+  return vertices;
+}
+
 function rebuildSurface(): void {
   clearGroup(surfaceGroup);
   const geometry = surface === "sphere"
@@ -136,6 +160,7 @@ function rebuildSurface(): void {
     : surface === "torus"
       ? new THREE.TorusGeometry(1.25, 0.46, 30, 72)
       : new THREE.PlaneGeometry(2.8, 2.8, 28, 28);
+  fieldVertices = fieldVerticesFromGeometry(geometry);
   const material = new THREE.MeshPhysicalMaterial({
     color: 0x3d2868,
     emissive: 0x111533,
@@ -274,7 +299,7 @@ function updateParticles(appendTrail: boolean): void {
 
 function updateField(): FieldSample[] {
   clearGroup(fieldGroup);
-  const samples = model.fieldSamples();
+  const samples = fieldVertices.map((vertex) => model.fieldSampleAtVertex(vertex.position, vertex.u, vertex.v));
   const maxSpeed = Math.max(1e-12, ...samples.map((sample) => Math.hypot(
     sample.velocity.x,
     sample.velocity.y,
@@ -284,18 +309,24 @@ function updateField(): FieldSample[] {
   const colors = new Float32Array(samples.length * 6);
   const cyan = new THREE.Color(0x59e3ef);
   const gold = new THREE.Color(0xffd86d);
+  const vectorLift = surface === "square" ? 0.012 : surface === "sphere" ? 0.012 : 0.018;
   samples.forEach((sample, index) => {
     const speed = Math.hypot(sample.velocity.x, sample.velocity.y, sample.velocity.z);
     const amount = speed / maxSpeed;
     const length = 0.055 + 0.15 * Math.sqrt(amount);
     const inverse = speed > 1e-14 ? 1 / speed : 0;
+    const start = {
+      x: sample.position.x + vectorLift * sample.normal.x,
+      y: sample.position.y + vectorLift * sample.normal.y,
+      z: sample.position.z + vectorLift * sample.normal.z,
+    };
     const end = {
-      x: sample.position.x + length * inverse * sample.velocity.x,
-      y: sample.position.y + length * inverse * sample.velocity.y,
-      z: sample.position.z + length * inverse * sample.velocity.z,
+      x: start.x + length * inverse * sample.velocity.x,
+      y: start.y + length * inverse * sample.velocity.y,
+      z: start.z + length * inverse * sample.velocity.z,
     };
     positions.set([
-      sample.position.x, sample.position.y, sample.position.z,
+      start.x, start.y, start.z,
       end.x, end.y, end.z,
     ], 6 * index);
     const tip = cyan.clone().lerp(gold, Math.sqrt(amount));
@@ -328,7 +359,7 @@ function updateField(): FieldSample[] {
   const neutral = new THREE.Color(0x31274e);
   const positive = new THREE.Color(0xff7a3d);
   samples.forEach((sample, index) => {
-    const lift = surface === "square" ? 0.016 : 0.012;
+    const lift = surface === "square" ? 0.028 : surface === "sphere" ? 0.024 : 0.03;
     vorticityPositions.set([
       sample.position.x + lift * sample.normal.x,
       sample.position.y + lift * sample.normal.y,
@@ -650,5 +681,5 @@ resizeObserver.observe(viewer);
 window.addEventListener("resize", drawSpectrum);
 
 updateControlOutputs();
-rebuild("temporal-Perlin field ready");
+rebuild("mesh-vertex field ready · temporal-Perlin coefficients live");
 animate();

@@ -27,6 +27,39 @@ describe("random fluids on surfaces", () => {
     expect(first.particles).toEqual(second.particles);
   });
 
+  it("evaluates display fields at requested surface-mesh vertices", () => {
+    const sphereModel = new RandomSurfaceFluidModel({
+      surface: "sphere",
+      projection: "divergence-free",
+      modeCount: 8,
+      particleCount: 8,
+    });
+    const sphereVertex = { x: 0, y: 0, z: 1 };
+    const sphereSample = sphereModel.fieldSampleAtVertex(sphereVertex);
+    expect(sphereSample.position).toEqual(sphereVertex);
+    expect(
+      sphereSample.velocity.x * sphereVertex.x
+      + sphereSample.velocity.y * sphereVertex.y
+      + sphereSample.velocity.z * sphereVertex.z,
+    ).toBeCloseTo(0, 12);
+
+    for (const surface of ["square", "torus"] as const) {
+      const model = new RandomSurfaceFluidModel({
+        surface,
+        projection: "divergence-free",
+        modeCount: 8,
+        particleCount: 8,
+      });
+      const u = 0.7;
+      const v = 1.1;
+      const vertex = surface === "square" ? squarePosition(u, v) : torusPosition(u, v);
+      const sample = model.fieldSampleAtVertex(vertex, u, v);
+      expect(sample.position).toEqual(vertex);
+      expect(sample.u).toBeCloseTo(u, 12);
+      expect(sample.v).toBeCloseTo(v, 12);
+    }
+  });
+
   it("builds a tangent, numerically divergence-free sphere field", () => {
     const model = new RandomSurfaceFluidModel({
       surface: "sphere",
