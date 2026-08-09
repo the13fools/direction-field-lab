@@ -120,6 +120,21 @@
             <button data-fluid-preset="rough">Fine grain</button>
           </div>
 
+          <div class="field-code-card">
+            <span>LIVE DISPLAY PROGRAM · MESH VERTICES</span>
+            <strong>Edit the rendered vector components</strong>
+            <p>This safe arithmetic program changes the arrows only; particle advection and the analytic differential audits remain the reference field.</p>
+            <textarea id="fluid-field-code" spellcheck="false" aria-label="Editable mesh-vertex vector display program">x = vx
+y = vy
+z = vz</textarea>
+            <div>
+              <button id="apply-fluid-field-code">Apply code</button>
+              <button id="reset-fluid-field-code">Identity</button>
+              <button id="twist-fluid-field-code">Add twist</button>
+            </div>
+            <p id="fluid-field-code-status" aria-live="polite">Symbols: <code>vx vy vz</code> analytic velocity · <code>x y z</code> vertex · <code>t</code> time.</p>
+          </div>
+
           <label class="seed-control">
             <span><strong>Seed</strong><small>replay this exact realization</small></span>
             <input id="fluid-seed" type="number" step="1" value="13" />

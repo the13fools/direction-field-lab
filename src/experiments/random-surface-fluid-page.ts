@@ -12,6 +12,11 @@ import {
   type RandomFluidSurface,
   type Vec3,
 } from "./random-surface-fluid-model";
+import {
+  compileVectorFieldProgram,
+  DEFAULT_VECTOR_FIELD_PROGRAM,
+  type CompiledVectorFieldProgram,
+} from "./vector-field-program";
 
 function byId<T extends HTMLElement>(id: string): T {
   const value = document.getElementById(id);
@@ -25,6 +30,8 @@ const vectorButton = byId<HTMLButtonElement>("fluid-vectors");
 const vorticityButton = byId<HTMLButtonElement>("fluid-vorticity");
 const trailButton = byId<HTMLButtonElement>("fluid-trails");
 const spectrumCanvas = byId<HTMLCanvasElement>("fluid-spectrum");
+const fieldCodeEditor = byId<HTMLTextAreaElement>("fluid-field-code");
+const fieldCodeStatus = byId<HTMLParagraphElement>("fluid-field-code-status");
 const controls = {
   seed: byId<HTMLInputElement>("fluid-seed"),
   slope: byId<HTMLInputElement>("fluid-slope"),
@@ -53,6 +60,8 @@ let trailsVisible = true;
 let frame = 0;
 let trailHistory: Vec3[][] = [];
 let fieldVertices: Array<{ position: Vec3; u?: number; v?: number }> = [];
+let fieldDisplayProgram: CompiledVectorFieldProgram = compileVectorFieldProgram(DEFAULT_VECTOR_FIELD_PROGRAM);
+let fieldProgramRuntimeError = "";
 
 const TAU = 2 * Math.PI;
 
@@ -297,13 +306,52 @@ function updateParticles(appendTrail: boolean): void {
   trailLines.visible = trailsVisible;
 }
 
+function evaluateDisplayVelocity(program: CompiledVectorFieldProgram, sample: FieldSample): Vec3 {
+  const edited = program.evaluate({
+    vx: sample.velocity.x,
+    vy: sample.velocity.y,
+    vz: sample.velocity.z,
+    x: sample.position.x,
+    y: sample.position.y,
+    z: sample.position.z,
+    t: model.time,
+  });
+  const normalComponent = edited.x * sample.normal.x + edited.y * sample.normal.y + edited.z * sample.normal.z;
+  const tangent = {
+    x: edited.x - normalComponent * sample.normal.x,
+    y: edited.y - normalComponent * sample.normal.y,
+    z: edited.z - normalComponent * sample.normal.z,
+  };
+  if (![tangent.x, tangent.y, tangent.z].every(Number.isFinite)) {
+    throw new Error("The display program produced a non-finite vector.");
+  }
+  return tangent;
+}
+
+function displayVelocity(sample: FieldSample): Vec3 {
+  try {
+    const velocity = evaluateDisplayVelocity(fieldDisplayProgram, sample);
+    fieldProgramRuntimeError = "";
+    return velocity;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    if (fieldProgramRuntimeError !== message) {
+      fieldProgramRuntimeError = message;
+      fieldCodeStatus.textContent = `${message} Showing the analytic field instead.`;
+      fieldCodeStatus.dataset.kind = "bad";
+    }
+    return sample.velocity;
+  }
+}
+
 function updateField(): FieldSample[] {
   clearGroup(fieldGroup);
   const samples = fieldVertices.map((vertex) => model.fieldSampleAtVertex(vertex.position, vertex.u, vertex.v));
-  const maxSpeed = Math.max(1e-12, ...samples.map((sample) => Math.hypot(
-    sample.velocity.x,
-    sample.velocity.y,
-    sample.velocity.z,
+  const displayVelocities = samples.map(displayVelocity);
+  const maxSpeed = Math.max(1e-12, ...displayVelocities.map((velocity) => Math.hypot(
+    velocity.x,
+    velocity.y,
+    velocity.z,
   )));
   const positions = new Float32Array(samples.length * 6);
   const colors = new Float32Array(samples.length * 6);
@@ -311,7 +359,8 @@ function updateField(): FieldSample[] {
   const gold = new THREE.Color(0xffd86d);
   const vectorLift = surface === "square" ? 0.012 : surface === "sphere" ? 0.012 : 0.018;
   samples.forEach((sample, index) => {
-    const speed = Math.hypot(sample.velocity.x, sample.velocity.y, sample.velocity.z);
+    const velocity = displayVelocities[index]!;
+    const speed = Math.hypot(velocity.x, velocity.y, velocity.z);
     const amount = speed / maxSpeed;
     const length = 0.055 + 0.15 * Math.sqrt(amount);
     const inverse = speed > 1e-14 ? 1 / speed : 0;
@@ -321,9 +370,9 @@ function updateField(): FieldSample[] {
       z: sample.position.z + vectorLift * sample.normal.z,
     };
     const end = {
-      x: start.x + length * inverse * sample.velocity.x,
-      y: start.y + length * inverse * sample.velocity.y,
-      z: start.z + length * inverse * sample.velocity.z,
+      x: start.x + length * inverse * velocity.x,
+      y: start.y + length * inverse * velocity.y,
+      z: start.z + length * inverse * velocity.z,
     };
     positions.set([
       start.x, start.y, start.z,
@@ -392,6 +441,23 @@ function updateField(): FieldSample[] {
   vorticityPoints.visible = vorticityVisible;
   fieldGroup.add(vorticityPoints);
   return samples;
+}
+
+function applyFieldCode(reason: string): void {
+  try {
+    const next = compileVectorFieldProgram(fieldCodeEditor.value);
+    const samples = fieldVertices.map((vertex) => model.fieldSampleAtVertex(vertex.position, vertex.u, vertex.v));
+    for (const sample of samples) evaluateDisplayVelocity(next, sample);
+    fieldDisplayProgram = next;
+    fieldProgramRuntimeError = "";
+    updateField();
+    fieldCodeStatus.textContent = `${reason} Applied at ${samples.length} mesh vertices; output reprojected tangent.`;
+    fieldCodeStatus.dataset.kind = "good";
+    byId("fluid-status").textContent = `Seed ${model.parameters.seed} · editable display code active`;
+  } catch (error) {
+    fieldCodeStatus.textContent = error instanceof Error ? error.message : String(error);
+    fieldCodeStatus.dataset.kind = "bad";
+  }
 }
 
 function fitCanvas(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
@@ -619,6 +685,22 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-p
   });
 }
 
+byId<HTMLButtonElement>("apply-fluid-field-code").addEventListener("click", () => applyFieldCode("Vector program"));
+byId<HTMLButtonElement>("reset-fluid-field-code").addEventListener("click", () => {
+  fieldCodeEditor.value = DEFAULT_VECTOR_FIELD_PROGRAM;
+  applyFieldCode("Identity program");
+});
+byId<HTMLButtonElement>("twist-fluid-field-code").addEventListener("click", () => {
+  fieldCodeEditor.value = `x = vx - 0.35 * y\ny = vy + 0.35 * x\nz = vz`;
+  applyFieldCode("Position-dependent twist");
+});
+fieldCodeEditor.addEventListener("keydown", (event) => {
+  if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+    event.preventDefault();
+    applyFieldCode("Vector program");
+  }
+});
+
 playButton.addEventListener("click", () => setPlaying(!playing));
 byId<HTMLButtonElement>("fluid-step").addEventListener("click", () => {
   setPlaying(false);
@@ -681,5 +763,6 @@ resizeObserver.observe(viewer);
 window.addEventListener("resize", drawSpectrum);
 
 updateControlOutputs();
+fieldCodeEditor.value = DEFAULT_VECTOR_FIELD_PROGRAM;
 rebuild("mesh-vertex field ready · temporal-Perlin coefficients live");
 animate();
