@@ -4,10 +4,12 @@ export interface Vec3 {
   z: number;
 }
 
-export type RandomFluidSurface = "sphere" | "torus";
+export type RandomFluidSurface = "square" | "sphere" | "torus";
+export type FlowProjection = "curl-free" | "divergence-free" | "clebsch";
 
 export interface RandomSurfaceFluidParameters {
   surface: RandomFluidSurface;
+  projection: FlowProjection;
   seed: number;
   modeCount: number;
   maxBand: number;
@@ -30,6 +32,8 @@ export interface FieldSample {
   position: Vec3;
   normal: Vec3;
   velocity: Vec3;
+  divergence: number;
+  vorticity: number;
 }
 
 export interface RandomFluidDiagnostics {
@@ -37,6 +41,7 @@ export interface RandomFluidDiagnostics {
   maxSpeed: number;
   tangencyResidual: number;
   divergenceResidual: number;
+  vorticityRms: number;
   fieldCorrelation: number;
 }
 
@@ -52,18 +57,44 @@ interface FluidMode {
   frequency: number;
   amplitude: number;
   phase: number;
-  drift: number;
+  timeOffset: number;
+  timeRate: number;
+  noiseSeed: number;
   axis: Vec3;
   k: number;
   l: number;
 }
 
+interface SphereScalarSample {
+  value: number;
+  gradient: Vec3;
+}
+
+interface ParameterScalarSample {
+  value: number;
+  derivativeU: number;
+  derivativeV: number;
+}
+
+interface ParameterGeometry {
+  position: Vec3;
+  normal: Vec3;
+  partialU: Vec3;
+  partialV: Vec3;
+  metricU: number;
+  metricV: number;
+  area: number;
+}
+
 const TAU = 2 * Math.PI;
+const SQUARE_WIDTH = 2.8;
+const SQUARE_PARAMETER_SCALE = SQUARE_WIDTH / TAU;
 const TORUS_MAJOR_RADIUS = 1.25;
 const TORUS_MINOR_RADIUS = 0.46;
 
 export const DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS: RandomSurfaceFluidParameters = {
   surface: "sphere",
+  projection: "divergence-free",
   seed: 13,
   modeCount: 28,
   maxBand: 7,
@@ -75,8 +106,11 @@ export const DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS: RandomSurfaceFluidParamete
 };
 
 function assertParameters(parameters: RandomSurfaceFluidParameters): void {
-  if (parameters.surface !== "sphere" && parameters.surface !== "torus") {
-    throw new Error("surface must be sphere or torus");
+  if (!["square", "sphere", "torus"].includes(parameters.surface)) {
+    throw new Error("surface must be square, sphere, or torus");
+  }
+  if (!["curl-free", "divergence-free", "clebsch"].includes(parameters.projection)) {
+    throw new Error("projection must be curl-free, divergence-free, or clebsch");
   }
   if (!Number.isInteger(parameters.seed)) throw new Error("seed must be an integer");
   if (!Number.isInteger(parameters.modeCount) || parameters.modeCount < 1 || parameters.modeCount > 160) {
@@ -89,7 +123,9 @@ function assertParameters(parameters: RandomSurfaceFluidParameters): void {
     throw new Error("particleCount must be an integer from 8 through 3000");
   }
   for (const [name, value] of Object.entries(parameters)) {
-    if (name !== "surface" && !Number.isFinite(value)) throw new Error(`${name} must be finite`);
+    if (name !== "surface" && name !== "projection" && !Number.isFinite(value)) {
+      throw new Error(`${name} must be finite`);
+    }
   }
   if (parameters.spectralSlope < 0 || parameters.spectralSlope > 6) {
     throw new Error("spectralSlope must be between 0 and 6");
@@ -143,6 +179,30 @@ function mulberry32(seed: number): () => number {
   };
 }
 
+function hash01(index: number, seed: number): number {
+  let value = Math.imul(index ^ seed, 0x45d9f3b);
+  value = Math.imul(value ^ (value >>> 16), 0x45d9f3b);
+  value ^= value >>> 16;
+  return (value >>> 0) / 4294967295;
+}
+
+function fade(value: number): number {
+  return value ** 3 * (value * (value * 6 - 15) + 10);
+}
+
+export function temporalPerlinNoise(position: number, seed: number): number {
+  const left = Math.floor(position);
+  const fraction = position - left;
+  const gradientLeft = 2 * hash01(left, seed) - 1;
+  const gradientRight = 2 * hash01(left + 1, seed) - 1;
+  const contributionLeft = gradientLeft * fraction;
+  const contributionRight = gradientRight * (fraction - 1);
+  return 2.4 * (
+    contributionLeft
+    + fade(fraction) * (contributionRight - contributionLeft)
+  );
+}
+
 function randomUnitVector(random: () => number): Vec3 {
   const z = 2 * random() - 1;
   const azimuth = TAU * random();
@@ -167,6 +227,14 @@ function fibonacciSphere(count: number): Vec3[] {
   return result;
 }
 
+export function squarePosition(u: number, v: number): Vec3 {
+  return {
+    x: SQUARE_PARAMETER_SCALE * (wrapAngle(u) - Math.PI),
+    y: SQUARE_PARAMETER_SCALE * (wrapAngle(v) - Math.PI),
+    z: 0,
+  };
+}
+
 export function torusPosition(u: number, v: number): Vec3 {
   const radial = TORUS_MAJOR_RADIUS + TORUS_MINOR_RADIUS * Math.cos(v);
   return {
@@ -184,15 +252,33 @@ export function torusNormal(u: number, v: number): Vec3 {
   };
 }
 
-function torusPartials(u: number, v: number): { u: Vec3; v: Vec3; area: number } {
+function parameterGeometry(surface: "square" | "torus", u: number, v: number): ParameterGeometry {
+  if (surface === "square") {
+    const metric = SQUARE_PARAMETER_SCALE ** 2;
+    return {
+      position: squarePosition(u, v),
+      normal: { x: 0, y: 0, z: 1 },
+      partialU: { x: SQUARE_PARAMETER_SCALE, y: 0, z: 0 },
+      partialV: { x: 0, y: SQUARE_PARAMETER_SCALE, z: 0 },
+      metricU: metric,
+      metricV: metric,
+      area: metric,
+    };
+  }
   const radial = TORUS_MAJOR_RADIUS + TORUS_MINOR_RADIUS * Math.cos(v);
+  const partialU = { x: -radial * Math.sin(u), y: radial * Math.cos(u), z: 0 };
+  const partialV = {
+    x: -TORUS_MINOR_RADIUS * Math.sin(v) * Math.cos(u),
+    y: -TORUS_MINOR_RADIUS * Math.sin(v) * Math.sin(u),
+    z: TORUS_MINOR_RADIUS * Math.cos(v),
+  };
   return {
-    u: { x: -radial * Math.sin(u), y: radial * Math.cos(u), z: 0 },
-    v: {
-      x: -TORUS_MINOR_RADIUS * Math.sin(v) * Math.cos(u),
-      y: -TORUS_MINOR_RADIUS * Math.sin(v) * Math.sin(u),
-      z: TORUS_MINOR_RADIUS * Math.cos(v),
-    },
+    position: torusPosition(u, v),
+    normal: torusNormal(u, v),
+    partialU,
+    partialV,
+    metricU: radial ** 2,
+    metricV: TORUS_MINOR_RADIUS ** 2,
     area: TORUS_MINOR_RADIUS * radial,
   };
 }
@@ -207,8 +293,13 @@ export class RandomSurfaceFluidModel {
   particles: FluidParticle[] = [];
   time = 0;
   steps = 0;
-  private modes: FluidMode[] = [];
+  private primaryModes: FluidMode[] = [];
+  private alphaModes: FluidMode[] = [];
+  private betaModes: FluidMode[] = [];
   private velocityScale = 1;
+  private clebschPhiScale = 1;
+  private clebschAlphaScale = 1;
+  private clebschBetaScale = 1;
 
   constructor(parameters: Partial<RandomSurfaceFluidParameters> = {}) {
     this.parameters = { ...DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS, ...parameters };
@@ -226,13 +317,13 @@ export class RandomSurfaceFluidModel {
     this.time = 0;
     this.steps = 0;
     this.makeModes();
+    this.calibrateClebschComponents();
     this.calibrateVelocity();
     this.resetParticles();
   }
 
-  private makeModes(): void {
-    const random = mulberry32(this.parameters.seed);
-    this.modes = [];
+  private makeModeSet(random: () => number, seedOffset: number): FluidMode[] {
+    const modes: FluidMode[] = [];
     for (let index = 0; index < this.parameters.modeCount; index += 1) {
       const band = 1 + (index % this.parameters.maxBand);
       const axis = randomUnitVector(random);
@@ -248,83 +339,174 @@ export class RandomSurfaceFluidModel {
       const frequency = this.parameters.surface === "sphere"
         ? Math.PI * band
         : Math.max(1, Math.hypot(k, l));
-      // Differentiation contributes one power of frequency. This amplitude
-      // therefore makes velocity energy fall approximately like band^-beta.
       const amplitude = (random() < 0.5 ? -1 : 1)
         * frequency ** (-(this.parameters.spectralSlope + 2) / 2);
-      this.modes.push({
+      modes.push({
         band,
         frequency,
         amplitude,
         phase: TAU * random(),
-        drift: (random() < 0.5 ? -1 : 1)
-          * this.parameters.turnover
-          * (0.55 + 0.45 * random())
-          * Math.sqrt(band),
+        timeOffset: 40 * random() + 0.371 * seedOffset,
+        timeRate: this.parameters.turnover * (0.42 + 0.3 * random()) * Math.sqrt(band),
+        noiseSeed: (this.parameters.seed + seedOffset + 104729 * index) | 0,
         axis,
         k,
         l,
       });
     }
+    return modes;
   }
 
-  private sphereRawVelocity(point: Vec3, time: number): Vec3 {
+  private makeModes(): void {
+    const random = mulberry32(this.parameters.seed);
+    this.primaryModes = this.makeModeSet(random, 101);
+    this.alphaModes = this.makeModeSet(random, 1009);
+    this.betaModes = this.makeModeSet(random, 10007);
+  }
+
+  private temporalState(mode: FluidMode, time: number): { amplitude: number; phase: number } {
+    const coordinate = mode.timeOffset + time * mode.timeRate;
+    const envelope = 0.78 + 0.32 * temporalPerlinNoise(coordinate + 13.7, mode.noiseSeed + 17);
+    const phase = 1.85 * temporalPerlinNoise(coordinate, mode.noiseSeed);
+    return { amplitude: envelope, phase };
+  }
+
+  private sphereScalar(modes: readonly FluidMode[], point: Vec3, time: number): SphereScalarSample {
+    let value = 0;
     let gradient: Vec3 = { x: 0, y: 0, z: 0 };
-    for (const mode of this.modes) {
-      const argument = mode.frequency * dot(mode.axis, point) + mode.phase + mode.drift * time;
-      gradient = add(
-        gradient,
-        scale(mode.axis, mode.amplitude * mode.frequency * Math.cos(argument)),
-      );
+    for (const mode of modes) {
+      const temporal = this.temporalState(mode, time);
+      const argument = mode.frequency * dot(mode.axis, point) + mode.phase + temporal.phase;
+      const amplitude = mode.amplitude * temporal.amplitude;
+      value += amplitude * Math.sin(argument);
+      gradient = add(gradient, scale(mode.axis, amplitude * mode.frequency * Math.cos(argument)));
     }
-    return cross(point, gradient);
+    gradient = add(gradient, scale(point, -dot(point, gradient)));
+    return { value, gradient };
   }
 
-  private torusStreamDerivatives(u: number, v: number, time: number): { u: number; v: number } {
+  private parameterScalar(
+    modes: readonly FluidMode[],
+    u: number,
+    v: number,
+    time: number,
+  ): ParameterScalarSample {
+    let value = 0;
     let derivativeU = 0;
     let derivativeV = 0;
-    for (const mode of this.modes) {
-      const argument = mode.k * u + mode.l * v + mode.phase + mode.drift * time;
-      const cosine = mode.amplitude * Math.cos(argument);
+    for (const mode of modes) {
+      const temporal = this.temporalState(mode, time);
+      const argument = mode.k * u + mode.l * v + mode.phase + temporal.phase;
+      const amplitude = mode.amplitude * temporal.amplitude;
+      value += amplitude * Math.sin(argument);
+      const cosine = amplitude * Math.cos(argument);
       derivativeU += mode.k * cosine;
       derivativeV += mode.l * cosine;
     }
-    return { u: derivativeU, v: derivativeV };
+    return { value, derivativeU, derivativeV };
   }
 
-  private torusRawRates(u: number, v: number, time: number): { u: number; v: number } {
-    const derivative = this.torusStreamDerivatives(u, v, time);
-    const area = torusPartials(u, v).area;
-    // X = J grad(psi): sqrt(g) u_dot = -psi_v and
-    // sqrt(g) v_dot = psi_u, so the area divergence vanishes identically.
-    return { u: -derivative.v / area, v: derivative.u / area };
+  private parameterGradient(sample: ParameterScalarSample, geometry: ParameterGeometry): Vec3 {
+    return add(
+      scale(geometry.partialU, sample.derivativeU / geometry.metricU),
+      scale(geometry.partialV, sample.derivativeV / geometry.metricV),
+    );
   }
 
-  private torusRawVelocity(u: number, v: number, time: number): Vec3 {
-    const rates = this.torusRawRates(u, v, time);
-    const partials = torusPartials(u, v);
-    return add(scale(partials.u, rates.u), scale(partials.v, rates.v));
+  private sphereRawVelocity(point: Vec3, time: number): Vec3 {
+    const primary = this.sphereScalar(this.primaryModes, point, time);
+    if (this.parameters.projection === "curl-free") return primary.gradient;
+    if (this.parameters.projection === "divergence-free") return cross(point, primary.gradient);
+    const alpha = this.sphereScalar(this.alphaModes, point, time);
+    const beta = this.sphereScalar(this.betaModes, point, time);
+    return add(
+      scale(primary.gradient, this.clebschPhiScale),
+      scale(beta.gradient, this.clebschAlphaScale * alpha.value * this.clebschBetaScale),
+    );
+  }
+
+  private parameterRawVelocity(
+    surface: "square" | "torus",
+    u: number,
+    v: number,
+    time: number,
+  ): Vec3 {
+    const geometry = parameterGeometry(surface, u, v);
+    const primary = this.parameterScalar(this.primaryModes, u, v, time);
+    const primaryGradient = this.parameterGradient(primary, geometry);
+    if (this.parameters.projection === "curl-free") return primaryGradient;
+    if (this.parameters.projection === "divergence-free") {
+      return cross(geometry.normal, primaryGradient);
+    }
+    const alpha = this.parameterScalar(this.alphaModes, u, v, time);
+    const beta = this.parameterScalar(this.betaModes, u, v, time);
+    const betaGradient = this.parameterGradient(beta, geometry);
+    return add(
+      scale(primaryGradient, this.clebschPhiScale),
+      scale(betaGradient, this.clebschAlphaScale * alpha.value * this.clebschBetaScale),
+    );
+  }
+
+  private calibrationSamples(): Array<{ point?: Vec3; u?: number; v?: number }> {
+    if (this.parameters.surface === "sphere") {
+      return fibonacciSphere(120).map((point) => ({ point }));
+    }
+    const samples: Array<{ u: number; v: number }> = [];
+    for (let row = 0; row < 10; row += 1) {
+      for (let column = 0; column < 20; column += 1) {
+        samples.push({ u: TAU * column / 20, v: TAU * (row + 0.5) / 10 });
+      }
+    }
+    return samples;
+  }
+
+  private calibrateClebschComponents(): void {
+    this.clebschPhiScale = 1;
+    this.clebschAlphaScale = 1;
+    this.clebschBetaScale = 1;
+    if (this.parameters.projection !== "clebsch") return;
+    let phiGradient2 = 0;
+    let alpha2 = 0;
+    let betaGradient2 = 0;
+    const samples = this.calibrationSamples();
+    for (const sample of samples) {
+      if (this.parameters.surface === "sphere") {
+        const point = sample.point!;
+        const phi = this.sphereScalar(this.primaryModes, point, 0);
+        const alpha = this.sphereScalar(this.alphaModes, point, 0);
+        const beta = this.sphereScalar(this.betaModes, point, 0);
+        phiGradient2 += dot(phi.gradient, phi.gradient);
+        alpha2 += alpha.value ** 2;
+        betaGradient2 += dot(beta.gradient, beta.gradient);
+      } else {
+        const surface = this.parameters.surface;
+        const geometry = parameterGeometry(surface, sample.u!, sample.v!);
+        const phi = this.parameterScalar(this.primaryModes, sample.u!, sample.v!, 0);
+        const alpha = this.parameterScalar(this.alphaModes, sample.u!, sample.v!, 0);
+        const beta = this.parameterScalar(this.betaModes, sample.u!, sample.v!, 0);
+        const phiGradient = this.parameterGradient(phi, geometry);
+        const betaGradient = this.parameterGradient(beta, geometry);
+        phiGradient2 += dot(phiGradient, phiGradient);
+        alpha2 += alpha.value ** 2;
+        betaGradient2 += dot(betaGradient, betaGradient);
+      }
+    }
+    const count = Math.max(1, samples.length);
+    this.clebschPhiScale = 0.3 / Math.max(1e-12, Math.sqrt(phiGradient2 / count));
+    this.clebschAlphaScale = 1 / Math.max(1e-12, Math.sqrt(alpha2 / count));
+    this.clebschBetaScale = 1 / Math.max(1e-12, Math.sqrt(betaGradient2 / count));
   }
 
   private calibrateVelocity(): void {
     let speed2 = 0;
-    let count = 0;
-    if (this.parameters.surface === "sphere") {
-      for (const point of fibonacciSphere(144)) {
-        const velocity = this.sphereRawVelocity(point, 0);
-        speed2 += dot(velocity, velocity);
-        count += 1;
-      }
-    } else {
-      for (let row = 0; row < 12; row += 1) {
-        for (let column = 0; column < 24; column += 1) {
-          const velocity = this.torusRawVelocity(TAU * column / 24, TAU * row / 12, 0);
-          speed2 += dot(velocity, velocity);
-          count += 1;
-        }
-      }
+    const samples = this.calibrationSamples();
+    for (const sample of samples) {
+      const velocity = this.parameters.surface === "sphere"
+        ? this.sphereRawVelocity(sample.point!, 0)
+        : this.parameterRawVelocity(this.parameters.surface, sample.u!, sample.v!, 0);
+      speed2 += dot(velocity, velocity);
     }
-    const rms = Math.sqrt(speed2 / Math.max(1, count));
+    const rms = Math.sqrt(speed2 / Math.max(1, samples.length));
     this.velocityScale = rms > 1e-14 ? this.parameters.speed / rms : 0;
   }
 
@@ -332,13 +514,28 @@ export class RandomSurfaceFluidModel {
     return scale(this.sphereRawVelocity(normalize(point), time), this.velocityScale);
   }
 
-  velocityAtTorus(u: number, v: number, time = this.time): Vec3 {
-    return scale(this.torusRawVelocity(wrapAngle(u), wrapAngle(v), time), this.velocityScale);
+  velocityAtSquare(u: number, v: number, time = this.time): Vec3 {
+    return scale(this.parameterRawVelocity("square", u, v, time), this.velocityScale);
   }
 
-  private torusRates(u: number, v: number, time: number): { u: number; v: number } {
-    const rates = this.torusRawRates(wrapAngle(u), wrapAngle(v), time);
-    return { u: this.velocityScale * rates.u, v: this.velocityScale * rates.v };
+  velocityAtTorus(u: number, v: number, time = this.time): Vec3 {
+    return scale(this.parameterRawVelocity("torus", u, v, time), this.velocityScale);
+  }
+
+  private parameterRates(
+    surface: "square" | "torus",
+    u: number,
+    v: number,
+    time: number,
+  ): { u: number; v: number } {
+    const geometry = parameterGeometry(surface, u, v);
+    const velocity = surface === "square"
+      ? this.velocityAtSquare(u, v, time)
+      : this.velocityAtTorus(u, v, time);
+    return {
+      u: dot(velocity, geometry.partialU) / geometry.metricU,
+      v: dot(velocity, geometry.partialV) / geometry.metricV,
+    };
   }
 
   resetParticles(): void {
@@ -361,23 +558,26 @@ export class RandomSurfaceFluidModel {
           : sphereExponential(center, tangent, Math.min(0.48, radius));
         this.particles.push({ surface: "sphere", position, group });
       }
-    } else {
-      const centers = [{ u: 0.2, v: 0.35 }, { u: 1.1, v: 3.35 }];
-      for (let index = 0; index < this.parameters.particleCount; index += 1) {
-        const group = (index % 2) as 0 | 1;
-        const center = centers[group]!;
-        this.particles.push({
-          surface: "torus",
-          u: wrapAngle(center.u + 0.22 * gaussian(random)),
-          v: wrapAngle(center.v + 0.28 * gaussian(random)),
-          group,
-        });
-      }
+      return;
+    }
+    const centers = this.parameters.surface === "square"
+      ? [{ u: 1.2, v: 1.35 }, { u: 4.15, v: 4.35 }]
+      : [{ u: 0.2, v: 0.35 }, { u: 1.1, v: 3.35 }];
+    for (let index = 0; index < this.parameters.particleCount; index += 1) {
+      const group = (index % 2) as 0 | 1;
+      const center = centers[group]!;
+      this.particles.push({
+        surface: this.parameters.surface,
+        u: wrapAngle(center.u + 0.22 * gaussian(random)),
+        v: wrapAngle(center.v + 0.25 * gaussian(random)),
+        group,
+      });
     }
   }
 
   particlePosition(particle: FluidParticle): Vec3 {
     if (particle.surface === "sphere") return particle.position!;
+    if (particle.surface === "square") return squarePosition(particle.u!, particle.v!);
     return torusPosition(particle.u!, particle.v!);
   }
 
@@ -398,10 +598,10 @@ export class RandomSurfaceFluidModel {
         } else {
           const u = particle.u!;
           const v = particle.v!;
-          const first = this.torusRates(u, v, this.time);
+          const first = this.parameterRates(particle.surface, u, v, this.time);
           const middleU = wrapAngle(u + 0.5 * dt * first.u);
           const middleV = wrapAngle(v + 0.5 * dt * first.v);
-          const second = this.torusRates(middleU, middleV, halfTime);
+          const second = this.parameterRates(particle.surface, middleU, middleV, halfTime);
           particle.u = wrapAngle(u + dt * second.u);
           particle.v = wrapAngle(v + dt * second.v);
         }
@@ -411,24 +611,101 @@ export class RandomSurfaceFluidModel {
     }
   }
 
+  private sphereDifferentials(point: Vec3): { divergence: number; vorticity: number } {
+    const reference = Math.abs(point.z) < 0.88 ? { x: 0, y: 0, z: 1 } : { x: 0, y: 1, z: 0 };
+    const tangentA = normalize(cross(reference, point));
+    const tangentB = cross(point, tangentA);
+    const h = 2e-4;
+    const plusA = sphereExponential(point, tangentA, h);
+    const minusA = sphereExponential(point, tangentA, -h);
+    const plusB = sphereExponential(point, tangentB, h);
+    const minusB = sphereExponential(point, tangentB, -h);
+    const velocityPlusA = this.velocityAtSphere(plusA);
+    const velocityMinusA = this.velocityAtSphere(minusA);
+    const velocityPlusB = this.velocityAtSphere(plusB);
+    const velocityMinusB = this.velocityAtSphere(minusB);
+    const transportedAPlus = add(scale(point, -Math.sin(h)), scale(tangentA, Math.cos(h)));
+    const transportedAMinus = add(scale(point, Math.sin(h)), scale(tangentA, Math.cos(h)));
+    const transportedBPlus = add(scale(point, -Math.sin(h)), scale(tangentB, Math.cos(h)));
+    const transportedBMinus = add(scale(point, Math.sin(h)), scale(tangentB, Math.cos(h)));
+    const derivativeAA = (dot(velocityPlusA, transportedAPlus) - dot(velocityMinusA, transportedAMinus)) / (2 * h);
+    const derivativeBB = (dot(velocityPlusB, transportedBPlus) - dot(velocityMinusB, transportedBMinus)) / (2 * h);
+    const derivativeAB = (dot(velocityPlusA, tangentB) - dot(velocityMinusA, tangentB)) / (2 * h);
+    const derivativeBA = (dot(velocityPlusB, tangentA) - dot(velocityMinusB, tangentA)) / (2 * h);
+    return { divergence: derivativeAA + derivativeBB, vorticity: derivativeAB - derivativeBA };
+  }
+
+  private parameterKinematics(
+    surface: "square" | "torus",
+    u: number,
+    v: number,
+  ): { fluxU: number; fluxV: number; covectorU: number; covectorV: number } {
+    const geometry = parameterGeometry(surface, u, v);
+    const velocity = surface === "square"
+      ? this.velocityAtSquare(u, v)
+      : this.velocityAtTorus(u, v);
+    const covectorU = dot(velocity, geometry.partialU);
+    const covectorV = dot(velocity, geometry.partialV);
+    return {
+      fluxU: geometry.area * covectorU / geometry.metricU,
+      fluxV: geometry.area * covectorV / geometry.metricV,
+      covectorU,
+      covectorV,
+    };
+  }
+
+  private parameterDifferentials(
+    surface: "square" | "torus",
+    u: number,
+    v: number,
+  ): { divergence: number; vorticity: number } {
+    const h = 2e-4;
+    const plusU = this.parameterKinematics(surface, u + h, v);
+    const minusU = this.parameterKinematics(surface, u - h, v);
+    const plusV = this.parameterKinematics(surface, u, v + h);
+    const minusV = this.parameterKinematics(surface, u, v - h);
+    const area = parameterGeometry(surface, u, v).area;
+    return {
+      divergence: (
+        (plusU.fluxU - minusU.fluxU) / (2 * h)
+        + (plusV.fluxV - minusV.fluxV) / (2 * h)
+      ) / area,
+      vorticity: (
+        (plusU.covectorV - minusU.covectorV) / (2 * h)
+        - (plusV.covectorU - minusV.covectorU) / (2 * h)
+      ) / area,
+    };
+  }
+
   fieldSamples(): FieldSample[] {
     if (this.parameters.surface === "sphere") {
-      return fibonacciSphere(150).map((unit) => ({
-        position: scale(unit, 1.012),
-        normal: unit,
-        velocity: this.velocityAtSphere(unit),
-      }));
+      return fibonacciSphere(150).map((unit) => {
+        const differentials = this.sphereDifferentials(unit);
+        return {
+          position: scale(unit, 1.012),
+          normal: unit,
+          velocity: this.velocityAtSphere(unit),
+          ...differentials,
+        };
+      });
     }
     const result: FieldSample[] = [];
-    for (let row = 0; row < 10; row += 1) {
-      for (let column = 0; column < 20; column += 1) {
-        const u = TAU * column / 20;
-        const v = TAU * (row + 0.5) / 10;
-        const normal = torusNormal(u, v);
+    const rows = this.parameters.surface === "square" ? 16 : 10;
+    const columns = this.parameters.surface === "square" ? 16 : 20;
+    for (let row = 0; row < rows; row += 1) {
+      for (let column = 0; column < columns; column += 1) {
+        const u = TAU * (column + 0.5) / columns;
+        const v = TAU * (row + 0.5) / rows;
+        const geometry = parameterGeometry(this.parameters.surface, u, v);
+        const velocity = this.parameters.surface === "square"
+          ? this.velocityAtSquare(u, v)
+          : this.velocityAtTorus(u, v);
+        const differentials = this.parameterDifferentials(this.parameters.surface, u, v);
         result.push({
-          position: add(torusPosition(u, v), scale(normal, 0.018)),
-          normal,
-          velocity: this.velocityAtTorus(u, v),
+          position: add(geometry.position, scale(geometry.normal, this.parameters.surface === "square" ? 0.012 : 0.018)),
+          normal: geometry.normal,
+          velocity,
+          ...differentials,
         });
       }
     }
@@ -438,9 +715,15 @@ export class RandomSurfaceFluidModel {
   spectrum(): SpectrumBand[] {
     const energy = Array.from({ length: this.parameters.maxBand }, () => 0);
     const counts = Array.from({ length: this.parameters.maxBand }, () => 0);
-    for (const mode of this.modes) {
-      energy[mode.band - 1] = energy[mode.band - 1]! + (this.velocityScale * mode.amplitude * mode.frequency) ** 2;
-      counts[mode.band - 1] = counts[mode.band - 1]! + 1;
+    const modeSets = this.parameters.projection === "clebsch"
+      ? [this.primaryModes, this.alphaModes, this.betaModes]
+      : [this.primaryModes];
+    for (const modes of modeSets) {
+      for (const mode of modes) {
+        energy[mode.band - 1] = energy[mode.band - 1]!
+          + (mode.amplitude * mode.frequency) ** 2;
+        counts[mode.band - 1] = counts[mode.band - 1]! + 1;
+      }
     }
     const total = energy.reduce((sum, value) => sum + value, 0);
     return energy.map((value, index) => ({
@@ -451,51 +734,16 @@ export class RandomSurfaceFluidModel {
     }));
   }
 
-  private sphereDivergence(point: Vec3): number {
-    const reference = Math.abs(point.z) < 0.88 ? { x: 0, y: 0, z: 1 } : { x: 0, y: 1, z: 0 };
-    const tangentA = normalize(cross(reference, point));
-    const tangentB = cross(point, tangentA);
-    const h = 2e-4;
-    const plusA = sphereExponential(point, tangentA, h);
-    const minusA = sphereExponential(point, tangentA, -h);
-    const transportedAPlus = add(scale(point, -Math.sin(h)), scale(tangentA, Math.cos(h)));
-    const transportedAMinus = add(scale(point, Math.sin(h)), scale(tangentA, Math.cos(h)));
-    const derivativeA = (
-      dot(this.velocityAtSphere(plusA), transportedAPlus)
-      - dot(this.velocityAtSphere(minusA), transportedAMinus)
-    ) / (2 * h);
-    const plusB = sphereExponential(point, tangentB, h);
-    const minusB = sphereExponential(point, tangentB, -h);
-    const transportedBPlus = add(scale(point, -Math.sin(h)), scale(tangentB, Math.cos(h)));
-    const transportedBMinus = add(scale(point, Math.sin(h)), scale(tangentB, Math.cos(h)));
-    const derivativeB = (
-      dot(this.velocityAtSphere(plusB), transportedBPlus)
-      - dot(this.velocityAtSphere(minusB), transportedBMinus)
-    ) / (2 * h);
-    return derivativeA + derivativeB;
-  }
-
-  private torusDivergence(u: number, v: number): number {
-    const h = 2e-4;
-    const fluxU = (sampleU: number, sampleV: number): number => {
-      return -this.velocityScale * this.torusStreamDerivatives(sampleU, sampleV, this.time).v;
-    };
-    const fluxV = (sampleU: number, sampleV: number): number => {
-      return this.velocityScale * this.torusStreamDerivatives(sampleU, sampleV, this.time).u;
-    };
-    const derivativeU = (fluxU(u + h, v) - fluxU(u - h, v)) / (2 * h);
-    const derivativeV = (fluxV(u, v + h) - fluxV(u, v - h)) / (2 * h);
-    return (derivativeU + derivativeV) / torusPartials(u, v).area;
-  }
-
-  diagnostics(): RandomFluidDiagnostics {
-    const samples = this.fieldSamples();
+  diagnostics(samples = this.fieldSamples()): RandomFluidDiagnostics {
     let speed2 = 0;
     let initialSpeed2 = 0;
     let crossCorrelation = 0;
     let maxSpeed = 0;
     let tangencyResidual = 0;
     let divergence2 = 0;
+    let vorticity2 = 0;
+    const squareColumns = 16;
+    const torusColumns = 20;
     for (let index = 0; index < samples.length; index += 1) {
       const sample = samples[index]!;
       const speed = norm(sample.velocity);
@@ -506,28 +754,31 @@ export class RandomSurfaceFluidModel {
         Math.abs(dot(sample.velocity, sample.normal)) / Math.max(1e-14, speed),
       );
       let initialVelocity: Vec3;
-      let divergence: number;
       if (this.parameters.surface === "sphere") {
-        const point = normalize(sample.position);
-        initialVelocity = this.velocityAtSphere(point, 0);
-        divergence = this.sphereDivergence(point);
+        initialVelocity = scale(this.sphereRawVelocity(normalize(sample.position), 0), this.velocityScale);
       } else {
-        const row = Math.floor(index / 20);
-        const column = index % 20;
-        const u = TAU * column / 20;
-        const v = TAU * (row + 0.5) / 10;
-        initialVelocity = this.velocityAtTorus(u, v, 0);
-        divergence = this.torusDivergence(u, v);
+        const columns = this.parameters.surface === "square" ? squareColumns : torusColumns;
+        const rows = this.parameters.surface === "square" ? 16 : 10;
+        const row = Math.floor(index / columns);
+        const column = index % columns;
+        const u = TAU * (column + 0.5) / columns;
+        const v = TAU * (row + 0.5) / rows;
+        initialVelocity = scale(
+          this.parameterRawVelocity(this.parameters.surface, u, v, 0),
+          this.velocityScale,
+        );
       }
       initialSpeed2 += dot(initialVelocity, initialVelocity);
       crossCorrelation += dot(sample.velocity, initialVelocity);
-      divergence2 += divergence * divergence;
+      divergence2 += sample.divergence ** 2;
+      vorticity2 += sample.vorticity ** 2;
     }
     return {
       rmsSpeed: Math.sqrt(speed2 / Math.max(1, samples.length)),
       maxSpeed,
       tangencyResidual,
       divergenceResidual: Math.sqrt(divergence2 / Math.max(1, samples.length)),
+      vorticityRms: Math.sqrt(vorticity2 / Math.max(1, samples.length)),
       fieldCorrelation: crossCorrelation / Math.max(1e-14, Math.sqrt(speed2 * initialSpeed2)),
     };
   }

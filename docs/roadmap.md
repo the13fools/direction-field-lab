@@ -24,8 +24,9 @@ The roadmap is ordered by what makes the lab more trustworthy, not by spectacle.
 - second-order optimization with live, safely bounded code parameters;
 - a minimal shallow-water-on-surfaces experiment after the operators and tests
   are mature;
-- seeded incompressible stream-function ensembles on a sphere and torus, with
-  spectral controls, particle advection, and invariant audits.
+- seeded multiscale ensembles on a periodic square, sphere, and torus, with
+  temporal Perlin modulation, exact/coexact/Clebsch constructions, particle
+  advection, vorticity display, and invariant audits.
 
 ## Repository publishing
 

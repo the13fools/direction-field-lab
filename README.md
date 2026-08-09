@@ -131,10 +131,11 @@ energy without recompiling. The intentionally flat periodic baseline is the
 contract that later surface and vorticity-based formulations must preserve.
 
 Open <http://localhost:4173/random-fluids.html> for a seeded random-flow
-laboratory on a sphere or torus. A stream-function construction produces a
-tangent, divergence-free velocity field; spectral falloff and temporal
-turnover are adjustable, and two material clouds make particle mixing visible.
-The model reports numerical tangency, divergence, and field-correlation audits.
+laboratory on a periodic square, sphere, or torus. Smooth one-dimensional
+Perlin processes modulate every spatial mode in time. The page compares exact
+curl-free fields, coexact divergence-free fields, and a Clebsch construction
+`u♭ = dφ + α dβ`, while two material clouds make transport visible. The model
+reports tangency, divergence, vorticity, and field-correlation audits.
 
 No C++ toolchain is needed for this path: the generated WebAssembly kernel is
 committed. `npm run check` validates the numerical kernels, builds `dist/`, and

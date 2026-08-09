@@ -6,7 +6,9 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import {
   RandomSurfaceFluidModel,
   torusNormal,
+  type FieldSample,
   type FluidParticle,
+  type FlowProjection,
   type RandomFluidSurface,
   type Vec3,
 } from "./random-surface-fluid-model";
@@ -20,6 +22,7 @@ function byId<T extends HTMLElement>(id: string): T {
 const viewer = byId<HTMLDivElement>("random-fluid-viewer");
 const playButton = byId<HTMLButtonElement>("fluid-play");
 const vectorButton = byId<HTMLButtonElement>("fluid-vectors");
+const vorticityButton = byId<HTMLButtonElement>("fluid-vorticity");
 const trailButton = byId<HTMLButtonElement>("fluid-trails");
 const spectrumCanvas = byId<HTMLCanvasElement>("fluid-spectrum");
 const controls = {
@@ -41,9 +44,11 @@ const outputs = {
 };
 
 let surface: RandomFluidSurface = "sphere";
+let projection: FlowProjection = "curl-free";
 let model = readModel();
 let playing = true;
 let vectorsVisible = true;
+let vorticityVisible = true;
 let trailsVisible = true;
 let frame = 0;
 let trailHistory: Vec3[][] = [];
@@ -85,10 +90,12 @@ scene.add(surfaceGroup, fieldGroup, particleGroup);
 let particlePoints: THREE.Points | undefined;
 let trailLines: THREE.LineSegments | undefined;
 let fieldLines: THREE.LineSegments | undefined;
+let vorticityPoints: THREE.Points | undefined;
 
 function readModel(): RandomSurfaceFluidModel {
   return new RandomSurfaceFluidModel({
     surface,
+    projection,
     seed: Math.trunc(Number(controls.seed.value)),
     modeCount: Math.round(Number(controls.modes.value)),
     maxBand: Math.round(Number(controls.band.value)),
@@ -126,7 +133,9 @@ function rebuildSurface(): void {
   clearGroup(surfaceGroup);
   const geometry = surface === "sphere"
     ? new THREE.SphereGeometry(1, 56, 34)
-    : new THREE.TorusGeometry(1.25, 0.46, 30, 72);
+    : surface === "torus"
+      ? new THREE.TorusGeometry(1.25, 0.46, 30, 72)
+      : new THREE.PlaneGeometry(2.8, 2.8, 28, 28);
   const material = new THREE.MeshPhysicalMaterial({
     color: 0x3d2868,
     emissive: 0x111533,
@@ -145,7 +154,7 @@ function rebuildSurface(): void {
     new THREE.LineBasicMaterial({
       color: 0x8edbe4,
       transparent: true,
-      opacity: surface === "sphere" ? 0.09 : 0.11,
+      opacity: surface === "sphere" ? 0.09 : surface === "torus" ? 0.11 : 0.16,
     }),
   );
   wire.renderOrder = 2;
@@ -156,6 +165,9 @@ function renderPosition(particle: FluidParticle): Vec3 {
   const position = model.particlePosition(particle);
   if (particle.surface === "sphere") {
     return { x: 1.022 * position.x, y: 1.022 * position.y, z: 1.022 * position.z };
+  }
+  if (particle.surface === "square") {
+    return { x: position.x, y: position.y, z: 0.024 };
   }
   const normal = torusNormal(particle.u!, particle.v!);
   return {
@@ -184,7 +196,7 @@ function initializeParticles(): void {
   particlePoints = new THREE.Points(
     geometry,
     new THREE.PointsMaterial({
-      size: surface === "sphere" ? 0.035 : 0.032,
+      size: surface === "square" ? 0.028 : surface === "sphere" ? 0.035 : 0.032,
       sizeAttenuation: true,
       vertexColors: true,
       transparent: true,
@@ -220,6 +232,11 @@ function updateParticles(appendTrail: boolean): void {
     positions.setXYZ(index, point.x, point.y, point.z);
     if (appendTrail) {
       const history = trailHistory[index]!;
+      const previous = history.at(-1);
+      if (surface === "square" && previous && Math.hypot(point.x - previous.x, point.y - previous.y) > 1.4) {
+        trailHistory[index] = [point];
+        return;
+      }
       history.push(point);
       if (history.length > 20) history.shift();
     }
@@ -255,7 +272,7 @@ function updateParticles(appendTrail: boolean): void {
   trailLines.visible = trailsVisible;
 }
 
-function updateField(): void {
+function updateField(): FieldSample[] {
   clearGroup(fieldGroup);
   const samples = model.fieldSamples();
   const maxSpeed = Math.max(1e-12, ...samples.map((sample) => Math.hypot(
@@ -302,6 +319,48 @@ function updateField(): void {
   fieldLines.renderOrder = 3;
   fieldLines.visible = vectorsVisible;
   fieldGroup.add(fieldLines);
+
+  const vorticityPositions = new Float32Array(samples.length * 3);
+  const vorticityColors = new Float32Array(samples.length * 3);
+  const vorticity = samples.map((sample) => sample.vorticity);
+  const vorticityScale = Math.max(1e-12, ...vorticity.map(Math.abs));
+  const negative = new THREE.Color(0x59e3ef);
+  const neutral = new THREE.Color(0x31274e);
+  const positive = new THREE.Color(0xff6fbd);
+  samples.forEach((sample, index) => {
+    const lift = surface === "square" ? 0.016 : 0.012;
+    vorticityPositions.set([
+      sample.position.x + lift * sample.normal.x,
+      sample.position.y + lift * sample.normal.y,
+      sample.position.z + lift * sample.normal.z,
+    ], 3 * index);
+    const normalized = projection === "curl-free"
+      ? 0
+      : Math.max(-1, Math.min(1, sample.vorticity / vorticityScale));
+    const color = normalized < 0
+      ? neutral.clone().lerp(negative, Math.sqrt(-normalized))
+      : neutral.clone().lerp(positive, Math.sqrt(normalized));
+    vorticityColors.set([color.r, color.g, color.b], 3 * index);
+  });
+  const vorticityGeometry = new THREE.BufferGeometry();
+  vorticityGeometry.setAttribute("position", new THREE.BufferAttribute(vorticityPositions, 3));
+  vorticityGeometry.setAttribute("color", new THREE.BufferAttribute(vorticityColors, 3));
+  vorticityPoints = new THREE.Points(
+    vorticityGeometry,
+    new THREE.PointsMaterial({
+      size: surface === "square" ? 0.12 : 0.075,
+      sizeAttenuation: true,
+      vertexColors: true,
+      transparent: true,
+      opacity: projection === "curl-free" ? 0.18 : 0.58,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+    }),
+  );
+  vorticityPoints.renderOrder = 2;
+  vorticityPoints.visible = vorticityVisible;
+  fieldGroup.add(vorticityPoints);
+  return samples;
 }
 
 function fitCanvas(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
@@ -364,7 +423,8 @@ function drawSpectrum(): void {
   context.textAlign = "center";
   context.fillText("energy share", 0, 0);
   context.restore();
-  byId("spectrum-caption").textContent = `β = ${model.parameters.spectralSlope.toFixed(2)} · ${model.parameters.maxBand} bands`;
+  const fieldCount = projection === "clebsch" ? "3 fields" : "1 field";
+  byId("spectrum-caption").textContent = `β = ${model.parameters.spectralSlope.toFixed(2)} · ${model.parameters.maxBand} bands · ${fieldCount}`;
 }
 
 function formatResidual(value: number): string {
@@ -372,13 +432,47 @@ function formatResidual(value: number): string {
   return value.toExponential(2).replace("e-", "e−");
 }
 
-function updateDiagnostics(): void {
-  const diagnostics = model.diagnostics();
+function updateDiagnostics(samples?: FieldSample[]): void {
+  const diagnostics = model.diagnostics(samples);
   byId("fluid-time").textContent = model.time.toFixed(2);
   byId("fluid-rms").textContent = diagnostics.rmsSpeed.toFixed(3);
   byId("fluid-divergence").textContent = formatResidual(diagnostics.divergenceResidual);
+  byId("fluid-vorticity-rms").textContent = formatResidual(diagnostics.vorticityRms);
   byId("fluid-tangency").textContent = formatResidual(diagnostics.tangencyResidual);
   byId("fluid-correlation").textContent = diagnostics.fieldCorrelation.toFixed(3);
+}
+
+function updateConstructionCopy(): void {
+  const projectionCopy: Record<FlowProjection, {
+    equation: string;
+    label: string;
+    invariant: string;
+    note: string;
+  }> = {
+    "curl-free": {
+      equation: "u = ∇ₛ φ",
+      label: "irrotational",
+      invariant: "curlₛ u = 0",
+      note: "Every scale is a surface gradient before summation. The result is exactly curl-free, but its nonzero divergence can focus or disperse particle clouds.",
+    },
+    "divergence-free": {
+      equation: "u = J ∇ₛ ψ",
+      label: "area preserving",
+      invariant: "divₛ u = 0",
+      note: "Every scale is rotated in the tangent plane before summation. The result remains divergence-free under the temporal Perlin modulation and carries visible vorticity.",
+    },
+    clebsch: {
+      equation: "u♭ = dφ + α dβ",
+      label: "vorticity two-form",
+      invariant: "du♭ = dα ∧ dβ",
+      note: "Three independent multiscale scalar fields evolve in time. Their Clebsch combination is tangent and vortical, but this raw field has not yet been projected to be incompressible.",
+    },
+  };
+  const copy = projectionCopy[projection];
+  byId("fluid-projection-equation").textContent = copy.equation;
+  byId("fluid-invariant-label").textContent = copy.label;
+  byId("fluid-invariant-equation").textContent = copy.invariant;
+  byId("fluid-construction-note").textContent = copy.note;
 }
 
 function resizeRenderer(): void {
@@ -398,13 +492,24 @@ function rebuild(reason: string): void {
   model = readModel();
   rebuildSurface();
   initializeParticles();
-  updateField();
+  const samples = updateField();
   drawSpectrum();
-  updateDiagnostics();
-  byId("fluid-stage-title").textContent = `${surface} · two material clouds`;
+  updateDiagnostics(samples);
+  updateConstructionCopy();
+  const projectionName = projection === "curl-free"
+    ? "exact / curl-free"
+    : projection === "divergence-free"
+      ? "coexact / divergence-free"
+      : "Clebsch / vortical";
+  byId("fluid-stage-title").textContent = `${surface} · ${projectionName}`;
   byId("fluid-status").textContent = `Seed ${model.parameters.seed} · ${reason}`;
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-surface]")) {
     const active = button.dataset.fluidSurface === surface;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-projection]")) {
+    const active = button.dataset.fluidProjection === projection;
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   }
@@ -433,7 +538,18 @@ for (const input of Object.values(controls)) {
 for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-surface]")) {
   button.addEventListener("click", () => {
     surface = button.dataset.fluidSurface as RandomFluidSurface;
+    if (surface === "square") camera.position.set(0.15, -0.2, 4.35);
+    else camera.position.set(2.8, 1.9, 3.5);
+    orbit.target.set(0, 0, 0);
+    orbit.update();
     rebuild(`new ${surface} realization · invariants re-audited`);
+  });
+}
+
+for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-projection]")) {
+  button.addEventListener("click", () => {
+    projection = button.dataset.fluidProjection as FlowProjection;
+    rebuild(`${projection} construction · differential identities re-audited`);
   });
 }
 
@@ -469,8 +585,8 @@ byId<HTMLButtonElement>("fluid-step").addEventListener("click", () => {
   setPlaying(false);
   model.step();
   updateParticles(true);
-  updateField();
-  updateDiagnostics();
+  const samples = updateField();
+  updateDiagnostics(samples);
 });
 byId<HTMLButtonElement>("fluid-reset-particles").addEventListener("click", () => {
   model.resetParticles();
@@ -488,6 +604,12 @@ vectorButton.addEventListener("click", () => {
   vectorButton.setAttribute("aria-pressed", String(vectorsVisible));
   if (fieldLines) fieldLines.visible = vectorsVisible;
 });
+vorticityButton.addEventListener("click", () => {
+  vorticityVisible = !vorticityVisible;
+  vorticityButton.classList.toggle("active", vorticityVisible);
+  vorticityButton.setAttribute("aria-pressed", String(vorticityVisible));
+  if (vorticityPoints) vorticityPoints.visible = vorticityVisible;
+});
 trailButton.addEventListener("click", () => {
   trailsVisible = !trailsVisible;
   trailButton.classList.toggle("active", trailsVisible);
@@ -503,8 +625,10 @@ function animate(): void {
     model.step();
     const appendTrail = frame % 2 === 0;
     updateParticles(appendTrail);
-    if (frame % 3 === 0) updateField();
-    if (frame % 12 === 0) updateDiagnostics();
+    if (frame % 4 === 0) {
+      const samples = updateField();
+      if (frame % 12 === 0) updateDiagnostics(samples);
+    }
     frame += 1;
   }
   renderer.render(scene, camera);
@@ -518,5 +642,5 @@ resizeObserver.observe(viewer);
 window.addEventListener("resize", drawSpectrum);
 
 updateControlOutputs();
-rebuild("divergence-free stream field ready");
+rebuild("temporal-Perlin field ready");
 animate();

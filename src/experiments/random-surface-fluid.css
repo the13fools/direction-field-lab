@@ -100,15 +100,17 @@ button { cursor: pointer; }
 .random-guide summary { color: var(--ink); cursor: pointer; font-size: 10px; font-weight: 800; }
 .random-guide code { color: var(--violet); font-family: var(--mono); }
 
-.surface-choice { margin: 0 0 22px; padding: 14px; border: 1px solid #bca9ce; border-radius: 7px; background: white; }
-.surface-choice > span { display: block; margin-bottom: 8px; color: var(--pink); font: 800 7px var(--mono); letter-spacing: .1em; }
-.surface-choice > div { display: grid; gap: 6px; }
-.surface-choice button { display: block; width: 100%; padding: 10px; text-align: left; color: var(--ink); border: 1px solid var(--line); border-radius: 4px; background: #faf7ff; }
-.surface-choice button b, .surface-choice button small { display: block; }
-.surface-choice button b { font-size: 10px; }
-.surface-choice button small { margin-top: 3px; color: var(--muted); font-size: 8px; }
-.surface-choice button.active { color: white; border-color: var(--violet); background: linear-gradient(135deg, var(--violet), #433068); }
-.surface-choice button.active small { color: #e4d9ec; }
+.surface-choice, .projection-choice { margin: 0 0 18px; padding: 14px; border: 1px solid #bca9ce; border-radius: 7px; background: white; }
+.surface-choice > span, .projection-choice > span { display: block; margin-bottom: 8px; color: var(--pink); font: 800 7px var(--mono); letter-spacing: .1em; }
+.surface-choice > div, .projection-choice > div { display: grid; gap: 6px; }
+.surface-choice button, .projection-choice button { display: block; width: 100%; padding: 10px; text-align: left; color: var(--ink); border: 1px solid var(--line); border-radius: 4px; background: #faf7ff; }
+.surface-choice button b, .surface-choice button small, .projection-choice button b, .projection-choice button small, .projection-choice button code { display: block; }
+.surface-choice button b, .projection-choice button b { font-size: 10px; }
+.surface-choice button small, .projection-choice button small { margin-top: 3px; color: var(--muted); font-size: 8px; }
+.projection-choice button code { margin-top: 4px; color: var(--violet); font: 8px var(--mono); }
+.surface-choice button.active, .projection-choice button.active { color: white; border-color: var(--violet); background: linear-gradient(135deg, var(--violet), #433068); }
+.surface-choice button.active small, .projection-choice button.active small { color: #e4d9ec; }
+.projection-choice button.active code { color: var(--cyan); }
 
 .random-stage {
   display: grid;
@@ -147,7 +149,7 @@ button { cursor: pointer; }
 .random-actions { display: flex; flex-wrap: wrap; gap: 7px; padding: 11px 0; }
 .random-actions button { min-height: 34px; padding: 6px 10px; color: #dcd3e8; border: 1px solid #5d4b7a; border-radius: 3px; background: #21173e; font-size: 9px; font-weight: 800; }
 .random-actions button.primary { color: var(--ink); border-color: var(--gold); background: linear-gradient(135deg, var(--gold), var(--pink)); }
-.random-metrics { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1px; border: 1px solid #52426e; background: #52426e; }
+.random-metrics { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1px; border: 1px solid #52426e; background: #52426e; }
 .random-metrics > div { min-width: 0; padding: 10px; background: #191132; }
 .random-metrics span, .random-metrics strong { display: block; }
 .random-metrics span { color: #9c8db1; font: 700 7px var(--mono); text-transform: uppercase; }
