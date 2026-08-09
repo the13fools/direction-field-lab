@@ -54,8 +54,8 @@ let frame = 0;
 let trailHistory: Vec3[][] = [];
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x0d081f);
-scene.fog = new THREE.FogExp2(0x0d081f, 0.075);
+scene.background = new THREE.Color(0x071b20);
+scene.fog = new THREE.FogExp2(0x071b20, 0.075);
 
 const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 100);
 camera.position.set(2.8, 1.9, 3.5);
@@ -74,11 +74,11 @@ orbit.enablePan = false;
 orbit.minDistance = 2.5;
 orbit.maxDistance = 7;
 
-scene.add(new THREE.HemisphereLight(0xa9efff, 0x2b1643, 1.5));
-const keyLight = new THREE.DirectionalLight(0xffd5ed, 2.6);
+scene.add(new THREE.HemisphereLight(0xb8fff6, 0x12363a, 1.5));
+const keyLight = new THREE.DirectionalLight(0xddfff5, 2.6);
 keyLight.position.set(3, 4, 5);
 scene.add(keyLight);
-const rimLight = new THREE.DirectionalLight(0x59e3ef, 2.1);
+const rimLight = new THREE.DirectionalLight(0x6fe6dc, 2.1);
 rimLight.position.set(-4, 0, -2);
 scene.add(rimLight);
 
@@ -137,8 +137,8 @@ function rebuildSurface(): void {
       ? new THREE.TorusGeometry(1.25, 0.46, 30, 72)
       : new THREE.PlaneGeometry(2.8, 2.8, 28, 28);
   const material = new THREE.MeshPhysicalMaterial({
-    color: 0x3d2868,
-    emissive: 0x111533,
+    color: 0x185159,
+    emissive: 0x082b31,
     emissiveIntensity: 0.65,
     roughness: 0.55,
     metalness: 0.06,
@@ -152,7 +152,7 @@ function rebuildSurface(): void {
   const wire = new THREE.LineSegments(
     new THREE.WireframeGeometry(geometry),
     new THREE.LineBasicMaterial({
-      color: 0x8edbe4,
+      color: 0x8be8de,
       transparent: true,
       opacity: surface === "sphere" ? 0.09 : surface === "torus" ? 0.11 : 0.16,
     }),
@@ -184,8 +184,8 @@ function initializeParticles(): void {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute("position", new THREE.BufferAttribute(new Float32Array(model.particles.length * 3), 3));
   const colors = new Float32Array(model.particles.length * 3);
-  const warm = new THREE.Color(0xff6fbd);
-  const cool = new THREE.Color(0x59e3ef);
+  const warm = new THREE.Color(0xdce889);
+  const cool = new THREE.Color(0x6fe6dc);
   model.particles.forEach((particle, index) => {
     const color = particle.group === 0 ? warm : cool;
     colors[3 * index] = color.r;
@@ -247,8 +247,8 @@ function updateParticles(appendTrail: boolean): void {
   for (const history of trailHistory) segmentCount += Math.max(0, history.length - 1);
   const segmentPositions = new Float32Array(segmentCount * 6);
   const segmentColors = new Float32Array(segmentCount * 6);
-  const warm = new THREE.Color(0xff6fbd);
-  const cool = new THREE.Color(0x59e3ef);
+  const warm = new THREE.Color(0xdce889);
+  const cool = new THREE.Color(0x6fe6dc);
   let cursor = 0;
   trailHistory.forEach((history, particleIndex) => {
     const base = model.particles[particleIndex]!.group === 0 ? warm : cool;
@@ -282,8 +282,8 @@ function updateField(): FieldSample[] {
   )));
   const positions = new Float32Array(samples.length * 6);
   const colors = new Float32Array(samples.length * 6);
-  const cyan = new THREE.Color(0x59e3ef);
-  const gold = new THREE.Color(0xffd86d);
+  const cyan = new THREE.Color(0x6fe6dc);
+  const gold = new THREE.Color(0xdce889);
   samples.forEach((sample, index) => {
     const speed = Math.hypot(sample.velocity.x, sample.velocity.y, sample.velocity.z);
     const amount = speed / maxSpeed;
@@ -324,9 +324,9 @@ function updateField(): FieldSample[] {
   const vorticityColors = new Float32Array(samples.length * 3);
   const vorticity = samples.map((sample) => sample.vorticity);
   const vorticityScale = Math.max(1e-12, ...vorticity.map(Math.abs));
-  const negative = new THREE.Color(0x59e3ef);
-  const neutral = new THREE.Color(0x31274e);
-  const positive = new THREE.Color(0xff6fbd);
+  const negative = new THREE.Color(0x55dbe2);
+  const neutral = new THREE.Color(0x17383e);
+  const positive = new THREE.Color(0xa9df87);
   samples.forEach((sample, index) => {
     const lift = surface === "square" ? 0.016 : 0.012;
     vorticityPositions.set([
@@ -405,9 +405,9 @@ function drawSpectrum(): void {
     const barHeight = Math.max(1, normalized * plotHeight);
     const x = left + index * plotWidth / bands.length + gap / 2;
     const gradient = context.createLinearGradient(0, top + plotHeight, 0, top);
-    gradient.addColorStop(0, "#7249a7");
-    gradient.addColorStop(.55, "#ff6fbd");
-    gradient.addColorStop(1, "#59e3ef");
+    gradient.addColorStop(0, "#176f72");
+    gradient.addColorStop(.55, "#23bdb2");
+    gradient.addColorStop(1, "#6fe6dc");
     context.fillStyle = gradient;
     context.fillRect(x, top + plotHeight - barHeight, barWidth, barHeight);
     context.fillStyle = "rgba(255,255,255,.65)";
