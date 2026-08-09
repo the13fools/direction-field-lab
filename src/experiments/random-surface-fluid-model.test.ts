@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS,
   RandomSurfaceFluidModel,
   squarePosition,
   temporalPerlinNoise,
@@ -12,6 +13,11 @@ function length(x: number, y: number, z: number): number {
 }
 
 describe("random fluids on surfaces", () => {
+  it("starts with one thousand particles", () => {
+    expect(DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS.particleCount).toBe(1000);
+    expect(new RandomSurfaceFluidModel().particles).toHaveLength(1000);
+  });
+
   it("replays a seeded realization exactly", () => {
     const first = new RandomSurfaceFluidModel({ seed: 41, particleCount: 20 });
     const second = new RandomSurfaceFluidModel({ seed: 41, particleCount: 20 });
@@ -135,6 +141,26 @@ describe("random fluids on surfaces", () => {
       }).diagnostics();
       expect(diagnostics.tangencyResidual).toBeLessThan(1e-12);
       expect(diagnostics.vorticityRms).toBeGreaterThan(0.05);
+    }
+  });
+
+  it("Hodge-projects Clebsch fields without erasing their resolved vorticity", () => {
+    for (const surface of ["square", "sphere", "torus"] as const) {
+      const raw = new RandomSurfaceFluidModel({
+        surface,
+        projection: "clebsch",
+        particleCount: 16,
+        modeCount: 16,
+      }).diagnostics();
+      const projected = new RandomSurfaceFluidModel({
+        surface,
+        projection: "clebsch-projected",
+        particleCount: 16,
+        modeCount: 16,
+      }).diagnostics();
+      expect(projected.tangencyResidual).toBeLessThan(1e-12);
+      expect(projected.divergenceResidual).toBeLessThan(raw.divergenceResidual * 0.25);
+      expect(projected.vorticityRms).toBeGreaterThan(0.02);
     }
   });
 });

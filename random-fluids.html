@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#17102f" />
-    <meta name="description" content="Build temporally coherent multiscale flows on a periodic square, sphere, or torus; compare curl-free, divergence-free, and Clebsch constructions while advecting particles." />
+    <meta name="description" content="Build temporally coherent multiscale flows on a periodic square, sphere, or torus; compare curl-free, divergence-free, raw Clebsch, and Hodge-projected Clebsch constructions while advecting particles." />
     <meta property="og:title" content="Random fluids on surfaces · Direction Field Lab" />
     <meta property="og:description" content="A seeded temporal-Perlin laboratory for Hodge projections, Clebsch vorticity, and particle advection on three surfaces." />
     <meta property="og:image" content="./random-fluids-og-v2.png" />
@@ -28,7 +28,7 @@
         <div class="random-title">
           <p class="random-eyebrow">Stack spatial scales. Evolve them with time noise. Project. Advect.</p>
           <h1>Random fluids,<br /><em>bound to a surface.</em></h1>
-          <p>Build several seeded spatial fields, let their coefficients wander through smooth Perlin noise in time, and combine the scales. Then compare an exact field, a coexact field, and a Clebsch field by watching the same two particle clouds move.</p>
+          <p>Build several seeded spatial fields, let their coefficients wander through smooth Perlin noise in time, and combine the scales. Then compare exact, coexact, raw Clebsch, and Hodge-projected Clebsch fields by watching the same two particle clouds move.</p>
         </div>
         <div class="construction-card">
           <span>THE CONSTRUCTION</span>
@@ -45,7 +45,7 @@
           <p class="random-eyebrow">A three-minute experiment</p>
           <ol>
             <li><span>01</span><div><strong>Watch two clouds stretch.</strong><p>The warm and cool particles begin in compact patches. Their trails reveal shear, trapping, and mixing.</p></div></li>
-            <li><span>02</span><div><strong>Compare the projections.</strong><p>Exact flow clusters particles; coexact flow preserves area; Clebsch flow displays vorticity from intersecting α and β contours.</p></div></li>
+            <li><span>02</span><div><strong>Compare the projections.</strong><p>Raw Clebsch flow can collapse; its Hodge projection retains resolved vorticity while preserving area.</p></div></li>
             <li><span>03</span><div><strong>Turn time noise on and off.</strong><p>At zero turnover the coefficients freeze. Increasing it makes every scale wander smoothly and decorrelates the field.</p></div></li>
           </ol>
 
@@ -63,7 +63,8 @@
             <div>
               <button class="active" data-fluid-projection="curl-free" aria-pressed="true"><b>Exact · curl-free</b><code>u = grad φ</code><small>zero vorticity · generally compressible</small></button>
               <button data-fluid-projection="divergence-free" aria-pressed="false"><b>Coexact · incompressible</b><code>u = J grad ψ</code><small>zero divergence · vortical</small></button>
-              <button data-fluid-projection="clebsch" aria-pressed="false"><b>Clebsch vorticity</b><code>u = grad φ + α grad β</code><small>ω = dα ∧ dβ</small></button>
+              <button data-fluid-projection="clebsch" aria-pressed="false"><b>Clebsch · raw</b><code>u = grad φ + α grad β</code><small>vortical · generally compressible</small></button>
+              <button data-fluid-projection="clebsch-projected" aria-pressed="false"><b>Clebsch · projected</b><code>Δψ = ω<sub>C</sub>; u⊥ = J grad ψ</code><small>vorticity-matched coexact field · div u⊥ ≈ 0</small></button>
             </div>
           </div>
 
@@ -77,7 +78,7 @@
           </details>
           <details>
             <summary>What do the Clebsch fields mean?</summary>
-            <p>The three scalar fields <code>φ</code>, <code>α</code>, and <code>β</code> receive independent multiscale time noise. The term <code>α dβ</code> contributes vorticity <code>dα ∧ dβ</code>, shown by the magenta/cyan surface layer.</p>
+            <p>The three scalar fields <code>φ</code>, <code>α</code>, and <code>β</code> receive independent multiscale time noise. The raw field can compress. The projected mode solves <code>Δψ = ω<sub>C</sub></code> and displays the coexact field <code>J grad ψ</code>.</p>
           </details>
         </aside>
 
@@ -150,8 +151,8 @@
           </label>
           <label>
             <span><strong>Particles</strong><small>split between two material clouds</small></span>
-            <output id="fluid-particles-output">420</output>
-            <input id="fluid-particles" type="range" min="100" max="900" step="20" value="420" />
+            <output id="fluid-particles-output">1000</output>
+            <input id="fluid-particles" type="range" min="100" max="2000" step="50" value="1000" />
           </label>
 
           <section class="spectrum-card">
@@ -164,7 +165,7 @@
       <section class="random-notes">
         <article><span>01 · TIME NOISE</span><h2>Randomness moves without popping.</h2><p>Seeded gradient noise supplies a smooth coefficient path for every spatial mode. Coarse bands turn over slowly; finer bands evolve faster, while a zero rate recovers a frozen field.</p></article>
         <article><span>02 · CLEBSCH</span><h2>Vorticity becomes the crossing of two scalar fields.</h2><p>For <code>u♭ = dφ + α dβ</code>, exterior differentiation removes the exact part and leaves <code>du♭ = dα ∧ dβ</code>. The live vorticity layer shows that two-form on the surface.</p></article>
-        <article><span>03 · NEXT TRICK</span><h2>Then project the Clebsch field incompressibly.</h2><p>The present Clebsch field is tangent but not automatically divergence-free. A next experiment can solve its Hodge projection, compare the vorticity before and after, and then assemble the advection operator.</p></article>
+        <article><span>03 · HODGE PROJECTION</span><h2>Keep the swirl. Remove the collapse.</h2><p>The projected Clebsch mode solves a finite-volume surface Poisson problem for the raw vorticity at every time step, reconstructing its coexact velocity for area-preserving particle advection.</p></article>
       </section>
     </main>
 

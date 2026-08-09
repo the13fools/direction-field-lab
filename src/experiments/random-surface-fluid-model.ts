@@ -5,7 +5,7 @@ export interface Vec3 {
 }
 
 export type RandomFluidSurface = "square" | "sphere" | "torus";
-export type FlowProjection = "curl-free" | "divergence-free" | "clebsch";
+export type FlowProjection = "curl-free" | "divergence-free" | "clebsch" | "clebsch-projected";
 
 export interface RandomSurfaceFluidParameters {
   surface: RandomFluidSurface;
@@ -86,6 +86,23 @@ interface ParameterGeometry {
   area: number;
 }
 
+interface ProjectionCell extends ParameterGeometry {
+  covectorU: number;
+  covectorV: number;
+  coefficientU: number;
+  coefficientV: number;
+}
+
+interface ProjectionGrid {
+  surface: RandomFluidSurface;
+  time: number;
+  columns: number;
+  rows: number;
+  stepU: number;
+  stepV: number;
+  streamFunction: Float64Array;
+}
+
 const TAU = 2 * Math.PI;
 const SQUARE_WIDTH = 2.8;
 const SQUARE_PARAMETER_SCALE = SQUARE_WIDTH / TAU;
@@ -102,15 +119,19 @@ export const DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS: RandomSurfaceFluidParamete
   turnover: 0.42,
   speed: 0.62,
   timeStep: 0.018,
-  particleCount: 420,
+  particleCount: 1000,
 };
+
+function isClebschProjection(projection: FlowProjection): boolean {
+  return projection === "clebsch" || projection === "clebsch-projected";
+}
 
 function assertParameters(parameters: RandomSurfaceFluidParameters): void {
   if (!["square", "sphere", "torus"].includes(parameters.surface)) {
     throw new Error("surface must be square, sphere, or torus");
   }
-  if (!["curl-free", "divergence-free", "clebsch"].includes(parameters.projection)) {
-    throw new Error("projection must be curl-free, divergence-free, or clebsch");
+  if (!["curl-free", "divergence-free", "clebsch", "clebsch-projected"].includes(parameters.projection)) {
+    throw new Error("projection must be curl-free, divergence-free, clebsch, or clebsch-projected");
   }
   if (!Number.isInteger(parameters.seed)) throw new Error("seed must be an integer");
   if (!Number.isInteger(parameters.modeCount) || parameters.modeCount < 1 || parameters.modeCount > 160) {
@@ -283,6 +304,23 @@ function parameterGeometry(surface: "square" | "torus", u: number, v: number): P
   };
 }
 
+function projectionGeometry(surface: RandomFluidSurface, u: number, v: number): ParameterGeometry {
+  if (surface !== "sphere") return parameterGeometry(surface, u, v);
+  const sine = Math.sin(v);
+  const cosine = Math.cos(v);
+  const cosineU = Math.cos(u);
+  const sineU = Math.sin(u);
+  return {
+    position: { x: sine * cosineU, y: sine * sineU, z: cosine },
+    normal: { x: sine * cosineU, y: sine * sineU, z: cosine },
+    partialU: { x: -sine * sineU, y: sine * cosineU, z: 0 },
+    partialV: { x: cosine * cosineU, y: cosine * sineU, z: -sine },
+    metricU: sine ** 2,
+    metricV: 1,
+    area: sine,
+  };
+}
+
 function sphereExponential(point: Vec3, direction: Vec3, distance: number): Vec3 {
   const tangent = normalize(add(direction, scale(point, -dot(point, direction))));
   return add(scale(point, Math.cos(distance)), scale(tangent, Math.sin(distance)));
@@ -300,6 +338,7 @@ export class RandomSurfaceFluidModel {
   private clebschPhiScale = 1;
   private clebschAlphaScale = 1;
   private clebschBetaScale = 1;
+  private projectionCache = new Map<number, ProjectionGrid>();
 
   constructor(parameters: Partial<RandomSurfaceFluidParameters> = {}) {
     this.parameters = { ...DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS, ...parameters };
@@ -317,6 +356,7 @@ export class RandomSurfaceFluidModel {
     this.time = 0;
     this.steps = 0;
     this.makeModes();
+    this.projectionCache.clear();
     this.calibrateClebschComponents();
     this.calibrateVelocity();
     this.resetParticles();
@@ -413,15 +453,41 @@ export class RandomSurfaceFluidModel {
     );
   }
 
-  private sphereRawVelocity(point: Vec3, time: number): Vec3 {
+  private sphereClebschVelocity(point: Vec3, time: number): Vec3 {
     const primary = this.sphereScalar(this.primaryModes, point, time);
-    if (this.parameters.projection === "curl-free") return primary.gradient;
-    if (this.parameters.projection === "divergence-free") return cross(point, primary.gradient);
     const alpha = this.sphereScalar(this.alphaModes, point, time);
     const beta = this.sphereScalar(this.betaModes, point, time);
     return add(
       scale(primary.gradient, this.clebschPhiScale),
       scale(beta.gradient, this.clebschAlphaScale * alpha.value * this.clebschBetaScale),
+    );
+  }
+
+  private sphereRawVelocity(point: Vec3, time: number): Vec3 {
+    const primary = this.sphereScalar(this.primaryModes, point, time);
+    if (this.parameters.projection === "curl-free") return primary.gradient;
+    if (this.parameters.projection === "divergence-free") return cross(point, primary.gradient);
+    if (this.parameters.projection === "clebsch-projected") {
+      return this.projectedClebschVelocity(point, undefined, undefined, time);
+    }
+    return this.sphereClebschVelocity(point, time);
+  }
+
+  private parameterClebschVelocity(
+    surface: "square" | "torus",
+    u: number,
+    v: number,
+    time: number,
+  ): Vec3 {
+    const geometry = parameterGeometry(surface, u, v);
+    const primary = this.parameterScalar(this.primaryModes, u, v, time);
+    const alpha = this.parameterScalar(this.alphaModes, u, v, time);
+    const beta = this.parameterScalar(this.betaModes, u, v, time);
+    const primaryGradient = this.parameterGradient(primary, geometry);
+    const betaGradient = this.parameterGradient(beta, geometry);
+    return add(
+      scale(primaryGradient, this.clebschPhiScale),
+      scale(betaGradient, this.clebschAlphaScale * alpha.value * this.clebschBetaScale),
     );
   }
 
@@ -438,13 +504,209 @@ export class RandomSurfaceFluidModel {
     if (this.parameters.projection === "divergence-free") {
       return cross(geometry.normal, primaryGradient);
     }
-    const alpha = this.parameterScalar(this.alphaModes, u, v, time);
-    const beta = this.parameterScalar(this.betaModes, u, v, time);
-    const betaGradient = this.parameterGradient(beta, geometry);
-    return add(
-      scale(primaryGradient, this.clebschPhiScale),
-      scale(betaGradient, this.clebschAlphaScale * alpha.value * this.clebschBetaScale),
+    if (this.parameters.projection === "clebsch-projected") {
+      return this.projectedClebschVelocity(undefined, u, v, time);
+    }
+    return this.parameterClebschVelocity(surface, u, v, time);
+  }
+
+  private buildProjectionGrid(time: number): ProjectionGrid {
+    const surface = this.parameters.surface;
+    const columns = surface === "square" ? 36 : 32;
+    const rows = surface === "sphere" ? 18 : surface === "square" ? 36 : 24;
+    const periodV = surface === "sphere" ? Math.PI : TAU;
+    const stepU = TAU / columns;
+    const stepV = periodV / rows;
+    const cells: ProjectionCell[] = [];
+    const index = (row: number, column: number): number => row * columns + ((column % columns) + columns) % columns;
+
+    for (let row = 0; row < rows; row += 1) {
+      for (let column = 0; column < columns; column += 1) {
+        const u = (column + 0.5) * stepU;
+        const v = (row + 0.5) * stepV;
+        const geometry = projectionGeometry(surface, u, v);
+        const rawVelocity = surface === "sphere"
+          ? this.sphereClebschVelocity(geometry.position, time)
+          : this.parameterClebschVelocity(surface, u, v, time);
+        const covectorU = dot(rawVelocity, geometry.partialU);
+        const covectorV = dot(rawVelocity, geometry.partialV);
+        cells.push({
+          ...geometry,
+          covectorU,
+          covectorV,
+          coefficientU: geometry.area / geometry.metricU,
+          coefficientV: geometry.area / geometry.metricV,
+        });
+      }
+    }
+
+    const vorticity = new Float64Array(cells.length);
+    let weightedVorticity = 0;
+    let totalArea = 0;
+    for (let row = 0; row < rows; row += 1) {
+      for (let column = 0; column < columns; column += 1) {
+        const cellIndex = index(row, column);
+        const cell = cells[cellIndex]!;
+        const east = cells[index(row, column + 1)]!;
+        const west = cells[index(row, column - 1)]!;
+        const north = row > 0 ? cells[index(row - 1, column)]! : undefined;
+        const south = row + 1 < rows ? cells[index(row + 1, column)]! : undefined;
+        const covectorVEast = 0.5 * (cell.covectorV + east.covectorV);
+        const covectorVWest = 0.5 * (cell.covectorV + west.covectorV);
+        const covectorUNorth = surface === "sphere" && !north
+          ? 0
+          : 0.5 * (cell.covectorU + (north ?? cells[index(rows - 1, column)]!).covectorU);
+        const covectorUSouth = surface === "sphere" && !south
+          ? 0
+          : 0.5 * (cell.covectorU + (south ?? cells[index(0, column)]!).covectorU);
+        const value = (
+          (covectorVEast - covectorVWest) / stepU
+          - (covectorUSouth - covectorUNorth) / stepV
+        ) / cell.area;
+        vorticity[cellIndex] = value;
+        weightedVorticity += value * cell.area;
+        totalArea += cell.area;
+      }
+    }
+    const vorticityMean = weightedVorticity / Math.max(1e-14, totalArea);
+    for (let cellIndex = 0; cellIndex < vorticity.length; cellIndex += 1) {
+      vorticity[cellIndex] = vorticity[cellIndex]! - vorticityMean;
+    }
+
+    const potential = new Float64Array(cells.length);
+    const relaxation = 1.55;
+    for (let iteration = 0; iteration < 240; iteration += 1) {
+      for (let row = 0; row < rows; row += 1) {
+        for (let column = 0; column < columns; column += 1) {
+          const cellIndex = index(row, column);
+          const cell = cells[cellIndex]!;
+          const eastIndex = index(row, column + 1);
+          const westIndex = index(row, column - 1);
+          const northIndex = row > 0 ? index(row - 1, column) : -1;
+          const southIndex = row + 1 < rows ? index(row + 1, column) : -1;
+          const wrappedNorthIndex = northIndex >= 0 ? northIndex : index(rows - 1, column);
+          const wrappedSouthIndex = southIndex >= 0 ? southIndex : index(0, column);
+          const eastCoefficient = 0.5 * (cell.coefficientU + cells[eastIndex]!.coefficientU) / stepU ** 2;
+          const westCoefficient = 0.5 * (cell.coefficientU + cells[westIndex]!.coefficientU) / stepU ** 2;
+          const northCoefficient = surface === "sphere" && northIndex < 0
+            ? 0
+            : 0.5 * (cell.coefficientV + cells[wrappedNorthIndex]!.coefficientV) / stepV ** 2;
+          const southCoefficient = surface === "sphere" && southIndex < 0
+            ? 0
+            : 0.5 * (cell.coefficientV + cells[wrappedSouthIndex]!.coefficientV) / stepV ** 2;
+          const diagonal = eastCoefficient + westCoefficient + northCoefficient + southCoefficient;
+          const estimate = (
+            eastCoefficient * potential[eastIndex]!
+            + westCoefficient * potential[westIndex]!
+            + northCoefficient * potential[wrappedNorthIndex]!
+            + southCoefficient * potential[wrappedSouthIndex]!
+            - cell.area * vorticity[cellIndex]!
+          ) / Math.max(1e-14, diagonal);
+          potential[cellIndex] = (1 - relaxation) * potential[cellIndex]! + relaxation * estimate;
+        }
+      }
+      if (iteration % 12 === 11) {
+        let mean = 0;
+        for (let cellIndex = 0; cellIndex < cells.length; cellIndex += 1) {
+          mean += potential[cellIndex]! * cells[cellIndex]!.area;
+        }
+        mean /= Math.max(1e-14, totalArea);
+        for (let cellIndex = 0; cellIndex < potential.length; cellIndex += 1) {
+          potential[cellIndex] = potential[cellIndex]! - mean;
+        }
+      }
+    }
+
+    return { surface, time, columns, rows, stepU, stepV, streamFunction: potential };
+  }
+
+  private projectionGrid(time: number): ProjectionGrid {
+    const cached = this.projectionCache.get(time);
+    if (cached) return cached;
+    const grid = this.buildProjectionGrid(time);
+    this.projectionCache.set(time, grid);
+    while (this.projectionCache.size > 6) {
+      const oldest = this.projectionCache.keys().next().value as number | undefined;
+      if (oldest === undefined) break;
+      this.projectionCache.delete(oldest);
+    }
+    return grid;
+  }
+
+  private projectedClebschVelocity(point: Vec3 | undefined, u: number | undefined, v: number | undefined, time: number): Vec3 {
+    const grid = this.projectionGrid(time);
+    let coordinateU = u;
+    let coordinateV = v;
+    let normal: Vec3;
+    if (grid.surface === "sphere") {
+      const unit = normalize(point!);
+      coordinateU = wrapAngle(Math.atan2(unit.y, unit.x));
+      coordinateV = Math.acos(Math.max(-1, Math.min(1, unit.z)));
+      normal = unit;
+    } else {
+      const geometry = parameterGeometry(grid.surface, coordinateU!, coordinateV!);
+      normal = geometry.normal;
+    }
+    const periodV = grid.surface === "sphere" ? Math.PI : TAU;
+    const x = wrapAngle(coordinateU!) / TAU * grid.columns - 0.5;
+    const rawY = coordinateV! / periodV * grid.rows - 0.5;
+    const y = grid.surface === "sphere"
+      ? Math.max(0, Math.min(grid.rows - 1, rawY))
+      : ((rawY % grid.rows) + grid.rows) % grid.rows;
+    const column1 = Math.floor(x);
+    const row1 = Math.floor(y);
+    const blendU = x - column1;
+    const blendV = y - row1;
+    const wrapColumn = (column: number): number => ((column % grid.columns) + grid.columns) % grid.columns;
+    const wrapRow = (row: number): number => grid.surface === "sphere"
+      ? Math.max(0, Math.min(grid.rows - 1, row))
+      : ((row % grid.rows) + grid.rows) % grid.rows;
+    const at = (row: number, column: number): number => grid.streamFunction[wrapRow(row) * grid.columns + wrapColumn(column)]!;
+    const cubicValue = (p0: number, p1: number, p2: number, p3: number, amount: number): number => {
+      const amount2 = amount * amount;
+      const amount3 = amount2 * amount;
+      return 0.5 * (
+        2 * p1
+        + (-p0 + p2) * amount
+        + (2 * p0 - 5 * p1 + 4 * p2 - p3) * amount2
+        + (-p0 + 3 * p1 - 3 * p2 + p3) * amount3
+      );
+    };
+    const cubicDerivative = (p0: number, p1: number, p2: number, p3: number, amount: number): number => {
+      const amount2 = amount * amount;
+      return 0.5 * (
+        -p0 + p2
+        + 2 * (2 * p0 - 5 * p1 + 4 * p2 - p3) * amount
+        + 3 * (-p0 + 3 * p1 - 3 * p2 + p3) * amount2
+      );
+    };
+    const rowValues: number[] = [];
+    const rowDerivativesU: number[] = [];
+    for (let offsetV = -1; offsetV <= 2; offsetV += 1) {
+      const row = row1 + offsetV;
+      const p0 = at(row, column1 - 1);
+      const p1 = at(row, column1);
+      const p2 = at(row, column1 + 1);
+      const p3 = at(row, column1 + 2);
+      rowValues.push(cubicValue(p0, p1, p2, p3, blendU));
+      rowDerivativesU.push(cubicDerivative(p0, p1, p2, p3, blendU));
+    }
+    const derivativeU = cubicValue(
+      rowDerivativesU[0]!, rowDerivativesU[1]!, rowDerivativesU[2]!, rowDerivativesU[3]!, blendV,
+    ) / grid.stepU;
+    const derivativeV = cubicDerivative(
+      rowValues[0]!, rowValues[1]!, rowValues[2]!, rowValues[3]!, blendV,
+    ) / grid.stepV;
+    const sampleV = grid.surface === "sphere"
+      ? Math.max(0.5 * grid.stepV, Math.min(Math.PI - 0.5 * grid.stepV, coordinateV!))
+      : coordinateV!;
+    const geometry = projectionGeometry(grid.surface, coordinateU!, sampleV);
+    const gradient = add(
+      scale(geometry.partialU, derivativeU / geometry.metricU),
+      scale(geometry.partialV, derivativeV / geometry.metricV),
     );
+    const projected = cross(normal, gradient);
+    return add(projected, scale(normal, -dot(projected, normal)));
   }
 
   private calibrationSamples(): Array<{ point?: Vec3; u?: number; v?: number }> {
@@ -464,7 +726,7 @@ export class RandomSurfaceFluidModel {
     this.clebschPhiScale = 1;
     this.clebschAlphaScale = 1;
     this.clebschBetaScale = 1;
-    if (this.parameters.projection !== "clebsch") return;
+    if (!isClebschProjection(this.parameters.projection)) return;
     let phiGradient2 = 0;
     let alpha2 = 0;
     let betaGradient2 = 0;
@@ -588,17 +850,18 @@ export class RandomSurfaceFluidModel {
     const dt = this.parameters.timeStep;
     for (let iteration = 0; iteration < count; iteration += 1) {
       const halfTime = this.time + 0.5 * dt;
+      const firstTime = this.parameters.projection === "clebsch-projected" ? halfTime : this.time;
       for (const particle of this.particles) {
         if (particle.surface === "sphere") {
           const start = particle.position!;
-          const first = this.velocityAtSphere(start, this.time);
+          const first = this.velocityAtSphere(start, firstTime);
           const middle = normalize(add(start, scale(first, 0.5 * dt)));
           const second = this.velocityAtSphere(middle, halfTime);
           particle.position = normalize(add(start, scale(second, dt)));
         } else {
           const u = particle.u!;
           const v = particle.v!;
-          const first = this.parameterRates(particle.surface, u, v, this.time);
+          const first = this.parameterRates(particle.surface, u, v, firstTime);
           const middleU = wrapAngle(u + 0.5 * dt * first.u);
           const middleV = wrapAngle(v + 0.5 * dt * first.v);
           const second = this.parameterRates(particle.surface, middleU, middleV, halfTime);
@@ -715,7 +978,7 @@ export class RandomSurfaceFluidModel {
   spectrum(): SpectrumBand[] {
     const energy = Array.from({ length: this.parameters.maxBand }, () => 0);
     const counts = Array.from({ length: this.parameters.maxBand }, () => 0);
-    const modeSets = this.parameters.projection === "clebsch"
+    const modeSets = isClebschProjection(this.parameters.projection)
       ? [this.primaryModes, this.alphaModes, this.betaModes]
       : [this.primaryModes];
     for (const modes of modeSets) {

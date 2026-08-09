@@ -423,7 +423,7 @@ function drawSpectrum(): void {
   context.textAlign = "center";
   context.fillText("energy share", 0, 0);
   context.restore();
-  const fieldCount = projection === "clebsch" ? "3 fields" : "1 field";
+  const fieldCount = projection === "clebsch" || projection === "clebsch-projected" ? "3 fields" : "1 field";
   byId("spectrum-caption").textContent = `β = ${model.parameters.spectralSlope.toFixed(2)} · ${model.parameters.maxBand} bands · ${fieldCount}`;
 }
 
@@ -467,6 +467,12 @@ function updateConstructionCopy(): void {
       invariant: "du♭ = dα ∧ dβ",
       note: "Three independent multiscale scalar fields evolve in time. Their Clebsch combination is tangent and vortical, but this raw field has not yet been projected to be incompressible.",
     },
+    "clebsch-projected": {
+      equation: "u⊥ = J ∇ₛψ",
+      label: "area preserving",
+      invariant: "Δₛψ = ωClebsch",
+      note: "A finite-volume surface Poisson solve reconstructs the coexact velocity from the raw Clebsch vorticity. The projected field preserves area while retaining the vorticity resolved by the projection grid.",
+    },
   };
   const copy = projectionCopy[projection];
   byId("fluid-projection-equation").textContent = copy.equation;
@@ -500,7 +506,9 @@ function rebuild(reason: string): void {
     ? "exact / curl-free"
     : projection === "divergence-free"
       ? "coexact / divergence-free"
-      : "Clebsch / vortical";
+      : projection === "clebsch"
+        ? "Clebsch / raw"
+        : "Clebsch / Hodge-projected";
   byId("fluid-stage-title").textContent = `${surface} · ${projectionName}`;
   byId("fluid-status").textContent = `Seed ${model.parameters.seed} · ${reason}`;
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-surface]")) {
