@@ -33,10 +33,10 @@
         <div class="construction-card">
           <span>THE CONSTRUCTION</span>
           <code id="fluid-construction-equation">ψ(x,t) = Σ a<sub>k</sub>(t) sin(phase<sub>k</sub>(x,t))</code>
-          <code id="fluid-projection-equation">u = ∇<sub>S</sub> φ</code>
+          <code id="fluid-projection-equation">u<sub>⊥</sub> = J ∇<sub>S</sub> ψ</code>
           <div><strong>tangent</strong><i>u · n = 0</i></div>
-          <div><strong id="fluid-invariant-label">irrotational</strong><i id="fluid-invariant-equation">curl<sub>S</sub> u = 0</i></div>
-          <p id="fluid-construction-note">Each scale is a surface gradient before summation, so the curl-free identity survives the temporal modulation. Its nonzero divergence can focus or disperse particle clouds.</p>
+          <div><strong id="fluid-invariant-label">area preserving</strong><i id="fluid-invariant-equation">Δ<sub>S</sub> ψ = ω<sub>Clebsch</sub></i></div>
+          <p id="fluid-construction-note">A finite-volume surface Poisson solve reconstructs the coexact velocity from the raw Clebsch vorticity. The projected field preserves area while retaining the vorticity resolved by the projection grid.</p>
         </div>
       </section>
 
@@ -61,10 +61,10 @@
           <div class="projection-choice" aria-label="Flow construction">
             <span>FIELD CONSTRUCTION</span>
             <div>
-              <button class="active" data-fluid-projection="curl-free" aria-pressed="true"><b>Exact · curl-free</b><code>u = grad φ</code><small>zero vorticity · generally compressible</small></button>
+              <button data-fluid-projection="curl-free" aria-pressed="false"><b>Exact · curl-free</b><code>u = grad φ</code><small>zero vorticity · generally compressible</small></button>
               <button data-fluid-projection="divergence-free" aria-pressed="false"><b>Coexact · incompressible</b><code>u = J grad ψ</code><small>zero divergence · vortical</small></button>
               <button data-fluid-projection="clebsch" aria-pressed="false"><b>Clebsch · raw</b><code>u = grad φ + α grad β</code><small>vortical · generally compressible</small></button>
-              <button data-fluid-projection="clebsch-projected" aria-pressed="false"><b>Clebsch · projected</b><code>Δψ = ω<sub>C</sub>; u⊥ = J grad ψ</code><small>vorticity-matched coexact field · div u⊥ ≈ 0</small></button>
+              <button class="active" data-fluid-projection="clebsch-projected" aria-pressed="true"><b>Clebsch · projected</b><code>Δψ = ω<sub>C</sub>; u⊥ = J grad ψ</code><small>vorticity-matched coexact field · div u⊥ ≈ 0</small></button>
             </div>
           </div>
 
@@ -84,7 +84,7 @@
 
         <section class="random-stage">
           <div class="random-stage-head">
-            <div><span>LIVE TANGENT FIELD</span><strong id="fluid-stage-title">sphere · two material clouds</strong></div>
+            <div><span>LIVE TANGENT FIELD</span><strong id="fluid-stage-title">sphere · Clebsch / Hodge-projected</strong></div>
             <div class="stage-toggles">
               <button id="fluid-vectors" class="active" aria-pressed="true">vectors</button>
               <button id="fluid-vorticity" class="active" aria-pressed="true">vorticity</button>
@@ -109,7 +109,7 @@
             <div><span>tangent defect</span><strong id="fluid-tangency">—</strong></div>
             <div><span>field correlation</span><strong id="fluid-correlation">—</strong></div>
           </div>
-          <p id="fluid-status" class="fluid-status" aria-live="polite">Seed 13 · divergence-free stream field ready</p>
+          <p id="fluid-status" class="fluid-status" aria-live="polite">Seed 13 · projected Clebsch field ready</p>
         </section>
 
         <aside class="random-controls">

@@ -111,7 +111,7 @@ const TORUS_MINOR_RADIUS = 0.46;
 
 export const DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS: RandomSurfaceFluidParameters = {
   surface: "sphere",
-  projection: "divergence-free",
+  projection: "clebsch-projected",
   seed: 13,
   modeCount: 28,
   maxBand: 7,

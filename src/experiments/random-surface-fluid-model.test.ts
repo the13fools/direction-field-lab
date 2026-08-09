@@ -15,6 +15,7 @@ function length(x: number, y: number, z: number): number {
 describe("random fluids on surfaces", () => {
   it("starts with one thousand particles", () => {
     expect(DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS.particleCount).toBe(1000);
+    expect(DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS.projection).toBe("clebsch-projected");
     expect(new RandomSurfaceFluidModel().particles).toHaveLength(1000);
   });
 

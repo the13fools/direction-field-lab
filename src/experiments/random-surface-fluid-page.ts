@@ -44,7 +44,7 @@ const outputs = {
 };
 
 let surface: RandomFluidSurface = "sphere";
-let projection: FlowProjection = "curl-free";
+let projection: FlowProjection = "clebsch-projected";
 let model = readModel();
 let playing = true;
 let vectorsVisible = true;
