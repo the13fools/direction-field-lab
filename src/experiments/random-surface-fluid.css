@@ -114,7 +114,7 @@ button { cursor: pointer; }
 
 .random-stage {
   display: grid;
-  grid-template-rows: auto minmax(570px, 1fr) auto auto auto;
+  grid-template-rows: auto auto auto auto auto;
   min-width: 0;
   padding: 18px;
   color: white;
@@ -133,13 +133,15 @@ button { cursor: pointer; }
 
 #random-fluid-viewer {
   position: relative;
-  min-height: 570px;
+  height: clamp(520px, 64vh, 720px);
+  min-height: 0;
   overflow: hidden;
+  contain: layout paint size;
   border: 1px solid #53436f;
   border-radius: 7px;
   background: radial-gradient(circle at 50% 40%, #223954, #0d081f 72%);
 }
-#random-fluid-viewer canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+#random-fluid-viewer canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: none; }
 .viewer-instruction { position: absolute; z-index: 3; top: 12px; left: 12px; padding: 6px 8px; color: #a998bd; border: 1px solid rgba(255,255,255,.12); border-radius: 3px; background: rgba(13,8,31,.7); font: 700 7px var(--mono); pointer-events: none; }
 .particle-key { position: absolute; z-index: 3; right: 12px; bottom: 12px; display: flex; gap: 10px; padding: 7px 8px; color: #c8bed4; border-radius: 3px; background: rgba(13,8,31,.72); font: 700 7px var(--mono); pointer-events: none; }
 .particle-key span { display: flex; gap: 5px; align-items: center; }
@@ -199,7 +201,7 @@ button { cursor: pointer; }
   .random-controls { grid-column: auto; grid-template-columns: 1fr; }
   .random-controls > .random-eyebrow, .random-controls > .preset-row, .random-controls > .spectrum-card { grid-column: auto; }
   .random-stage { min-height: 760px; }
-  #random-fluid-viewer { min-height: 520px; }
+  #random-fluid-viewer { height: clamp(440px, 62vh, 580px); }
   .random-metrics { grid-template-columns: repeat(3, 1fr); }
 }
 
@@ -207,7 +209,7 @@ button { cursor: pointer; }
   .random-intro { padding-inline: 18px; }
   .random-title h1 { font-size: 3.55rem; }
   .random-stage, .random-guide, .random-controls { padding-inline: 14px; }
-  #random-fluid-viewer { min-height: 440px; }
+  #random-fluid-viewer { height: clamp(380px, 60vh, 480px); }
   .random-metrics { grid-template-columns: repeat(2, 1fr); }
   .random-stage-head { align-items: flex-start; }
   .random-notes article { min-height: 0; padding: 38px 22px; }
