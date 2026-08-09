@@ -11,12 +11,8 @@ import {
   type FlowProjection,
   type RandomFluidSurface,
   type Vec3,
+  type VertexVelocitySample,
 } from "./random-surface-fluid-model";
-import {
-  compileVectorFieldProgram,
-  DEFAULT_VECTOR_FIELD_PROGRAM,
-  type CompiledVectorFieldProgram,
-} from "./vector-field-program";
 
 function byId<T extends HTMLElement>(id: string): T {
   const value = document.getElementById(id);
@@ -30,8 +26,7 @@ const vectorButton = byId<HTMLButtonElement>("fluid-vectors");
 const vorticityButton = byId<HTMLButtonElement>("fluid-vorticity");
 const trailButton = byId<HTMLButtonElement>("fluid-trails");
 const spectrumCanvas = byId<HTMLCanvasElement>("fluid-spectrum");
-const fieldCodeEditor = byId<HTMLTextAreaElement>("fluid-field-code");
-const fieldCodeStatus = byId<HTMLParagraphElement>("fluid-field-code-status");
+const vertexDensityStatus = byId<HTMLParagraphElement>("fluid-vertex-density-status");
 const controls = {
   seed: byId<HTMLInputElement>("fluid-seed"),
   slope: byId<HTMLInputElement>("fluid-slope"),
@@ -60,8 +55,8 @@ let trailsVisible = true;
 let frame = 0;
 let trailHistory: Vec3[][] = [];
 let fieldVertices: Array<{ position: Vec3; u?: number; v?: number }> = [];
-let fieldDisplayProgram: CompiledVectorFieldProgram = compileVectorFieldProgram(DEFAULT_VECTOR_FIELD_PROGRAM);
-let fieldProgramRuntimeError = "";
+let allFieldVertices: Array<{ position: Vec3; u?: number; v?: number }> = [];
+let showEveryVectorVertex = false;
 
 const TAU = 2 * Math.PI;
 
@@ -141,7 +136,21 @@ function clearGroup(group: THREE.Group): void {
   }
 }
 
-function fieldVerticesFromGeometry(geometry: THREE.BufferGeometry): Array<{ position: Vec3; u?: number; v?: number }> {
+function vertexAt(
+  positions: THREE.BufferAttribute | THREE.InterleavedBufferAttribute,
+  uvs: THREE.BufferAttribute | THREE.InterleavedBufferAttribute,
+  index: number,
+): { position: Vec3; u?: number; v?: number } {
+  const position = { x: positions.getX(index), y: positions.getY(index), z: positions.getZ(index) };
+  return surface === "sphere"
+    ? { position }
+    : { position, u: TAU * uvs.getX(index), v: TAU * uvs.getY(index) };
+}
+
+function fieldVerticesFromGeometry(geometry: THREE.BufferGeometry): {
+  readable: Array<{ position: Vec3; u?: number; v?: number }>;
+  all: Array<{ position: Vec3; u?: number; v?: number }>;
+} {
   const positions = geometry.getAttribute("position");
   const uvs = geometry.getAttribute("uv");
   const layout = surface === "sphere"
@@ -149,17 +158,25 @@ function fieldVerticesFromGeometry(geometry: THREE.BufferGeometry): Array<{ posi
     : surface === "torus"
       ? { columns: 73, rowStart: 0, rowEnd: 30, rowStride: 3, columnEnd: 72, columnStride: 4 }
       : { columns: 29, rowStart: 0, rowEnd: 29, rowStride: 2, columnEnd: 29, columnStride: 2 };
-  const vertices: Array<{ position: Vec3; u?: number; v?: number }> = [];
+  const readable: Array<{ position: Vec3; u?: number; v?: number }> = [];
   for (let row = layout.rowStart; row < layout.rowEnd; row += layout.rowStride) {
     for (let column = 0; column < layout.columnEnd; column += layout.columnStride) {
       const index = row * layout.columns + column;
-      const position = { x: positions.getX(index), y: positions.getY(index), z: positions.getZ(index) };
-      vertices.push(surface === "sphere"
-        ? { position }
-        : { position, u: TAU * uvs.getX(index), v: TAU * uvs.getY(index) });
+      readable.push(vertexAt(positions, uvs, index));
     }
   }
-  return vertices;
+  const all: Array<{ position: Vec3; u?: number; v?: number }> = [];
+  const seenPositions = new Set<string>();
+  for (let index = 0; index < positions.count; index += 1) {
+    const vertex = vertexAt(positions, uvs, index);
+    const key = [vertex.position.x, vertex.position.y, vertex.position.z]
+      .map((value) => Math.round(value * 1e6))
+      .join(":");
+    if (seenPositions.has(key)) continue;
+    seenPositions.add(key);
+    all.push(vertex);
+  }
+  return { readable, all };
 }
 
 function rebuildSurface(): void {
@@ -169,7 +186,9 @@ function rebuildSurface(): void {
     : surface === "torus"
       ? new THREE.TorusGeometry(1.25, 0.46, 30, 72)
       : new THREE.PlaneGeometry(2.8, 2.8, 28, 28);
-  fieldVertices = fieldVerticesFromGeometry(geometry);
+  const vertices = fieldVerticesFromGeometry(geometry);
+  fieldVertices = vertices.readable;
+  allFieldVertices = vertices.all;
   const material = new THREE.MeshPhysicalMaterial({
     color: 0x3d2868,
     emissive: 0x111533,
@@ -306,60 +325,24 @@ function updateParticles(appendTrail: boolean): void {
   trailLines.visible = trailsVisible;
 }
 
-function evaluateDisplayVelocity(program: CompiledVectorFieldProgram, sample: FieldSample): Vec3 {
-  const edited = program.evaluate({
-    vx: sample.velocity.x,
-    vy: sample.velocity.y,
-    vz: sample.velocity.z,
-    x: sample.position.x,
-    y: sample.position.y,
-    z: sample.position.z,
-    t: model.time,
-  });
-  const normalComponent = edited.x * sample.normal.x + edited.y * sample.normal.y + edited.z * sample.normal.z;
-  const tangent = {
-    x: edited.x - normalComponent * sample.normal.x,
-    y: edited.y - normalComponent * sample.normal.y,
-    z: edited.z - normalComponent * sample.normal.z,
-  };
-  if (![tangent.x, tangent.y, tangent.z].every(Number.isFinite)) {
-    throw new Error("The display program produced a non-finite vector.");
-  }
-  return tangent;
-}
-
-function displayVelocity(sample: FieldSample): Vec3 {
-  try {
-    const velocity = evaluateDisplayVelocity(fieldDisplayProgram, sample);
-    fieldProgramRuntimeError = "";
-    return velocity;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (fieldProgramRuntimeError !== message) {
-      fieldProgramRuntimeError = message;
-      fieldCodeStatus.textContent = `${message} Showing the analytic field instead.`;
-      fieldCodeStatus.dataset.kind = "bad";
-    }
-    return sample.velocity;
-  }
-}
-
 function updateField(): FieldSample[] {
   clearGroup(fieldGroup);
   const samples = fieldVertices.map((vertex) => model.fieldSampleAtVertex(vertex.position, vertex.u, vertex.v));
-  const displayVelocities = samples.map(displayVelocity);
-  const maxSpeed = Math.max(1e-12, ...displayVelocities.map((velocity) => Math.hypot(
-    velocity.x,
-    velocity.y,
-    velocity.z,
+  const vectorSamples: VertexVelocitySample[] = showEveryVectorVertex
+    ? allFieldVertices.map((vertex) => model.velocitySampleAtVertex(vertex.position, vertex.u, vertex.v))
+    : samples;
+  const maxSpeed = Math.max(1e-12, ...vectorSamples.map((sample) => Math.hypot(
+    sample.velocity.x,
+    sample.velocity.y,
+    sample.velocity.z,
   )));
-  const positions = new Float32Array(samples.length * 6);
-  const colors = new Float32Array(samples.length * 6);
+  const positions = new Float32Array(vectorSamples.length * 6);
+  const colors = new Float32Array(vectorSamples.length * 6);
   const cyan = new THREE.Color(0x59e3ef);
   const gold = new THREE.Color(0xffd86d);
   const vectorLift = surface === "square" ? 0.012 : surface === "sphere" ? 0.012 : 0.018;
-  samples.forEach((sample, index) => {
-    const velocity = displayVelocities[index]!;
+  vectorSamples.forEach((sample, index) => {
+    const velocity = sample.velocity;
     const speed = Math.hypot(velocity.x, velocity.y, velocity.z);
     const amount = speed / maxSpeed;
     const length = 0.055 + 0.15 * Math.sqrt(amount);
@@ -440,24 +423,16 @@ function updateField(): FieldSample[] {
   vorticityPoints.renderOrder = 2;
   vorticityPoints.visible = vorticityVisible;
   fieldGroup.add(vorticityPoints);
-  return samples;
-}
-
-function applyFieldCode(reason: string): void {
-  try {
-    const next = compileVectorFieldProgram(fieldCodeEditor.value);
-    const samples = fieldVertices.map((vertex) => model.fieldSampleAtVertex(vertex.position, vertex.u, vertex.v));
-    for (const sample of samples) evaluateDisplayVelocity(next, sample);
-    fieldDisplayProgram = next;
-    fieldProgramRuntimeError = "";
-    updateField();
-    fieldCodeStatus.textContent = `${reason} Applied at ${samples.length} mesh vertices; output reprojected tangent.`;
-    fieldCodeStatus.dataset.kind = "good";
-    byId("fluid-status").textContent = `Seed ${model.parameters.seed} · editable display code active`;
-  } catch (error) {
-    fieldCodeStatus.textContent = error instanceof Error ? error.message : String(error);
-    fieldCodeStatus.dataset.kind = "bad";
+  const displayedCount = vectorSamples.length;
+  vertexDensityStatus.textContent = showEveryVectorVertex
+    ? `${displayedCount.toLocaleString()} unique mesh vertices shown.`
+    : `${displayedCount.toLocaleString()} of ${allFieldVertices.length.toLocaleString()} mesh vertices shown; no interpolation.`;
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-vertex-density]")) {
+    const active = (button.dataset.fluidVertexDensity === "all") === showEveryVectorVertex;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
   }
+  return samples;
 }
 
 function fitCanvas(canvas: HTMLCanvasElement): CanvasRenderingContext2D {
@@ -685,21 +660,15 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-p
   });
 }
 
-byId<HTMLButtonElement>("apply-fluid-field-code").addEventListener("click", () => applyFieldCode("Vector program"));
-byId<HTMLButtonElement>("reset-fluid-field-code").addEventListener("click", () => {
-  fieldCodeEditor.value = DEFAULT_VECTOR_FIELD_PROGRAM;
-  applyFieldCode("Identity program");
-});
-byId<HTMLButtonElement>("twist-fluid-field-code").addEventListener("click", () => {
-  fieldCodeEditor.value = `x = vx - 0.35 * y\ny = vy + 0.35 * x\nz = vz`;
-  applyFieldCode("Position-dependent twist");
-});
-fieldCodeEditor.addEventListener("keydown", (event) => {
-  if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
-    event.preventDefault();
-    applyFieldCode("Vector program");
-  }
-});
+for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-vertex-density]")) {
+  button.addEventListener("click", () => {
+    showEveryVectorVertex = button.dataset.fluidVertexDensity === "all";
+    updateField();
+    byId("fluid-status").textContent = showEveryVectorVertex
+      ? `Seed ${model.parameters.seed} · vector glyph at every unique mesh vertex`
+      : `Seed ${model.parameters.seed} · readable mesh-vertex subset · no interpolation`;
+  });
+}
 
 playButton.addEventListener("click", () => setPlaying(!playing));
 byId<HTMLButtonElement>("fluid-step").addEventListener("click", () => {
@@ -763,6 +732,5 @@ resizeObserver.observe(viewer);
 window.addEventListener("resize", drawSpectrum);
 
 updateControlOutputs();
-fieldCodeEditor.value = DEFAULT_VECTOR_FIELD_PROGRAM;
 rebuild("mesh-vertex field ready · temporal-Perlin coefficients live");
 animate();

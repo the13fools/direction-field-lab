@@ -28,14 +28,17 @@ export interface FluidParticle {
   group: 0 | 1;
 }
 
-export interface FieldSample {
+export interface VertexVelocitySample {
   position: Vec3;
   normal: Vec3;
   velocity: Vec3;
-  divergence: number;
-  vorticity: number;
   u?: number;
   v?: number;
+}
+
+export interface FieldSample extends VertexVelocitySample {
+  divergence: number;
+  vorticity: number;
 }
 
 export interface RandomFluidDiagnostics {
@@ -942,14 +945,13 @@ export class RandomSurfaceFluidModel {
     };
   }
 
-  fieldSampleAtVertex(position: Vec3, u?: number, v?: number): FieldSample {
+  velocitySampleAtVertex(position: Vec3, u?: number, v?: number): VertexVelocitySample {
     if (this.parameters.surface === "sphere") {
       const unit = normalize(position);
       return {
         position: unit,
         normal: unit,
         velocity: this.velocityAtSphere(unit),
-        ...this.sphereDifferentials(unit),
       };
     }
     if (u === undefined || v === undefined) {
@@ -965,10 +967,17 @@ export class RandomSurfaceFluidModel {
       position,
       normal: geometry.normal,
       velocity,
-      ...this.parameterDifferentials(this.parameters.surface, wrappedU, wrappedV),
       u: wrappedU,
       v: wrappedV,
     };
+  }
+
+  fieldSampleAtVertex(position: Vec3, u?: number, v?: number): FieldSample {
+    const sample = this.velocitySampleAtVertex(position, u, v);
+    const differentials = this.parameters.surface === "sphere"
+      ? this.sphereDifferentials(sample.normal)
+      : this.parameterDifferentials(this.parameters.surface, sample.u!, sample.v!);
+    return { ...sample, ...differentials };
   }
 
   fieldSamples(): FieldSample[] {

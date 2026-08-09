@@ -120,19 +120,15 @@
             <button data-fluid-preset="rough">Fine grain</button>
           </div>
 
-          <div class="field-code-card">
-            <span>LIVE DISPLAY PROGRAM · MESH VERTICES</span>
-            <strong>Edit the rendered vector components</strong>
-            <p>This safe arithmetic program changes the arrows only; particle advection and the analytic differential audits remain the reference field.</p>
-            <textarea id="fluid-field-code" spellcheck="false" aria-label="Editable mesh-vertex vector display program">x = vx
-y = vy
-z = vz</textarea>
+          <div class="vertex-density-card">
+            <span>VECTOR GLYPHS · ACTUAL MESH VERTICES</span>
+            <strong>Choose mesh-vertex coverage</strong>
+            <p>Both modes evaluate the analytic velocity directly at rendered mesh vertices. Readable mode only skips glyphs; it does not resample or interpolate the field.</p>
             <div>
-              <button id="apply-fluid-field-code">Apply code</button>
-              <button id="reset-fluid-field-code">Identity</button>
-              <button id="twist-fluid-field-code">Add twist</button>
+              <button class="active" data-fluid-vertex-density="readable" aria-pressed="true">Readable vertices</button>
+              <button data-fluid-vertex-density="all" aria-pressed="false">Every vertex</button>
             </div>
-            <p id="fluid-field-code-status" aria-live="polite">Symbols: <code>vx vy vz</code> analytic velocity · <code>x y z</code> vertex · <code>t</code> time.</p>
+            <p id="fluid-vertex-density-status" aria-live="polite">Mesh vertex counts update with the selected surface.</p>
           </div>
 
           <label class="seed-control">
