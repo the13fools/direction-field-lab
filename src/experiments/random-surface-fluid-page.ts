@@ -593,6 +593,16 @@ function rebuild(reason: string): void {
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   }
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-tutorial-projection]")) {
+    const active = button.dataset.fluidTutorialProjection === projection;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-tutorial-turnover]")) {
+    const active = Number(button.dataset.fluidTutorialTurnover) === model.parameters.turnover;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
 }
 
 function setPlaying(value: boolean): void {
@@ -605,6 +615,10 @@ function clearPresetSelection(): void {
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-preset]")) {
     button.classList.remove("active");
   }
+}
+
+function showLiveExperiment(): void {
+  document.getElementById("live-fluid-lab")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 for (const input of Object.values(controls)) {
@@ -630,6 +644,25 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-p
   button.addEventListener("click", () => {
     projection = button.dataset.fluidProjection as FlowProjection;
     rebuild(`${projection} construction · differential identities re-audited`);
+  });
+}
+
+for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-tutorial-projection]")) {
+  button.addEventListener("click", () => {
+    projection = button.dataset.fluidTutorialProjection as FlowProjection;
+    rebuild(`${projection} tutorial state loaded · same seed and particle clouds`);
+    showLiveExperiment();
+  });
+}
+
+for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-tutorial-turnover]")) {
+  button.addEventListener("click", () => {
+    controls.turnover.value = button.dataset.fluidTutorialTurnover!;
+    clearPresetSelection();
+    updateControlOutputs();
+    const frozen = Number(controls.turnover.value) === 0;
+    rebuild(frozen ? "temporal Perlin coordinates frozen" : "smooth temporal Perlin motion restored");
+    showLiveExperiment();
   });
 }
 

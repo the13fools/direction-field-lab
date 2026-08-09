@@ -28,7 +28,8 @@
         <div class="random-title">
           <p class="random-eyebrow">Stack spatial scales. Evolve them with time noise. Project. Advect.</p>
           <h1>Random fluids,<br /><em>bound to a surface.</em></h1>
-          <p>Build several seeded spatial fields, let their coefficients wander through smooth Perlin noise in time, and combine the scales. Then compare exact, coexact, raw Clebsch, and Hodge-projected Clebsch fields by watching the same two particle clouds move.</p>
+          <p>Build three seeded scalar fields, let their Fourier-like modes wander smoothly in time, form a raw Clebsch velocity, and project it onto its incompressible part. The lesson below derives each stage before you compare them in the live experiment.</p>
+          <a class="lesson-link" href="#clebsch-tutorial">Begin the projected Clebsch tutorial ↓</a>
         </div>
         <div class="construction-card">
           <span>THE CONSTRUCTION</span>
@@ -40,13 +41,104 @@
         </div>
       </section>
 
-      <section class="random-lab">
+      <section id="clebsch-tutorial" class="clebsch-tutorial">
+        <header class="tutorial-heading">
+          <div>
+            <p class="random-eyebrow">Guided derivation · about five minutes</p>
+            <h2>From noisy scalars to an incompressible surface flow.</h2>
+          </div>
+          <p>The central idea is simple but layered: randomness builds <code>φ</code>, <code>α</code>, and <code>β</code>; the Clebsch formula turns them into a velocity with vorticity; a Hodge solve keeps that vorticity while discarding the compressible part.</p>
+        </header>
+
+        <div class="tutorial-pipeline">
+          <article class="tutorial-step tutorial-noise">
+            <div class="tutorial-step-label"><span>01</span><b>TIME COHERENCE</b></div>
+            <h3>Perlin noise moves the modes—not the mesh.</h3>
+            <p>For each scalar <code>f ∈ {φ, α, β}</code>, the seed first fixes spatial waves. On the square and torus these are periodic Fourier modes; on the sphere they are ambient plane waves restricted to the surface.</p>
+            <div class="tutorial-equation">
+              <code>f(x,t) = Σ A<sub>m</sub> e<sub>m</sub>(t)<br />· sin(q<sub>m</sub>(x) + θ<sub>m</sub> + p<sub>m</sub>(t))</code>
+              <small>spatial wave + smooth temporal envelope + smooth temporal phase</small>
+            </div>
+            <div class="noise-recipe" aria-label="How one-dimensional temporal Perlin noise is constructed">
+              <div><b>1</b><span>Hash a random slope at each integer time lattice point.</span></div>
+              <div><b>2</b><span>Take each slope’s linear contribution inside the current interval.</span></div>
+              <div><b>3</b><span>Blend them with <code>6ξ⁵ − 15ξ⁴ + 10ξ³</code> for smooth joins.</span></div>
+            </div>
+            <p class="tutorial-detail">Each mode follows an independent 1D noise path <code>N(o<sub>m</sub> + r<sub>m</sub>t)</code>. The turnover slider scales <code>r<sub>m</sub></code>; finer bands also evolve faster by roughly <code>√band</code>. At zero turnover, the random field freezes exactly.</p>
+          </article>
+
+          <article class="tutorial-step">
+            <div class="tutorial-step-label"><span>02</span><b>CLEBSCH ASSEMBLY</b></div>
+            <h3>Two scalar gradients create the swirl.</h3>
+            <p>Convert the three noisy scalars into the raw velocity one-form</p>
+            <div class="tutorial-equation tutorial-equation-large">
+              <code>u<sub>C</sub><sup>♭</sup> = dφ + α dβ</code>
+              <small><code>dφ</code> is exact; <code>α dβ</code> couples two scalar fields.</small>
+            </div>
+            <p>Now take one exterior derivative:</p>
+            <div class="tutorial-equation tutorial-equation-large accent">
+              <code>d u<sub>C</sub><sup>♭</sup> = dα ∧ dβ</code>
+              <small>because <code>d(dφ)=0</code> and <code>d(αdβ)=dα∧dβ</code>.</small>
+            </div>
+            <p class="tutorial-detail">This is the useful Clebsch fact: vorticity is generated where the level sets of <code>α</code> and <code>β</code> cross. The <code>φ</code> field can change the raw motion and its compression, but it contributes no vorticity.</p>
+          </article>
+
+          <article class="tutorial-step tutorial-projection">
+            <div class="tutorial-step-label"><span>03</span><b>HODGE PROJECTION</b></div>
+            <h3>Keep the resolved curl. Remove the collapse.</h3>
+            <p>The raw Clebsch field is tangent, but it is not generally divergence-free. This implementation projects the velocity after it is assembled; it does not project <code>φ</code>, <code>α</code>, or <code>β</code> separately.</p>
+            <ol class="projection-recipe">
+              <li><span>measure</span><code>ω<sub>C</sub> = ★ d u<sub>C</sub><sup>♭</sup></code></li>
+              <li><span>solve</span><code>Δ<sub>S</sub> ψ = ω<sub>C</sub></code></li>
+              <li><span>rebuild</span><code>u<sub>⊥</sub> = J ∇<sub>S</sub> ψ</code></li>
+            </ol>
+            <div class="preserve-grid">
+              <div><span>KEPT</span><strong>resolved vorticity</strong></div>
+              <div><span>REMOVED</span><strong>gradient / compressible part</strong></div>
+              <div><span>RESULT</span><strong>div<sub>S</sub> u<sub>⊥</sub> ≈ 0</strong></div>
+            </div>
+            <p class="tutorial-detail">The area-weighted mean vorticity is removed so the Poisson equation is solvable on a closed or periodic surface. On the torus, this stream-function reconstruction also omits any harmonic circulation component.</p>
+          </article>
+
+          <article class="tutorial-step">
+            <div class="tutorial-step-label"><span>04</span><b>SAMPLE + ADVECT</b></div>
+            <h3>Then ask what the flow does to material.</h3>
+            <p>The projected stream function is reconstructed smoothly over the surface. Particles query that velocity at their own positions and advance with a midpoint step, wrapping periodic coordinates or renormalizing to the sphere.</p>
+            <div class="tutorial-equation tutorial-equation-large">
+              <code>ẋ(t) = u<sub>⊥</sub>(x(t),t)</code>
+              <small>the two particle colors are passive material labels, not different dynamics.</small>
+            </div>
+            <p>The arrows are a separate observation layer. <strong>Readable vertices</strong> skips some actual mesh vertices; <strong>Every vertex</strong> evaluates the velocity at every unique rendered vertex. Neither mode invents a second display grid.</p>
+            <div class="metric-key">
+              <span><b>divergence RMS ↓</b> less local area change</span>
+              <span><b>vorticity RMS</b> strength of local rotation</span>
+              <span><b>correlation ↓</b> field has decorrelated from time zero</span>
+            </div>
+          </article>
+        </div>
+
+        <aside class="tutorial-experiment">
+          <div>
+            <p class="random-eyebrow">Controlled comparison</p>
+            <h3>Use the same seed and the same particle clouds.</h3>
+            <p>Freeze the time noise first. Compare raw and projected Clebsch fields while watching divergence RMS and whether either cloud contracts. Then restore the temporal motion and watch the field correlation fall.</p>
+          </div>
+          <div class="tutorial-actions" aria-label="Load tutorial states in the live experiment">
+            <button data-fluid-tutorial-turnover="0">1 · Freeze time noise</button>
+            <button data-fluid-tutorial-projection="clebsch">2 · Show raw Clebsch</button>
+            <button data-fluid-tutorial-projection="clebsch-projected">3 · Apply the projection</button>
+            <button data-fluid-tutorial-turnover="0.42">4 · Restore time motion</button>
+          </div>
+        </aside>
+      </section>
+
+      <section id="live-fluid-lab" class="random-lab">
         <aside class="random-guide">
-          <p class="random-eyebrow">A three-minute experiment</p>
+          <p class="random-eyebrow">How to read the experiment</p>
           <ol>
-            <li><span>01</span><div><strong>Watch two clouds stretch.</strong><p>The warm and cool particles begin in compact patches. Their trails reveal shear, trapping, and mixing.</p></div></li>
-            <li><span>02</span><div><strong>Compare the projections.</strong><p>Raw Clebsch flow can collapse; its Hodge projection retains resolved vorticity while preserving area.</p></div></li>
-            <li><span>03</span><div><strong>Turn time noise on and off.</strong><p>At zero turnover the coefficients freeze. Increasing it makes every scale wander smoothly and decorrelates the field.</p></div></li>
+            <li><span>01</span><div><strong>Hold the realization fixed.</strong><p>A seed fixes the spatial modes, temporal noise paths, and initial particle clouds, so comparisons are repeatable.</p></div></li>
+            <li><span>02</span><div><strong>Compare raw with projected.</strong><p>Watch divergence RMS, not just the apparent swirl. Projection should suppress compression without erasing the resolved vorticity.</p></div></li>
+            <li><span>03</span><div><strong>Then animate the coefficients.</strong><p>Turnover moves amplitude and phase along smooth noise paths. Field correlation measures memory of the initial velocity.</p></div></li>
           </ol>
 
           <div class="surface-choice" aria-label="Surface">
@@ -69,16 +161,16 @@
           </div>
 
           <details open>
-            <summary>Why distinguish curl-free and divergence-free?</summary>
-            <p><code>grad φ</code> is curl-free but can create sources and sinks. Rotating it gives <code>J grad ψ</code>, which is divergence-free but generally has vorticity. They are the exact and coexact sides of the surface Hodge decomposition.</p>
+            <summary>What exactly is being projected?</summary>
+            <p>First construct the complete raw velocity <code>u<sub>C</sub><sup>♭</sup> = dφ + αdβ</code>. Its scalar vorticity is measured on the projection grid. A Poisson solve then reconstructs the coexact velocity carrying that resolved vorticity.</p>
           </details>
           <details>
-            <summary>Where does Perlin noise enter?</summary>
-            <p>The spatial directions and phases are seeded once. Every modal amplitude and phase then follows its own smooth one-dimensional gradient-noise path in time. Projection is spatial, so it remains valid at every instant.</p>
+            <summary>Why can raw Clebsch collapse?</summary>
+            <p>Clebsch form controls vorticity, not divergence. The exact term <code>dφ</code> and part of <code>αdβ</code> can still create local sources and sinks. Particle density therefore changes even though the field is tangent to the surface.</p>
           </details>
           <details>
-            <summary>What do the Clebsch fields mean?</summary>
-            <p>The three scalar fields <code>φ</code>, <code>α</code>, and <code>β</code> receive independent multiscale time noise. The raw field can compress. The projected mode solves <code>Δψ = ω<sub>C</sub></code> and displays the coexact field <code>J grad ψ</code>.</p>
+            <summary>Does projected mean curl-free?</summary>
+            <p>No. The projected field is approximately divergence-free and deliberately vortical. Curl-free <code>grad φ</code> and divergence-free <code>J grad ψ</code> are different pieces of the surface Hodge decomposition.</p>
           </details>
         </aside>
 
@@ -174,9 +266,9 @@
       </section>
 
       <section class="random-notes">
-        <article><span>01 · TIME NOISE</span><h2>Randomness moves without popping.</h2><p>Seeded gradient noise supplies a smooth coefficient path for every spatial mode. Coarse bands turn over slowly; finer bands evolve faster, while a zero rate recovers a frozen field.</p></article>
-        <article><span>02 · CLEBSCH</span><h2>Vorticity becomes the crossing of two scalar fields.</h2><p>For <code>u♭ = dφ + α dβ</code>, exterior differentiation removes the exact part and leaves <code>du♭ = dα ∧ dβ</code>. The live vorticity layer shows that two-form on the surface.</p></article>
-        <article><span>03 · HODGE PROJECTION</span><h2>Keep the swirl. Remove the collapse.</h2><p>The projected Clebsch mode solves a finite-volume surface Poisson problem for the raw vorticity at every time step, reconstructing its coexact velocity for area-preserving particle advection.</p></article>
+        <article><span>CHECK 01 · RAW</span><h2>Vorticity does not imply incompressibility.</h2><p>A raw Clebsch field can swirl beautifully while still focusing particles. Use divergence RMS to detect the compressible component that trails alone may disguise.</p></article>
+        <article><span>CHECK 02 · PROJECTED</span><h2>The velocity changes; the target curl does not.</h2><p>The solve does not merely “clean up” the arrows. It selects the coexact velocity associated with the resolved Clebsch vorticity, modulo discretization and omitted harmonic circulation.</p></article>
+        <article><span>CHECK 03 · PERLIN</span><h2>Smooth randomness is not fluid dynamics.</h2><p>Temporal Perlin noise prescribes how the random field changes; it is not a Navier–Stokes evolution. The particles respond to that kinematic velocity, but they do not feed back into it.</p></article>
       </section>
     </main>
 
