@@ -130,6 +130,12 @@ flux, audits mass/curl/adjointness, and lets students edit the local height
 energy without recompiling. The intentionally flat periodic baseline is the
 contract that later surface and vorticity-based formulations must preserve.
 
+Open <http://localhost:4173/random-fluids.html> for a seeded random-flow
+laboratory on a sphere or torus. A stream-function construction produces a
+tangent, divergence-free velocity field; spectral falloff and temporal
+turnover are adjustable, and two material clouds make particle mixing visible.
+The model reports numerical tangency, divergence, and field-correlation audits.
+
 No C++ toolchain is needed for this path: the generated WebAssembly kernel is
 committed. `npm run check` validates the numerical kernels, builds `dist/`, and
 audits the result for repository-subpath hosting. See the complete

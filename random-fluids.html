@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#17102f" />
+    <meta name="description" content="Generate divergence-free random tangent flows on a sphere or torus and advect particle clouds through their spectrum." />
+    <meta property="og:title" content="Random fluids on surfaces · Direction Field Lab" />
+    <meta property="og:description" content="A seeded stream-function laboratory for tangent flow, spectral falloff, temporal decorrelation, and particle mixing." />
+    <meta property="og:image" content="./random-fluids-og.png" />
+    <meta property="og:image:alt" content="Luminous random tangent flow lines and tracer particles moving across a triangulated sphere and torus." />
+    <meta name="twitter:card" content="summary_large_image" />
+    <title>Random fluids on surfaces · Direction Field Lab</title>
+  </head>
+  <body>
+    <header class="random-header">
+      <a href="./index.html">← Direction Field Lab</a>
+      <div><span>RANDOM FLOW · EXPERIMENT 01</span><strong>Fluids on surfaces</strong></div>
+      <nav>
+        <a href="./shallow-water.html">Shallow water</a>
+        <a href="./dec-playground.html">DEC operators</a>
+        <a href="./references.html#flow">Sources</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="random-intro">
+        <div class="random-title">
+          <p class="random-eyebrow">Seed a spectrum. Rotate a gradient. Follow the particles.</p>
+          <h1>Random fluids,<br /><em>bound to a surface.</em></h1>
+          <p>Build a time-varying stream function from seeded modes, turn it by ninety degrees in each tangent plane, and obtain a velocity field that is tangent and divergence-free by construction. The particles expose what the spectrum actually does.</p>
+        </div>
+        <div class="construction-card">
+          <span>THE CONSTRUCTION</span>
+          <code>ψ(x,t) = Σ a<sub>k</sub> sin(phase<sub>k</sub>(x,t))</code>
+          <code>u = J ∇<sub>S</sub> ψ</code>
+          <div><strong>tangent</strong><i>u · n = 0</i></div>
+          <div><strong>area preserving</strong><i>div<sub>S</sub> u = 0</i></div>
+          <p>This is a random incompressible kinematic flow—not yet Navier–Stokes turbulence. The field has controlled spatial energy and temporal turnover, but no nonlinear energy transfer between modes.</p>
+        </div>
+      </section>
+
+      <section class="random-lab">
+        <aside class="random-guide">
+          <p class="random-eyebrow">A three-minute experiment</p>
+          <ol>
+            <li><span>01</span><div><strong>Watch two clouds stretch.</strong><p>The warm and cool particles begin in compact patches. Their trails reveal shear, trapping, and mixing.</p></div></li>
+            <li><span>02</span><div><strong>Move energy across scales.</strong><p>Raise β to favor coherent large structures; lower it to feed the fine bands.</p></div></li>
+            <li><span>03</span><div><strong>Turn time on and off.</strong><p>At zero turnover the flow is frozen. Increasing turnover decorrelates the field itself.</p></div></li>
+          </ol>
+
+          <div class="surface-choice" aria-label="Surface">
+            <span>SURFACE</span>
+            <div>
+              <button class="active" data-fluid-surface="sphere" aria-pressed="true"><b>Sphere</b><small>ambient plane-wave stream modes</small></button>
+              <button data-fluid-surface="torus" aria-pressed="false"><b>Torus</b><small>periodic Fourier stream modes</small></button>
+            </div>
+          </div>
+
+          <details open>
+            <summary>Why no sources or sinks?</summary>
+            <p>On an oriented surface, <code>J</code> rotates a tangent vector by ninety degrees. Applying it to <code>grad ψ</code> turns level-set normals into level-set tangents, and the resulting Hamiltonian field preserves surface area.</p>
+          </details>
+          <details>
+            <summary>What is random here?</summary>
+            <p>The mode directions, phases, signs, and turnover directions are seeded. The amplitude of band <code>k</code> is chosen so the velocity energy falls approximately like <code>k<sup>−β</sup></code>.</p>
+          </details>
+        </aside>
+
+        <section class="random-stage">
+          <div class="random-stage-head">
+            <div><span>LIVE TANGENT FIELD</span><strong id="fluid-stage-title">sphere · two material clouds</strong></div>
+            <div class="stage-toggles">
+              <button id="fluid-vectors" class="active" aria-pressed="true">vectors</button>
+              <button id="fluid-trails" class="active" aria-pressed="true">trails</button>
+            </div>
+          </div>
+          <div id="random-fluid-viewer" aria-label="Interactive three-dimensional random fluid on a surface">
+            <div class="viewer-instruction">drag to orbit · scroll to zoom</div>
+            <div class="particle-key"><span><i></i> cloud A</span><span><i></i> cloud B</span></div>
+          </div>
+          <div class="random-actions">
+            <button id="fluid-reset-particles">Reset particles</button>
+            <button id="fluid-step">One step</button>
+            <button id="fluid-play" class="primary" aria-pressed="true">Pause</button>
+            <button id="fluid-new-seed">New realization</button>
+          </div>
+          <div class="random-metrics">
+            <div><span>time</span><strong id="fluid-time">0</strong></div>
+            <div><span>RMS speed</span><strong id="fluid-rms">—</strong></div>
+            <div><span>divergence RMS</span><strong id="fluid-divergence">—</strong></div>
+            <div><span>tangent defect</span><strong id="fluid-tangency">—</strong></div>
+            <div><span>field correlation</span><strong id="fluid-correlation">—</strong></div>
+          </div>
+          <p id="fluid-status" class="fluid-status" aria-live="polite">Seed 13 · divergence-free stream field ready</p>
+        </section>
+
+        <aside class="random-controls">
+          <p class="random-eyebrow">Random ensemble</p>
+          <div class="preset-row" aria-label="Spectrum presets">
+            <button data-fluid-preset="coherent">Large eddies</button>
+            <button class="active" data-fluid-preset="cascade">Broad cascade</button>
+            <button data-fluid-preset="rough">Fine grain</button>
+          </div>
+
+          <label class="seed-control">
+            <span><strong>Seed</strong><small>replay this exact realization</small></span>
+            <input id="fluid-seed" type="number" step="1" value="13" />
+          </label>
+          <label>
+            <span><strong>Energy falloff β</strong><small>E(k) ∝ k<sup>−β</sup></small></span>
+            <output id="fluid-slope-output">1.67</output>
+            <input id="fluid-slope" type="range" min="0" max="4" step="0.05" value="1.6667" />
+          </label>
+          <label>
+            <span><strong>Active modes</strong><small>independent seeded waves</small></span>
+            <output id="fluid-modes-output">28</output>
+            <input id="fluid-modes" type="range" min="6" max="72" step="1" value="28" />
+          </label>
+          <label>
+            <span><strong>Highest band</strong><small>smallest visible eddy scale</small></span>
+            <output id="fluid-band-output">7</output>
+            <input id="fluid-band" type="range" min="2" max="12" step="1" value="7" />
+          </label>
+          <label>
+            <span><strong>Temporal turnover</strong><small>zero freezes the velocity field</small></span>
+            <output id="fluid-turnover-output">0.42</output>
+            <input id="fluid-turnover" type="range" min="0" max="1.5" step="0.01" value="0.42" />
+          </label>
+          <label>
+            <span><strong>RMS speed</strong><small>calibrated over the whole surface</small></span>
+            <output id="fluid-speed-output">0.62</output>
+            <input id="fluid-speed" type="range" min="0.12" max="1.2" step="0.01" value="0.62" />
+          </label>
+          <label>
+            <span><strong>Particles</strong><small>split between two material clouds</small></span>
+            <output id="fluid-particles-output">420</output>
+            <input id="fluid-particles" type="range" min="100" max="900" step="20" value="420" />
+          </label>
+
+          <section class="spectrum-card">
+            <div><span>SEEDED ENERGY SPECTRUM</span><strong id="spectrum-caption">β = 1.67 · 7 bands</strong></div>
+            <canvas id="fluid-spectrum" aria-label="Energy by spatial frequency band"></canvas>
+          </section>
+        </aside>
+      </section>
+
+      <section class="random-notes">
+        <article><span>01 · GEOMETRY</span><h2>Randomness lives in the stream function.</h2><p>The surface still supplies the tangent planes, metric gradient, orientation, and area form. Changing the surface changes how the same construction moves particles.</p></article>
+        <article><span>02 · OPERATOR</span><h2>Advection comes after the field is certified.</h2><p>At a frozen time, the field defines <code>A<sub>u</sub>q = u · ∇q</code>. The displayed tangency and divergence residuals test the ingredients that make this operator mass-skew-adjoint.</p></article>
+        <article><span>03 · NEXT TRICK</span><h2>Then ask an interlacing question.</h2><p>Freeze many seeded realizations, Hermitianize their advection operators, and compare characteristic polynomials. First we need a random ensemble whose geometry and invariants are visible.</p></article>
+      </section>
+    </main>
+
+    <script type="module" src="/src/experiments/random-surface-fluid-page.ts"></script>
+  </body>
+</html>

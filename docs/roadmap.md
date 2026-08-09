@@ -23,7 +23,9 @@ The roadmap is ordered by what makes the lab more trustworthy, not by spectacle.
 - vector-field design and singularity constraints;
 - second-order optimization with live, safely bounded code parameters;
 - a minimal shallow-water-on-surfaces experiment after the operators and tests
-  are mature.
+  are mature;
+- seeded incompressible stream-function ensembles on a sphere and torus, with
+  spectral controls, particle advection, and invariant audits.
 
 ## Repository publishing
 
