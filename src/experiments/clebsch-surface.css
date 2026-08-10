@@ -171,6 +171,8 @@ button { cursor: pointer; }
 .cs-foundation-summary { display: grid; grid-template-columns: 230px 1fr; gap: 20px; align-items: center; margin-top: 17px; padding: 23px 27px; color: white; border: 1px solid #5f4a79; border-left: 8px solid var(--gold); border-radius: 6px; background: linear-gradient(135deg, #21143f, #35245a 55%, #135363); }
 .cs-foundation-summary strong { color: var(--gold); font-size: 17px; line-height: 1.05; }
 .cs-foundation-summary p { margin: 0; color: #d2c6dc; font-size: 10px; line-height: 1.7; }
+.cs-course-note { margin: 18px 0 0; padding: 17px 21px; color: var(--muted); border-left: 4px solid var(--violet); background: rgba(255,255,255,.62); font-size: 9px; line-height: 1.7; }
+.cs-course-note a { color: var(--violet); font-weight: 800; }
 
 .cs-dec { padding: 70px max(24px, calc((100vw - 1440px) / 2)); border-bottom: 1px solid var(--line); background: linear-gradient(rgba(114,73,167,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(114,73,167,.045) 1px, transparent 1px), #fffdf8; background-size: 27px 27px; }
 .cs-dec > header { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(330px, .85fr); gap: 70px; align-items: end; margin-bottom: 32px; }
