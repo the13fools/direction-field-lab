@@ -365,31 +365,47 @@ function resetProbe(): void {
   }
 }
 
-const stepCopy: Record<ConstructionStep, { kicker: string; equation: string; copy: string }> = {
+const stepCopy: Record<ConstructionStep, {
+  kicker: string;
+  equation: string;
+  type: string;
+  example: string;
+  copy: string;
+}> = {
   labels: {
     kicker: "STEP 01 · LABELS",
-    equation: String.raw`\alpha,\beta\in\Omega^0(S)`,
-    copy: "A scalar assigns one number to each surface point. Its contour lines are not flow lines yet.",
+    equation: String.raw`\phi,\alpha,\beta\in\Omega^0(S)`,
+    type: "TYPE: scalar 0-forms · one real number at each surface point",
+    example: String.raw`\alpha=A\sin x,\quad\beta=\cos\theta\sin x+\sin\theta\sin y`,
+    copy: "The angle θ controls whether the two label families change in the same direction or independently. They are scalar fields, not velocities.",
   },
   differentials: {
     kicker: "STEP 02 · DIFFERENTIALS",
-    equation: String.raw`d\alpha(v)=v[\alpha],\qquad d\beta(v)=v[\beta]`,
-    copy: "A differential is a covector: feed it a tangent displacement and it reports directional change.",
+    equation: String.raw`d\alpha,d\beta\in T_p^*S,\qquad d\alpha(v)=v[\alpha]`,
+    type: "TYPE: covector 1-forms · linear measurements of tangent displacements",
+    example: String.raw`d\alpha=A\cos x\,dx,\quad d\beta=\cos\theta\cos x\,dx+\sin\theta\cos y\,dy`,
+    copy: "The drawn arrows are (dα)♯ and (dβ)♯ after the metric converts each covector into a tangent vector.",
   },
   wedge: {
     kicker: "STEP 03 · VORTICITY",
-    equation: String.raw`\omega\,dA=d\alpha\wedge d\beta`,
-    copy: "The wedge is signed area in label space. It vanishes when the two label changes are parallel.",
+    equation: String.raw`du^\flat=d\alpha\wedge d\beta\in\Omega^2(S)`,
+    type: "TYPE: 2-form · signed circulation density on an oriented area",
+    example: String.raw`d\alpha\wedge d\beta=A\sin\theta\cos x\cos y\,dx\wedge dy`,
+    copy: "This is a determinant. It vanishes at θ = 0 because the two label differentials are parallel.",
   },
   assemble: {
     kicker: "STEP 04 · ASSEMBLY",
     equation: String.raw`u^\flat=d\phi+\alpha\,d\beta`,
-    copy: "The velocity is first assembled as a one-form. The metric raises its index to make the tangent arrow u.",
+    type: "TYPE: velocity covector u♭ · apply ♯g to obtain the velocity vector u",
+    example: String.raw`d\phi=P\sin(x-y)(-dx+dy),\qquad u=(u^\flat)^{\sharp_g}`,
+    copy: "The scalar α scales the covector dβ pointwise. The exact term dφ changes the velocity but contributes no vorticity because d²φ = 0.",
   },
   project: {
     kicker: "STEP 05 · HODGE PROJECTION",
-    equation: String.raw`\Delta p=\delta u^\flat,\qquad u_\perp^\flat=u^\flat-dp`,
-    copy: "Solve for the exact source/sink component and subtract it. Since d(dp)=0, the resolved vorticity is unchanged.",
+    equation: String.raw`\delta d p=\delta u^\flat,\qquad u_\perp^\flat=u^\flat-dp`,
+    type: "TYPE: p is a scalar; dp and both velocities are 1-forms",
+    example: String.raw`\delta u_\perp^\flat=0,\qquad du_\perp^\flat=du^\flat-d^2p=du^\flat`,
+    copy: "The projection removes exact source/sink motion. It preserves resolved vorticity because the exterior derivative of dp is zero.",
   },
 };
 
@@ -416,6 +432,8 @@ function activateStep(step: ConstructionStep): void {
   const copy = stepCopy[step];
   byId("cs-step-kicker").textContent = copy.kicker;
   renderLatex(byId("cs-step-equation"), copy.equation, true);
+  byId("cs-step-type").textContent = copy.type;
+  renderLatex(byId("cs-step-example"), copy.example, true);
   byId("cs-step-copy").textContent = copy.copy;
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cs-step]")) {
     button.classList.toggle("active", button.dataset.csStep === step);

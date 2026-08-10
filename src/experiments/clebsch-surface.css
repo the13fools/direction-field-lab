@@ -115,10 +115,14 @@ button { cursor: pointer; }
 .cs-stage-actions button small { color: #9f91b1; font-size: 8px; }
 .cs-stage-actions button.active { color: var(--ink); border-color: var(--gold); background: linear-gradient(135deg, var(--gold), var(--orange)); }
 .cs-stage-actions button.active span, .cs-stage-actions button.active small { color: #4e2f42; }
-.cs-stage-equation { display: grid; grid-template-columns: 120px minmax(220px, .72fr) minmax(240px, 1fr); gap: 15px; align-items: center; padding: 14px; border: 1px solid #51416e; border-radius: 5px; background: #18102f; }
+.cs-stage-equation { display: grid; grid-template-columns: 104px minmax(210px, .8fr) minmax(270px, 1.2fr); gap: 15px; align-items: start; padding: 14px; border: 1px solid #51416e; border-radius: 5px; background: #18102f; }
 .cs-stage-equation > span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .07em; }
 .cs-stage-equation .cs-math-display { color: var(--cyan); font-size: 11px; }
 .cs-stage-equation p { margin: 0; color: #ad9fba; font-size: 8px; line-height: 1.5; }
+.cs-stage-math p { margin-top: 9px; color: #8f80a4; font: 700 7px var(--mono); letter-spacing: .04em; text-transform: uppercase; }
+.cs-stage-example { padding-left: 14px; border-left: 1px solid #493a63; }
+.cs-stage-example > strong { display: block; margin-bottom: 9px; color: var(--gold); font: 700 7px var(--mono); letter-spacing: .07em; }
+.cs-stage-example p { margin-top: 9px; }
 
 .cs-segmented { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-top: 10px; }
 .cs-segmented button { height: 39px; color: var(--violet); border: 1px solid #baa7cc; border-radius: 3px; background: white; font-weight: 800; }
@@ -142,6 +146,31 @@ button { cursor: pointer; }
 .cs-probe small { color: #9384a6; font: 7px var(--mono); }
 .cs-probe b { margin-top: 4px; color: var(--gold); font: 8px var(--mono); }
 .cs-probe > p { margin: 11px 0 0; color: #c5b8d0; font-size: 8px; line-height: 1.5; }
+
+.cs-foundations { padding: 76px max(24px, calc((100vw - 1320px) / 2)); background: #f7f1ff; }
+.cs-foundations > header { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(350px, .85fr); gap: clamp(35px, 7vw, 90px); align-items: end; margin-bottom: 31px; }
+.cs-foundations h2 { margin: 10px 0 0; color: var(--ink); font-size: clamp(2.8rem, 5vw, 5.8rem); line-height: .9; letter-spacing: -.06em; }
+.cs-foundations > header > p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.72; }
+.cs-foundation-step { display: grid; grid-template-columns: 54px minmax(260px, .78fr) minmax(420px, 1.22fr); gap: 19px; align-items: stretch; margin-top: 8px; padding: 10px; border: 1px solid #cdbddd; border-radius: 7px; background: rgba(255,255,255,.96); box-shadow: 7px 7px 0 rgba(114,73,167,.07); }
+.cs-foundation-number { display: grid; place-items: center; min-height: 94px; color: white; border-radius: 4px; background: var(--violet); font: 700 21px var(--mono); }
+.cs-foundation-step:nth-of-type(2n) .cs-foundation-number { color: var(--ink); background: var(--orange); }
+.cs-foundation-step > div:nth-child(2) { align-self: center; padding: 13px 6px; }
+.cs-foundation-step > div:nth-child(2) > span { color: var(--violet); font: 700 7px var(--mono); letter-spacing: .09em; }
+.cs-foundation-step h3 { margin: 8px 0 8px; color: var(--ink); font-size: clamp(18px, 2vw, 26px); line-height: 1.02; letter-spacing: -.025em; }
+.cs-foundation-step > div:nth-child(2) > p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.65; }
+.cs-foundation-equation { align-self: stretch; min-width: 0; padding: 16px; color: white; border: 1px solid #4b3a67; border-radius: 5px; background: linear-gradient(145deg, #19102f, #31204e); }
+.cs-foundation-equation.accent { background: linear-gradient(145deg, #21112f, #4d233f); }
+.cs-foundation-equation > span { display: block; margin-bottom: 13px; color: var(--orange); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-foundation-equation .cs-math-display { color: var(--cyan); font-size: 11px; }
+.cs-foundation-equation small { display: block; margin-top: 12px; color: #b7a9c5; font-size: 8px; line-height: 1.55; }
+.cs-preservation { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; margin-top: 13px; }
+.cs-preservation > span { min-width: 0; padding: 9px; border: 1px solid rgba(255,255,255,.12); border-radius: 3px; background: rgba(8,6,27,.28); }
+.cs-preservation b, .cs-preservation i { display: block; }
+.cs-preservation b { margin-bottom: 6px; color: var(--gold); font: 700 7px var(--mono); }
+.cs-preservation i { color: #e8dff0; font-style: normal; font-size: 8px; }
+.cs-foundation-summary { display: grid; grid-template-columns: 230px 1fr; gap: 20px; align-items: center; margin-top: 17px; padding: 23px 27px; color: white; border: 1px solid #5f4a79; border-left: 8px solid var(--gold); border-radius: 6px; background: linear-gradient(135deg, #21143f, #35245a 55%, #135363); }
+.cs-foundation-summary strong { color: var(--gold); font-size: 17px; line-height: 1.05; }
+.cs-foundation-summary p { margin: 0; color: #d2c6dc; font-size: 10px; line-height: 1.7; }
 
 .cs-dec { padding: 70px max(24px, calc((100vw - 1440px) / 2)); border-bottom: 1px solid var(--line); background: linear-gradient(rgba(114,73,167,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(114,73,167,.045) 1px, transparent 1px), #fffdf8; background-size: 27px 27px; }
 .cs-dec > header { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(330px, .85fr); gap: 70px; align-items: end; margin-bottom: 32px; }
@@ -199,6 +228,8 @@ button { cursor: pointer; }
   .cs-controls > .cs-second-label { grid-row: 1; margin-top: 0; }
   .cs-controls > .cs-glyph-list { grid-row: 2 / span 2; }
   .cs-controls > label, .cs-controls > .cs-probe { grid-column: 1 / -1; }
+  .cs-foundation-step { grid-template-columns: 54px 1fr; }
+  .cs-foundation-equation { grid-column: 2; }
   .cs-diagram-grid { grid-template-columns: repeat(3, 1fr); }
 }
 
@@ -206,7 +237,7 @@ button { cursor: pointer; }
   .cs-header { grid-template-columns: 1fr auto; }
   .cs-header > div { display: none; }
   .cs-header nav a:not(:first-child) { display: none; }
-  .cs-intro, .cs-dec > header { grid-template-columns: 1fr; gap: 25px; }
+  .cs-intro, .cs-foundations > header, .cs-dec > header { grid-template-columns: 1fr; gap: 25px; }
   .cs-intro h1 { font-size: clamp(3.1rem, 15vw, 5.5rem); }
   .cs-lab { grid-template-columns: 1fr; }
   .cs-guide { border-right: 0; border-bottom: 1px solid var(--line); }
@@ -216,6 +247,11 @@ button { cursor: pointer; }
   .cs-controls > .cs-second-label { margin-top: 22px; }
   #cs-viewer { height: 62vh; min-height: 430px; }
   .cs-stage-equation { grid-template-columns: 1fr; }
+  .cs-stage-example { padding: 13px 0 0; border-top: 1px solid #493a63; border-left: 0; }
+  .cs-foundation-step { grid-template-columns: 45px 1fr; }
+  .cs-foundation-number { min-height: 70px; }
+  .cs-foundation-equation { grid-column: 1 / -1; }
+  .cs-foundation-summary { grid-template-columns: 1fr; }
   .cs-diagram-grid { grid-template-columns: repeat(2, 1fr); }
   .cs-type-flow { grid-template-columns: 1fr; }
   .cs-type-flow > i { min-height: 42px; }
@@ -224,7 +260,7 @@ button { cursor: pointer; }
 
 @media (max-width: 530px) {
   .cs-header nav { gap: 8px; }
-  .cs-intro, .cs-dec, .cs-tutorial { padding-inline: 15px; }
+  .cs-intro, .cs-foundations, .cs-dec, .cs-tutorial { padding-inline: 15px; }
   .cs-intro-copy { padding: 20px; }
   .cs-surfaces, .cs-steps, .cs-diagram-grid { grid-template-columns: 1fr; }
   .cs-stage { padding: 10px; }
