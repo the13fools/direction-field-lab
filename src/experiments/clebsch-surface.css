@@ -1,0 +1,235 @@
+:root {
+  color: #24164c;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-synthesis: none;
+  --ink: #24164c;
+  --night: #130c2b;
+  --violet: #7249a7;
+  --orange: #ff7a3d;
+  --cyan: #59e3ef;
+  --gold: #ffd86d;
+  --paper: #fffdf7;
+  --line: #d8cce3;
+  --muted: #736a7e;
+  --mono: "SFMono-Regular", Consolas, "Liberation Mono", ui-monospace, monospace;
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; scroll-behavior: smooth; }
+body { margin: 0; background: #f8f2ff; }
+button, input { font: inherit; }
+button { cursor: pointer; }
+.cs-math-inline { display: inline-block; color: var(--violet); vertical-align: -.08em; }
+.cs-math-display .katex-display { margin: 0; overflow-x: auto; overflow-y: hidden; }
+.katex { font-size: 1.04em; }
+
+.cs-header {
+  position: sticky;
+  z-index: 30;
+  top: 0;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  gap: 20px;
+  align-items: center;
+  min-height: 68px;
+  padding: 10px max(22px, calc((100vw - 1530px) / 2));
+  color: white;
+  border-bottom: 4px solid var(--orange);
+  background: rgba(19, 12, 43, .96);
+  backdrop-filter: blur(18px);
+}
+.cs-header a { color: #d9cdea; font: 700 9px var(--mono); text-decoration: none; }
+.cs-header > div { text-align: center; }
+.cs-header span, .cs-header strong { display: block; }
+.cs-header span { margin-bottom: 3px; color: var(--orange); font: 700 7px var(--mono); letter-spacing: .12em; }
+.cs-header strong { font-size: 13px; }
+.cs-header nav { display: flex; justify-content: flex-end; gap: 18px; }
+
+.cs-eyebrow { margin: 0; color: var(--violet); font: 700 8px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
+.cs-intro {
+  display: grid;
+  grid-template-columns: minmax(430px, 1.15fr) minmax(400px, .85fr);
+  gap: clamp(45px, 8vw, 120px);
+  align-items: end;
+  padding: 52px max(24px, calc((100vw - 1320px) / 2)) 46px;
+  background:
+    radial-gradient(circle at 88% 6%, rgba(89, 227, 239, .2), transparent 27rem),
+    radial-gradient(circle at 8% 74%, rgba(255, 122, 61, .13), transparent 28rem),
+    #fffdf8;
+}
+.cs-intro h1 { margin: 11px 0 0; color: var(--ink); font-size: clamp(3.7rem, 6.5vw, 7.1rem); line-height: .83; letter-spacing: -.073em; }
+.cs-intro h1 em { color: var(--orange); font-style: normal; }
+.cs-intro-copy { padding: 27px; color: white; border: 1px solid #67517f; border-top: 7px solid var(--gold); border-radius: 8px; background: linear-gradient(145deg, #251648, #3d2b62 57%, #135363); box-shadow: 12px 12px 0 rgba(255, 122, 61, .16); }
+.cs-intro-copy p { margin: 0; color: #d9cfe3; font-size: 11px; line-height: 1.72; }
+.cs-intro-copy strong { color: var(--gold); }
+.cs-intro-copy .cs-math-inline { color: var(--cyan); }
+.cs-intro-copy .cs-math-display { margin: 17px 0; padding: 14px; color: var(--cyan); border: 1px solid rgba(255,255,255,.15); border-radius: 4px; background: rgba(8, 6, 27, .36); font-size: 13px; }
+
+.cs-lab {
+  display: grid;
+  grid-template-columns: 260px minmax(560px, 1fr) 330px;
+  min-height: 820px;
+  border-block: 4px solid var(--orange);
+  background: var(--paper);
+}
+.cs-guide, .cs-controls { padding: 19px; background: linear-gradient(180deg, #fffdf8, #f6eeff); }
+.cs-guide { border-right: 1px solid var(--line); }
+.cs-controls { border-left: 1px solid var(--line); }
+.cs-second-label { margin-top: 22px; }
+.cs-button-stack { display: grid; gap: 5px; margin-top: 10px; }
+.cs-button-stack button, .cs-glyph-list button { width: 100%; color: var(--ink); border: 1px solid var(--line); border-radius: 4px; background: #fbf8ff; text-align: left; }
+.cs-button-stack button b, .cs-button-stack button small, .cs-glyph-list button b, .cs-glyph-list button small { display: block; }
+.cs-button-stack button small, .cs-glyph-list button small { margin-top: 3px; color: var(--muted); font-size: 8px; line-height: 1.35; }
+.cs-surfaces button { min-height: 57px; padding: 9px 12px; }
+.cs-surfaces button b { font-size: 11px; }
+.cs-button-stack button.active, .cs-glyph-list button.active { color: white; border-color: var(--orange); background: linear-gradient(135deg, var(--violet), #433068); }
+.cs-button-stack button.active small, .cs-glyph-list button.active small { color: #e5dced; }
+.cs-steps button { display: grid; grid-template-columns: 29px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 55px; padding: 8px; }
+.cs-steps button i { display: grid; place-items: center; width: 28px; height: 28px; color: white; border-radius: 50%; background: var(--violet); font: 700 7px var(--mono); font-style: normal; }
+.cs-steps button.active i { color: var(--ink); background: var(--orange); }
+.cs-steps button b { font-size: 10px; }
+.cs-question { margin-top: 19px; padding: 15px; color: white; border: 1px solid #5d4978; border-top: 5px solid var(--cyan); border-radius: 5px; background: #21153e; }
+.cs-question span, .cs-question strong { display: block; }
+.cs-question span { color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-question strong { margin: 9px 0; font-size: 12px; line-height: 1.1; }
+.cs-question p { margin: 0; color: #cbbfd6; font-size: 8px; line-height: 1.55; }
+
+.cs-stage { min-width: 0; padding: 17px; color: white; background: radial-gradient(circle at 50% 36%, rgba(89,227,239,.12), transparent 33%), linear-gradient(145deg, #120a2a, #172541 58%, #351746); }
+.cs-stage > header { display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 2px 2px 12px; }
+.cs-stage > header span, .cs-stage > header strong { display: block; }
+.cs-stage > header span { color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .09em; }
+.cs-stage > header strong { margin-top: 4px; font-size: 11px; }
+.cs-stage-key { color: #a99bb8; font: 700 7px var(--mono); white-space: nowrap; }
+.cs-stage-key i { display: inline-block; width: 7px; height: 7px; margin: 0 5px 0 11px; border-radius: 50%; background: var(--cyan); }
+.cs-stage-key i:last-of-type { background: var(--orange); }
+#cs-viewer { position: relative; height: clamp(480px, 62vh, 680px); overflow: hidden; border: 1px solid #554471; border-radius: 7px; background: radial-gradient(circle at 50% 40%, #223954, #0d081f 72%); }
+#cs-viewer canvas { position: absolute; inset: 0; display: block; width: 100%; height: 100%; touch-action: none; }
+.cs-viewer-note, #cs-layer-caption { position: absolute; z-index: 4; padding: 6px 8px; color: #aa9bb9; border: 1px solid rgba(255,255,255,.12); border-radius: 3px; background: rgba(13,8,31,.72); font: 700 7px var(--mono); pointer-events: none; }
+.cs-viewer-note { top: 11px; left: 11px; }
+#cs-layer-caption { right: 11px; bottom: 11px; color: #eee6f5; }
+.cs-stage-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; padding: 11px 0; }
+.cs-stage-actions button { min-height: 62px; padding: 9px 12px; color: #d6cce1; border: 1px solid #5e4c79; border-radius: 4px; background: #21163d; text-align: left; }
+.cs-stage-actions button span, .cs-stage-actions button b, .cs-stage-actions button small { display: block; }
+.cs-stage-actions button span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .07em; }
+.cs-stage-actions button b { margin: 5px 0 2px; font-size: 10px; }
+.cs-stage-actions button small { color: #9f91b1; font-size: 8px; }
+.cs-stage-actions button.active { color: var(--ink); border-color: var(--gold); background: linear-gradient(135deg, var(--gold), var(--orange)); }
+.cs-stage-actions button.active span, .cs-stage-actions button.active small { color: #4e2f42; }
+.cs-stage-equation { display: grid; grid-template-columns: 120px minmax(220px, .72fr) minmax(240px, 1fr); gap: 15px; align-items: center; padding: 14px; border: 1px solid #51416e; border-radius: 5px; background: #18102f; }
+.cs-stage-equation > span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .07em; }
+.cs-stage-equation .cs-math-display { color: var(--cyan); font-size: 11px; }
+.cs-stage-equation p { margin: 0; color: #ad9fba; font-size: 8px; line-height: 1.5; }
+
+.cs-segmented { display: grid; grid-template-columns: repeat(5, 1fr); gap: 3px; margin-top: 10px; }
+.cs-segmented button { height: 39px; color: var(--violet); border: 1px solid #baa7cc; border-radius: 3px; background: white; font-weight: 800; }
+.cs-segmented button.active { color: var(--ink); border-color: var(--orange); background: var(--orange); }
+.cs-glyph-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-top: 10px; }
+.cs-glyph-list button { min-height: 57px; padding: 8px 9px; }
+.cs-glyph-list button b { font-size: 10px; }
+.cs-controls > label { display: grid; grid-template-columns: 1fr auto; gap: 5px 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+.cs-controls label span strong, .cs-controls label span small { display: block; }
+.cs-controls label span strong { color: var(--ink); font-size: 10px; }
+.cs-controls label span small { margin-top: 3px; color: var(--muted); font-size: 8px; }
+.cs-controls output { color: var(--violet); font: 700 9px var(--mono); }
+.cs-controls input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--orange); }
+.cs-probe { margin-top: 14px; padding: 15px; color: white; border: 1px solid #624d7a; border-top: 5px solid var(--cyan); border-radius: 5px; background: linear-gradient(145deg, #21163e, #27375a); }
+.cs-probe > span, .cs-probe > strong { display: block; }
+.cs-probe > span { color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-probe > strong { margin: 7px 0 10px; font-size: 10px; }
+.cs-probe > div { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: #58466f; }
+.cs-probe > div p { margin: 0; padding: 8px 5px; background: #19112f; }
+.cs-probe small, .cs-probe b { display: block; }
+.cs-probe small { color: #9384a6; font: 7px var(--mono); }
+.cs-probe b { margin-top: 4px; color: var(--gold); font: 8px var(--mono); }
+.cs-probe > p { margin: 11px 0 0; color: #c5b8d0; font-size: 8px; line-height: 1.5; }
+
+.cs-dec { padding: 70px max(24px, calc((100vw - 1440px) / 2)); border-bottom: 1px solid var(--line); background: linear-gradient(rgba(114,73,167,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(114,73,167,.045) 1px, transparent 1px), #fffdf8; background-size: 27px 27px; }
+.cs-dec > header { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(330px, .85fr); gap: 70px; align-items: end; margin-bottom: 32px; }
+.cs-dec h2, .cs-tutorial h2 { margin: 10px 0 0; color: var(--ink); font-size: clamp(2.8rem, 5vw, 5.8rem); line-height: .9; letter-spacing: -.06em; }
+.cs-dec > header > p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.72; }
+.cs-diagram-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
+.cs-diagram-grid article { min-width: 0; padding: 17px; border: 1px solid #cdbddd; border-top: 6px solid var(--violet); border-radius: 6px; background: rgba(255,255,255,.95); box-shadow: 6px 6px 0 rgba(114,73,167,.08); transition: transform .18s, border-color .18s; }
+.cs-diagram-grid article.active { border-color: var(--orange); border-top-color: var(--orange); transform: translateY(-5px); box-shadow: 7px 10px 0 rgba(255,122,61,.13); }
+.cs-diagram-grid article > span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-diagram-grid h3 { min-height: 42px; margin: 9px 0 8px; color: var(--ink); font-size: 16px; line-height: 1.05; }
+.cs-diagram-grid article > p { margin: 10px 0 0; color: var(--muted); font-size: 8px; line-height: 1.55; }
+.cs-diagram-grid svg { display: block; width: 100%; height: auto; border: 1px solid #d7cbe2; border-radius: 4px; background: #1b1234; }
+.cs-diagram-grid svg > path:first-of-type { fill: rgba(114,73,167,.14); stroke: #8b75a3; stroke-width: 2; }
+.cs-diagram-grid svg circle { fill: var(--orange); stroke: #ffd9bd; stroke-width: 2; }
+.cs-diagram-grid svg text { fill: #f3eafa; font: 10px var(--mono); }
+.cs-diagram-grid .contour { fill: none; stroke: var(--cyan); stroke-width: 3; }
+.cs-diagram-grid .contour.second { stroke: var(--orange); }
+.cs-diagram-grid .edge-arrow { fill: none; stroke: var(--cyan); stroke-width: 3; }
+.cs-diagram-grid marker path { fill: var(--cyan); stroke: none; }
+.cs-diagram-grid .face { fill: url(#face-vorticity); opacity: .82; }
+.cs-diagram-grid .loop { fill: none; stroke: #fff5da; stroke-width: 3; }
+.cs-diagram-grid .thick-edge { fill: none; stroke: var(--gold); stroke-width: 7; stroke-linecap: round; }
+.cs-diagram-grid .thick-edge.second { stroke: var(--cyan); }
+.cs-diagram-grid .thick-edge.third { stroke: var(--orange); }
+.cs-diagram-grid .flow { fill: none; stroke-width: 6; stroke-linecap: round; }
+.cs-diagram-grid .flow.raw { stroke: var(--orange); }
+.cs-diagram-grid .flow.exact { stroke: var(--gold); }
+.cs-diagram-grid .flow.kept { stroke: var(--cyan); }
+.cs-source-note { margin: 21px 0 0; color: var(--muted); font-size: 9px; line-height: 1.6; }
+.cs-source-note a { color: var(--violet); font-weight: 800; }
+
+.cs-tutorial { padding: 70px max(24px, calc((100vw - 1260px) / 2)) 90px; background: #f7f1ff; }
+.cs-tutorial > header { max-width: 950px; }
+.cs-type-flow { display: grid; grid-template-columns: 1fr 55px 1fr 55px 1fr; gap: 8px; align-items: stretch; margin-top: 34px; }
+.cs-type-flow article { padding: 25px; color: white; border-top: 6px solid var(--orange); border-radius: 6px; background: linear-gradient(145deg, #21143f, #3c2a60); }
+.cs-type-flow article:nth-of-type(2) { border-top-color: var(--cyan); }
+.cs-type-flow article:nth-of-type(3) { border-top-color: var(--gold); }
+.cs-type-flow span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .1em; }
+.cs-type-flow h3 { margin: 10px 0 8px; font-size: 23px; }
+.cs-type-flow p { margin: 0; color: #cfc3d9; font-size: 9px; line-height: 1.6; }
+.cs-type-flow > i { display: grid; place-items: center; color: var(--violet); font: 700 23px var(--mono); font-style: normal; }
+.cs-explanation-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 9px; }
+.cs-explanation-grid article { padding: 25px; border: 1px solid #cdbddd; border-top: 6px solid var(--violet); border-radius: 6px; background: white; }
+.cs-explanation-grid article:nth-child(2) { border-top-color: var(--orange); }
+.cs-explanation-grid article:nth-child(3) { border-top-color: var(--cyan); }
+.cs-explanation-grid span { color: var(--violet); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-explanation-grid h3 { margin: 10px 0; color: var(--ink); font-size: 21px; line-height: 1.05; }
+.cs-explanation-grid .cs-math-display { min-height: 62px; margin: 16px 0; padding: 14px 8px; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 11px; }
+.cs-explanation-grid p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.65; }
+
+@media (max-width: 1180px) {
+  .cs-lab { grid-template-columns: 225px minmax(480px, 1fr); }
+  .cs-controls { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; border-top: 1px solid var(--line); border-left: 0; }
+  .cs-controls > .cs-second-label, .cs-controls > .cs-glyph-list { grid-column: 2; }
+  .cs-controls > .cs-second-label { grid-row: 1; margin-top: 0; }
+  .cs-controls > .cs-glyph-list { grid-row: 2 / span 2; }
+  .cs-controls > label, .cs-controls > .cs-probe { grid-column: 1 / -1; }
+  .cs-diagram-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 820px) {
+  .cs-header { grid-template-columns: 1fr auto; }
+  .cs-header > div { display: none; }
+  .cs-header nav a:not(:first-child) { display: none; }
+  .cs-intro, .cs-dec > header { grid-template-columns: 1fr; gap: 25px; }
+  .cs-intro h1 { font-size: clamp(3.1rem, 15vw, 5.5rem); }
+  .cs-lab { grid-template-columns: 1fr; }
+  .cs-guide { border-right: 0; border-bottom: 1px solid var(--line); }
+  .cs-surfaces, .cs-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .cs-stage { grid-row: 2; }
+  .cs-controls { display: block; grid-row: 3; }
+  .cs-controls > .cs-second-label { margin-top: 22px; }
+  #cs-viewer { height: 62vh; min-height: 430px; }
+  .cs-stage-equation { grid-template-columns: 1fr; }
+  .cs-diagram-grid { grid-template-columns: repeat(2, 1fr); }
+  .cs-type-flow { grid-template-columns: 1fr; }
+  .cs-type-flow > i { min-height: 42px; }
+  .cs-explanation-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 530px) {
+  .cs-header nav { gap: 8px; }
+  .cs-intro, .cs-dec, .cs-tutorial { padding-inline: 15px; }
+  .cs-intro-copy { padding: 20px; }
+  .cs-surfaces, .cs-steps, .cs-diagram-grid { grid-template-columns: 1fr; }
+  .cs-stage { padding: 10px; }
+  .cs-stage > header { align-items: flex-start; }
+  .cs-stage-key { display: none; }
+  .cs-stage-actions { grid-template-columns: 1fr; }
+  .cs-glyph-list { grid-template-columns: 1fr 1fr; }
+}

@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#130c2b" />
+    <meta name="description" content="A controlled visual lab for Clebsch variables, differential forms, vorticity, and Hodge projection on planes and curved triangle meshes." />
+    <title>Clebsch variables on surfaces · Direction Field Lab</title>
+  </head>
+  <body>
+    <header class="cs-header">
+      <a href="./index.html">← Direction Field Lab</a>
+      <div><span>CLEBSCH · EXPERIMENT 02</span><strong>Variables on surfaces</strong></div>
+      <nav><a href="./random-fluids.html">Random flows</a><a href="./clebsch-shallow-water.html">Clebsch water</a><a href="./dec-playground.html">DEC operators</a></nav>
+    </header>
+
+    <main>
+      <section class="cs-intro">
+        <div><p class="cs-eyebrow">A controlled construction, one geometric type at a time</p><h1>What does <em>Clebsch</em><br />actually build?</h1></div>
+        <div class="cs-intro-copy"><p>Start with three scalar functions. Turn their changes into covectors. Use the surface metric to draw their dual vectors. Then assemble one velocity one-form and inspect where its vorticity lives.</p><div class="cs-math-display" data-latex="u^\flat=d\phi+\alpha\,d\beta,\qquad d u^\flat=d\alpha\wedge d\beta">u flat = d phi + alpha d beta; its curl is d alpha wedge d beta</div><p><strong>The essential distinction:</strong> the arrows are visualizations of metric-dual vectors. The native Clebsch object <span class="cs-math-inline" data-latex="u^\flat">u flat</span> is a covector field.</p></div>
+      </section>
+
+      <section class="cs-lab" aria-label="Interactive Clebsch variables on surfaces lab">
+        <aside class="cs-guide">
+          <p class="cs-eyebrow">Choose a surface</p>
+          <div class="cs-button-stack cs-surfaces">
+            <button class="active" data-cs-surface="plane" aria-pressed="true"><b>Periodic plane</b><small>see the grid and its edge cochains</small></button>
+            <button data-cs-surface="sphere" aria-pressed="false"><b>Sphere</b><small>the metric keeps gradients tangent</small></button>
+            <button data-cs-surface="torus" aria-pressed="false"><b>Torus</b><small>periodic coordinates, curved metric</small></button>
+            <button data-cs-surface="frog" aria-pressed="false"><b>Tree frog</b><small>triangle-mesh Laplace–Beltrami modes</small></button>
+          </div>
+
+          <p class="cs-eyebrow cs-second-label">Build the one-form</p>
+          <div class="cs-button-stack cs-steps">
+            <button class="active" data-cs-step="labels"><i>01</i><span><b>Paint α and β</b><small>two scalar 0-forms</small></span></button>
+            <button data-cs-step="differentials"><i>02</i><span><b>Take dα and dβ</b><small>oriented edge differences</small></span></button>
+            <button data-cs-step="wedge"><i>03</i><span><b>Form dα ∧ dβ</b><small>vorticity on oriented faces</small></span></button>
+            <button data-cs-step="assemble"><i>04</i><span><b>Assemble u♭</b><small>dφ + α dβ</small></span></button>
+            <button data-cs-step="project"><i>05</i><span><b>Project out div</b><small>subtract an exact 1-form</small></span></button>
+          </div>
+
+          <div class="cs-question">
+            <span>THE QUESTION TO KEEP ASKING</span>
+            <strong>What kind of thing is this, and where does it live?</strong>
+            <p>Color at vertices: scalar. Number on an oriented edge: covector integral. Number on a face: vorticity 2-form. Arrow in a tangent plane: vector after applying the metric.</p>
+          </div>
+        </aside>
+
+        <section class="cs-stage">
+          <header><div><span>LIVE CONTROLLED FIELD</span><strong id="cs-stage-title">periodic plane · two crossing label foliations</strong></div><div class="cs-stage-key"><i></i>metric-dual arrows <i></i>selected probe</div></header>
+          <div id="cs-viewer" aria-label="Interactive Clebsch field on a surface"><div class="cs-viewer-note">drag to orbit · click the surface to move the probe</div><div id="cs-layer-caption">color: α · arrows: (dα)♯</div></div>
+          <div class="cs-stage-actions">
+            <button class="active" data-cs-velocity="raw" aria-pressed="true"><span>RAW CLEBSCH</span><b>u♭ = dφ + αdβ</b><small>tangent, vortical, generally divergent</small></button>
+            <button data-cs-velocity="projected" aria-pressed="false"><span>HODGE PROJECTED</span><b>u⊥♭ = u♭ − dp</b><small>same resolved curl, exact part removed</small></button>
+          </div>
+          <div class="cs-stage-equation"><span id="cs-step-kicker">STEP 01 · LABELS</span><div id="cs-step-equation" class="cs-math-display" data-latex="\alpha,\beta\in\Omega^0(S)">alpha and beta are zero forms</div><p id="cs-step-copy">A scalar assigns one number to each surface point. Its contour lines are not flow lines yet.</p></div>
+        </section>
+
+        <aside class="cs-controls">
+          <p class="cs-eyebrow">Color shows a scalar</p>
+          <div class="cs-segmented cs-colors">
+            <button class="active" data-cs-scalar="alpha">α</button><button data-cs-scalar="beta">β</button><button data-cs-scalar="phi">φ</button><button data-cs-scalar="vorticity">ω</button><button data-cs-scalar="none">mesh</button>
+          </div>
+
+          <p class="cs-eyebrow cs-second-label">Glyphs show metric duals</p>
+          <div class="cs-glyph-list">
+            <button class="active" data-cs-glyph="dAlpha"><b>(dα)♯</b><small>normal to α contours</small></button>
+            <button data-cs-glyph="dBeta"><b>(dβ)♯</b><small>normal to β contours</small></button>
+            <button data-cs-glyph="dPhi"><b>(dφ)♯</b><small>exact velocity piece</small></button>
+            <button data-cs-glyph="alphaDBeta"><b>(αdβ)♯</b><small>label-coupling piece</small></button>
+            <button data-cs-glyph="velocity"><b>u or u⊥</b><small>selected velocity view</small></button>
+            <button data-cs-glyph="none"><b>none</b><small>scalar color only</small></button>
+          </div>
+
+          <label><span><strong>Label crossing</strong><small>0° parallel → 90° independent</small></span><output id="cs-crossing-output">70°</output><input id="cs-crossing" type="range" min="0" max="1" step="0.01" value="0.78" /></label>
+          <label><span><strong>Label strength</strong><small>scales α and its vorticity</small></span><output id="cs-label-output">0.70</output><input id="cs-label" type="range" min="0" max="1.2" step="0.02" value="0.7" /></label>
+          <label><span><strong>Potential strength</strong><small>changes dφ, never dα∧dβ</small></span><output id="cs-potential-output">0.24</output><input id="cs-potential" type="range" min="0" max="1" step="0.02" value="0.24" /></label>
+
+          <section class="cs-probe">
+            <span>POINT PROBE</span><strong id="cs-probe-location">u = 0.19 · v = 0.31</strong>
+            <div><p><small>α</small><b id="cs-probe-alpha">—</b></p><p><small>β</small><b id="cs-probe-beta">—</b></p><p><small>φ</small><b id="cs-probe-phi">—</b></p><p><small>ω</small><b id="cs-probe-vorticity">—</b></p></div>
+            <p id="cs-probe-reading">At this point, the two label differentials meet at an angle and contribute oriented area.</p>
+          </section>
+        </aside>
+      </section>
+
+      <section class="cs-dec" id="cs-dec-diagrams">
+        <header><div><p class="cs-eyebrow">The same construction as discrete exterior calculus</p><h2>Draw where every piece lives.</h2></div><p>The smooth notation describes fields. On a triangle mesh, DEC stores their integrals as cochains. The exterior derivative becomes an incidence operation: subtract across an edge, then sum around a face.</p></header>
+        <div class="cs-diagram-grid">
+          <article class="active" data-cs-diagram="labels"><span>01 · 0-FORMS</span><h3>α, β, φ live at vertices</h3><svg viewBox="0 0 260 150" role="img" aria-label="Triangle with scalar values at vertices"><path d="M40 119L126 25L222 119Z"/><circle cx="40" cy="119" r="12"/><circle cx="126" cy="25" r="12"/><circle cx="222" cy="119" r="12"/><text x="18" y="145">α₀</text><text x="115" y="17">α₁</text><text x="222" y="145">α₂</text><path class="contour" d="M62 96Q125 69 199 94"/><path class="contour second" d="M80 118Q139 68 171 119"/></svg><p>Each colored dot is one sampled number. A scalar is a 0-cochain on the mesh.</p></article>
+          <article data-cs-diagram="differentials"><span>02 · 1-FORMS</span><h3>d subtracts along oriented edges</h3><svg viewBox="0 0 260 150" role="img" aria-label="Oriented triangle edges carrying scalar differences"><defs><marker id="arrow-edge" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z"/></marker></defs><path d="M40 119L126 25L222 119Z"/><path class="edge-arrow" d="M52 111L117 40" marker-end="url(#arrow-edge)"/><path class="edge-arrow" d="M142 38L209 108" marker-end="url(#arrow-edge)"/><path class="edge-arrow" d="M202 119L61 119" marker-end="url(#arrow-edge)"/><text x="47" y="65">α₁−α₀</text><text x="158" y="69">δα</text><text x="106" y="142">∫e dα</text></svg><p>The number on edge <em>i → j</em> is α<sub>j</sub> − α<sub>i</sub>. Reverse the edge and the sign reverses.</p></article>
+          <article data-cs-diagram="wedge"><span>03 · 2-FORM</span><h3>dα ∧ dβ lives on a face</h3><svg viewBox="0 0 260 150" role="img" aria-label="Oriented triangle face carrying vorticity"><defs><linearGradient id="face-vorticity" x1="0" x2="1"><stop stop-color="#59e3ef"/><stop offset=".5" stop-color="#362457"/><stop offset="1" stop-color="#ff7a3d"/></linearGradient><marker id="arrow-face" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z"/></marker></defs><path class="face" d="M40 119L126 25L222 119Z"/><path class="loop" d="M73 111Q43 73 86 45Q128 10 169 45Q216 73 189 109" marker-end="url(#arrow-face)"/><text x="105" y="92">ω ΔA</text></svg><p>The wedge measures oriented independence. Parallel label changes give zero; crossing changes give signed face circulation.</p></article>
+          <article data-cs-diagram="assemble"><span>04 · VELOCITY 1-FORM</span><h3>Assemble edge-wise readings</h3><svg viewBox="0 0 260 150" role="img" aria-label="Velocity one-form assembled on oriented triangle edges"><path d="M40 119L126 25L222 119Z"/><path class="thick-edge" d="M43 116L123 29"/><path class="thick-edge second" d="M130 29L218 116"/><path class="thick-edge third" d="M216 122L44 122"/><text x="35" y="62">dφ</text><text x="158" y="62">α dβ</text><text x="84" y="145">u♭(e) = Δφ + ᾱ Δβ</text></svg><p>A discrete one-form records its integral along each oriented edge. An arrow appears only after the Hodge star/metric reconstructs a vector.</p></article>
+          <article data-cs-diagram="project"><span>05 · HODGE PROJECTION</span><h3>Remove the exact 1-form dp</h3><svg viewBox="0 0 260 150" role="img" aria-label="Raw one-form decomposed into exact and divergence-free pieces"><defs><marker id="arrow-flow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z"/></marker></defs><path class="flow raw" d="M28 46Q80 18 111 74" marker-end="url(#arrow-flow)"/><path class="flow exact" d="M125 75L181 28" marker-end="url(#arrow-flow)"/><path class="flow kept" d="M129 96Q187 132 231 77" marker-end="url(#arrow-flow)"/><text x="17" y="27">u♭</text><text x="139" y="27">− dp</text><text x="173" y="141">= u⊥♭</text><circle cx="128" cy="83" r="7"/><text x="17" y="137">δu⊥♭ = 0</text></svg><p>Solve <span class="cs-math-inline" data-latex="\Delta p=\delta u^\flat">Laplacian p = divergence u flat</span>, then subtract <span class="cs-math-inline" data-latex="dp">d p</span>. Curl is unchanged because <span class="cs-math-inline" data-latex="d^2p=0">d squared p is zero</span>.</p></article>
+        </div>
+        <p class="cs-source-note">Diagram convention follows the primal-cochain viewpoint in the Geometry Collective’s <a href="https://geometrycollective.github.io/geometry-processing-js/projects/discrete-exterior-calculus/index.html">Discrete Exterior Calculus project</a>: 0-cochains on vertices, 1-cochains on oriented edges, and 2-cochains on faces.</p>
+      </section>
+
+      <section class="cs-tutorial">
+        <header><p class="cs-eyebrow">The conceptual map</p><h2>Vectors and covectors are related—but they are not the same job.</h2></header>
+        <div class="cs-type-flow">
+          <article><span>SCALARS</span><h3>α, β, φ</h3><p>Numbers on the surface. Their level sets form foliations.</p></article><i>d</i>
+          <article><span>COVECTORS</span><h3>dα, dβ, dφ</h3><p>Linear measuring devices for tangent displacements.</p></article><i>♯<sub>g</sub></i>
+          <article><span>VECTORS</span><h3>(dα)♯, u</h3><p>Metric-dependent tangent arrows that transport particles.</p></article>
+        </div>
+        <div class="cs-explanation-grid">
+          <article><span>WHY CLEBSCH?</span><h3>It separates how vorticity is encoded.</h3><div class="cs-math-display" data-latex="d(d\phi+\alpha d\beta)=d\alpha\wedge d\beta">curl of Clebsch form</div><p>The potential φ changes velocity and divergence, but not vorticity. The two label fields encode vorticity through the crossing of their differentials.</p></article>
+          <article><span>WHY THE METRIC?</span><h3>A covector becomes an arrow only after ♯.</h3><div class="cs-math-display" data-latex="g(u,\,\cdot)=u^\flat,\qquad u=(u^\flat)^\sharp">flat and sharp musical maps</div><p>On the plane this conversion looks invisible in Cartesian coordinates. On a sphere, torus, or irregular frog mesh, the surface metric determines the arrow’s direction and length.</p></article>
+          <article><span>WHY PROJECT?</span><h3>Clebsch form does not imply incompressibility.</h3><div class="cs-math-display" data-latex="u_\perp^\flat=u^\flat-d\Delta^{-1}\delta u^\flat">Hodge projected velocity</div><p>Projection removes the gradient part responsible for sources and sinks. It preserves the resolved vorticity because the exterior derivative of an exact form is zero. The frog uses the finite loaded Laplace–Beltrami basis, so “resolved” is literal; harmonic circulation is not reconstructed from vorticity alone.</p></article>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/experiments/clebsch-surface-page.ts"></script>
+  </body>
+</html>

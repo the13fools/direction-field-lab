@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#17102f" />
-    <meta name="description" content="Build temporally coherent multiscale flows on a tree-frog mesh, periodic square, sphere, or torus; compare raw and Hodge-projected Clebsch constructions while advecting particles." />
+    <meta name="description" content="Build temporally coherent multiscale exact and coexact flows from intrinsic Laplace–Beltrami modes on a tree frog, periodic square, sphere, or torus." />
     <meta property="og:title" content="Random fluids on surfaces · Direction Field Lab" />
-    <meta property="og:description" content="A seeded temporal-Perlin laboratory for Hodge projections, Clebsch vorticity, and particle advection on three surfaces." />
+    <meta property="og:description" content="A seeded temporal-Perlin laboratory for intrinsic spectra, Hodge flow families, and particle advection on surfaces." />
     <meta property="og:image" content="./random-fluids-og-v4.png" />
     <meta property="og:image:alt" content="Luminous multiscale tangent flows and vorticity moving across a periodic square, triangulated sphere, and torus." />
     <meta name="twitter:card" content="summary_large_image" />
@@ -17,7 +17,7 @@
       <a href="./index.html">← Direction Field Lab</a>
       <div><span>RANDOM FLOW · EXPERIMENT 01</span><strong>Fluids on surfaces</strong></div>
       <nav>
-        <a href="./clebsch-shallow-water.html">Clebsch water</a>
+        <a href="./clebsch-surfaces.html">Clebsch surfaces</a>
         <a href="./dec-playground.html">DEC operators</a>
         <a href="./references.html#flow">Sources</a>
       </nav>
@@ -26,35 +26,35 @@
     <main>
       <section class="random-intro">
         <div class="random-title">
-          <p class="random-eyebrow">Stack spatial scales. Evolve them with time noise. Project. Advect.</p>
+          <p class="random-eyebrow">Stack intrinsic scales. Modulate them with smooth time noise. Advect.</p>
           <h1>Random fluids,<br /><em>bound to a surface.</em></h1>
-          <p>Build three seeded scalar fields from intrinsic surface modes, let their coefficients wander smoothly in time, form a raw Clebsch velocity, and project it onto its incompressible part. Begin with the live experiment; the guided derivation follows immediately afterward.</p>
+          <p>Build one seeded scalar field from intrinsic surface eigenmodes, let its coefficients wander smoothly in time, then choose its exact gradient or coexact quarter-turned gradient. This page is about the random spectral ensemble; the Clebsch construction now has its own focused lab.</p>
           <a class="lesson-link" href="#live-fluid-lab">Open the live surface demo ↓</a>
         </div>
         <div class="construction-card">
           <span>THE CONSTRUCTION</span>
           <div class="math-display" id="fluid-construction-equation" data-latex="f(x,t)=\sum_j c_j(t)\,\varphi_j(x),\qquad -\Delta_S\varphi_j=\lambda_j\varphi_j">f(x,t) = time-varying coefficients times intrinsic surface eigenfunctions</div>
-          <div class="math-display" id="fluid-projection-equation" data-latex="u_\perp=J\nabla_S\psi">u-perp = rotated gradient of psi</div>
+          <div class="math-display" id="fluid-projection-equation" data-latex="u=J\nabla_S\psi">u = rotated gradient of psi</div>
           <div><strong>tangent</strong><span class="math-inline" data-latex="u\cdot n=0">u · n = 0</span></div>
-          <div><strong id="fluid-invariant-label">area preserving</strong><span class="math-inline" id="fluid-invariant-equation" data-latex="\Delta_S\psi=\omega_{\mathrm C}">Laplacian psi = Clebsch vorticity</span></div>
-          <p id="fluid-construction-note">A finite-volume surface Poisson solve reconstructs the coexact velocity from the raw Clebsch vorticity. The projected field preserves area while retaining the vorticity resolved by the projection grid.</p>
+          <div><strong id="fluid-invariant-label">area preserving</strong><span class="math-inline" id="fluid-invariant-equation" data-latex="\operatorname{div}_S u=0">surface divergence is zero</span></div>
+          <p id="fluid-construction-note">Every intrinsic scalar mode is rotated by a quarter-turn in its tangent plane. The temporal Perlin coefficients change amplitudes, but do not break the coexact field's divergence-free identity.</p>
         </div>
       </section>
 
-      <section id="clebsch-tutorial" class="clebsch-tutorial">
+      <section id="spectral-random-tutorial" class="clebsch-tutorial">
         <header class="tutorial-heading">
           <div>
             <p class="random-eyebrow">Guided derivation · about five minutes</p>
-            <h2>From noisy scalars to an incompressible surface flow.</h2>
+            <h2>From intrinsic modes to a random surface flow.</h2>
           </div>
-          <p>The central idea is simple but layered: randomness builds <span class="math-inline" data-latex="\phi,\alpha,\beta">phi, alpha, beta</span>; the Clebsch formula turns them into a velocity with vorticity; a Hodge solve keeps that vorticity while discarding the compressible part.</p>
+          <p>The geometry and randomness have separate jobs. Laplace–Beltrami eigenfunctions supply spatial patterns intrinsic to the surface. Smooth one-dimensional noise changes their coefficients in time. A Hodge choice then turns the scalar into either exact or coexact motion.</p>
         </header>
 
         <div class="tutorial-pipeline">
           <article class="tutorial-step tutorial-noise">
             <div class="tutorial-step-label"><span>01</span><b>TIME COHERENCE</b></div>
             <h3>Perlin noise moves coefficients—not geometry.</h3>
-            <p>For each scalar <span class="math-inline" data-latex="f\in\{\phi,\alpha,\beta\}">f in {phi, alpha, beta}</span>, the spatial functions are fixed first. The sphere uses real spherical harmonics. The tree frog uses eigenvectors of its cotangent Laplace–Beltrami operator. The periodic square uses Fourier eigenfunctions; the parameterized torus uses periodic coordinate modes. No ambient 3D plane wave is restricted onto either curved mesh.</p>
+            <p>The spatial functions are fixed first. The sphere uses real spherical harmonics. The tree frog uses eigenvectors of its cotangent Laplace–Beltrami operator. The periodic square uses Fourier eigenfunctions; the parameterized torus uses periodic coordinate modes. No ambient 3D plane wave is restricted onto either curved mesh.</p>
             <div class="tutorial-equation">
               <div class="math-display" data-latex="f(x,t)=\sum_j A_j\bigl(0.62+0.78N(o_j+r_jt)\bigr)\,\varphi_j(x)">f(x,t) = intrinsic spatial modes with smooth random coefficients</div>
               <small>fixed intrinsic mode + smooth temporal Perlin coefficient</small>
@@ -72,19 +72,19 @@
           </article>
 
           <article class="tutorial-step">
-            <div class="tutorial-step-label"><span>02</span><b>CLEBSCH ASSEMBLY</b></div>
-            <h3>Two scalar gradients create the swirl.</h3>
-            <p>Convert the three noisy scalars into the raw velocity one-form</p>
+            <div class="tutorial-step-label"><span>02</span><b>HODGE FAMILY</b></div>
+            <h3>One scalar gives two very different flows.</h3>
+            <p>Taking the surface gradient produces the exact family. It crosses contours, has zero curl, and can focus or disperse particle clouds.</p>
             <div class="tutorial-equation tutorial-equation-large">
-              <div class="math-display" data-latex="u_{\mathrm C}^{\flat}=d\phi+\alpha\,d\beta">u_C flat = d phi + alpha d beta</div>
-              <small><span class="math-inline" data-latex="d\phi">d phi</span> is exact; <span class="math-inline" data-latex="\alpha\,d\beta">alpha d beta</span> couples two scalar fields.</small>
+              <div class="math-display" data-latex="u_{\parallel}=\nabla_S f,\qquad \operatorname{curl}_S u_{\parallel}=0">exact gradient field is curl-free</div>
+              <small>exact does not mean incompressible: its divergence is the surface Laplacian of the scalar.</small>
             </div>
-            <p>Now take one exterior derivative:</p>
+            <p>Rotate the gradient by a quarter-turn in the oriented tangent plane and it becomes coexact:</p>
             <div class="tutorial-equation tutorial-equation-large accent">
-              <div class="math-display" data-latex="d u_{\mathrm C}^{\flat}=d\alpha\wedge d\beta">d u_C flat = d alpha wedge d beta</div>
-              <small>because <span class="math-inline" data-latex="d^2\phi=0">d squared phi = 0</span> and <span class="math-inline" data-latex="d(\alpha\,d\beta)=d\alpha\wedge d\beta">the product rule</span>.</small>
+              <div class="math-display" data-latex="u_{\perp}=J\nabla_S f,\qquad \operatorname{div}_S u_{\perp}=0">quarter-turned gradient is divergence-free</div>
+              <small>The velocity now follows scalar contours instead of crossing them.</small>
             </div>
-            <p class="tutorial-detail">This is the useful Clebsch fact: vorticity is generated where the level sets of <span class="math-inline" data-latex="\alpha">alpha</span> and <span class="math-inline" data-latex="\beta">beta</span> cross. The <span class="math-inline" data-latex="\phi">phi</span> field can change the raw motion and its compression, but it contributes no vorticity.</p>
+            <p class="tutorial-detail">The randomness is identical in both cases. Switching the field construction isolates the geometric effect of the quarter-turn <span class="math-inline" data-latex="J">J</span>.</p>
           </article>
 
           <aside class="streamfunction-intuition">
@@ -102,28 +102,28 @@
           </aside>
 
           <article class="tutorial-step tutorial-projection">
-            <div class="tutorial-step-label"><span>03</span><b>HODGE PROJECTION</b></div>
-            <h3>Keep the resolved curl. Remove the collapse.</h3>
-            <p>The raw Clebsch field is tangent, but it is not generally divergence-free. This implementation projects the velocity after it is assembled; it does not project <span class="math-inline" data-latex="\phi,\alpha,\beta">phi, alpha, beta</span> separately. On the frog, the same cotangent geometry underlies both the eigenmodes and the Poisson projection.</p>
+            <div class="tutorial-step-label"><span>03</span><b>SCALE SPECTRUM</b></div>
+            <h3>Eigenvalue means spatial frequency.</h3>
+            <p>Laplace–Beltrami modes order patterns from broad to fine. The lab converts each eigenvalue into a wave number and weights it with the selected energy law.</p>
             <ol class="projection-recipe">
-              <li><span>measure</span><span class="math-display" data-latex="\omega_{\mathrm C}=\star d u_{\mathrm C}^{\flat}">measure Clebsch vorticity</span></li>
-              <li><span>solve</span><span class="math-display" data-latex="\Delta_S\psi=\omega_{\mathrm C}">solve Poisson equation</span></li>
-              <li><span>rebuild</span><span class="math-display" data-latex="u_\perp=J\nabla_S\psi">rebuild projected velocity</span></li>
+              <li><span>geometry</span><span class="math-display" data-latex="-\Delta_S\varphi_j=\lambda_j\varphi_j">intrinsic eigenmode</span></li>
+              <li><span>frequency</span><span class="math-display" data-latex="k_j=\sqrt{\lambda_j}">wave number from eigenvalue</span></li>
+              <li><span>energy</span><span class="math-display" data-latex="E(k)\propto k^{-\beta}">spectral falloff</span></li>
             </ol>
             <div class="preserve-grid">
-              <div><span>KEPT</span><strong>resolved vorticity</strong></div>
-              <div><span>REMOVED</span><strong>gradient / compressible part</strong></div>
-              <div><span>RESULT</span><strong><span class="math-inline" data-latex="\operatorname{div}_S u_\perp\approx0">surface divergence is approximately zero</span></strong></div>
+              <div><span>LOW BANDS</span><strong>broad coherent structures</strong></div>
+              <div><span>HIGH BANDS</span><strong>small rapidly changing eddies</strong></div>
+              <div><span>SLOPE β</span><strong>balance of coarse and fine energy</strong></div>
             </div>
-            <p class="tutorial-detail">The area-weighted mean vorticity is removed so the Poisson equation is solvable on a closed or periodic surface. On the torus, this stream-function reconstruction also omits any harmonic circulation component.</p>
+            <p class="tutorial-detail">On the frog, the generalized eigenproblem uses cotangent stiffness and lumped vertex area. This makes the random field depend on the triangle metric rather than on an arbitrary ambient restriction.</p>
           </article>
 
           <article class="tutorial-step">
             <div class="tutorial-step-label"><span>04</span><b>SAMPLE + ADVECT</b></div>
             <h3>Then ask what the flow does to material.</h3>
-            <p>The projected stream function is reconstructed smoothly over the surface. Particles query that velocity at their own positions and advance with a midpoint step, wrapping periodic coordinates or renormalizing to the sphere.</p>
+            <p>The chosen exact or coexact field is reconstructed smoothly over the surface. Particles query that velocity at their own positions and advance with a midpoint step, wrapping periodic coordinates or renormalizing to the sphere.</p>
             <div class="tutorial-equation tutorial-equation-large">
-              <div class="math-display" data-latex="\dot{x}(t)=u_\perp(x(t),t)">particle velocity equals the projected field</div>
+              <div class="math-display" data-latex="\dot{x}(t)=u(x(t),t)">particle velocity equals the selected field</div>
               <small>the two particle colors are passive material labels, not different dynamics.</small>
             </div>
             <p>The arrows are a separate observation layer. <strong>Readable vertices</strong> skips some actual mesh vertices; <strong>Every vertex</strong> evaluates the velocity at every unique rendered vertex. Neither mode invents a second display grid.</p>
@@ -142,7 +142,7 @@
           <p class="random-eyebrow">How to read the experiment</p>
           <ol>
             <li><span>01</span><div><strong>Hold the realization fixed.</strong><p>A seed fixes the spatial modes, temporal noise paths, and initial particle clouds, so comparisons are repeatable.</p></div></li>
-            <li><span>02</span><div><strong>Compare raw with projected.</strong><p>Watch divergence RMS, not just the apparent swirl. Projection should suppress compression without erasing the resolved vorticity.</p></div></li>
+            <li><span>02</span><div><strong>Compare exact with coexact.</strong><p>Use the same seed. The gradient crosses contours and can compress; its quarter-turn follows contours and preserves area.</p></div></li>
             <li><span>03</span><div><strong>Then animate the coefficients.</strong><p>Turnover moves the modal weights along smooth noise paths. Field correlation measures memory of the initial velocity.</p></div></li>
           </ol>
 
@@ -157,32 +157,30 @@
           </div>
 
           <div class="projection-choice" aria-label="Flow construction">
-            <span>FIELD CONSTRUCTION</span>
+            <span>HODGE FAMILY</span>
             <div>
               <button data-fluid-projection="curl-free" aria-pressed="false"><b>Exact · curl-free</b><span class="math-inline" data-latex="u=\nabla_S\phi">u = grad phi</span><small>zero vorticity · generally compressible</small></button>
-              <button data-fluid-projection="divergence-free" aria-pressed="false"><b>Coexact · incompressible</b><span class="math-inline" data-latex="u=J\nabla_S\psi">u = J grad psi</span><small>zero divergence · vortical</small></button>
-              <button data-fluid-projection="clebsch" aria-pressed="false"><b>Clebsch · raw</b><span class="math-inline" data-latex="u^\flat=d\phi+\alpha\,d\beta">u flat = d phi + alpha d beta</span><small>vortical · generally compressible</small></button>
-              <button class="active" data-fluid-projection="clebsch-projected" aria-pressed="true"><b>Clebsch · projected</b><span class="math-inline" data-latex="\Delta_S\psi=\omega_{\mathrm C},\quad u_\perp=J\nabla_S\psi">solve for psi; rebuild velocity</span><small>vorticity-matched coexact field · divergence ≈ 0</small></button>
+              <button class="active" data-fluid-projection="divergence-free" aria-pressed="true"><b>Coexact · incompressible</b><span class="math-inline" data-latex="u=J\nabla_S\psi">u = J grad psi</span><small>zero divergence · vortical</small></button>
             </div>
           </div>
 
           <details open>
-            <summary>What exactly is being projected?</summary>
-            <p>First construct the complete raw velocity <span class="math-inline" data-latex="u_{\mathrm C}^{\flat}=d\phi+\alpha\,d\beta">raw Clebsch velocity</span>. Its scalar vorticity is measured on the projection grid. A Poisson solve then reconstructs the coexact velocity carrying that resolved vorticity.</p>
+            <summary>Where does the random field live?</summary>
+            <p>Its spatial basis lives intrinsically on the selected surface. Only the modal coefficients are random in time. The mesh, eigenfunctions, and tangent planes remain fixed.</p>
           </details>
           <details>
-            <summary>Why can raw Clebsch collapse?</summary>
-            <p>Clebsch form controls vorticity, not divergence. The exact term <span class="math-inline" data-latex="d\phi">d phi</span> and part of <span class="math-inline" data-latex="\alpha\,d\beta">alpha d beta</span> can still create local sources and sinks. Particle density therefore changes even though the field is tangent to the surface.</p>
+            <summary>Why can the exact flow collapse?</summary>
+            <p>A gradient is curl-free, not divergence-free. Its surface divergence is <span class="math-inline" data-latex="\Delta_S\phi">the Laplacian of phi</span>, so it can create local sources and sinks for the particle density.</p>
           </details>
           <details>
-            <summary>Does projected mean curl-free?</summary>
-            <p>No. The projected field is approximately divergence-free and deliberately vortical. Curl-free <span class="math-inline" data-latex="\nabla_S\phi">grad phi</span> and divergence-free <span class="math-inline" data-latex="J\nabla_S\psi">rotated grad psi</span> are different pieces of the surface Hodge decomposition.</p>
+            <summary>Where did Clebsch go?</summary>
+            <p>It has a dedicated <a href="./clebsch-surfaces.html">Clebsch variables on surfaces lab</a> with vertex, edge, and face diagrams, plus raw-versus-projected comparison. This page now isolates spectral randomness and the exact/coexact distinction.</p>
           </details>
         </aside>
 
         <section class="random-stage">
           <div class="random-stage-head">
-            <div><span>LIVE TANGENT FIELD · MESH VERTICES</span><strong id="fluid-stage-title">tree frog · Clebsch / Hodge-projected</strong></div>
+            <div><span>LIVE TANGENT FIELD · MESH VERTICES</span><strong id="fluid-stage-title">tree frog · coexact / divergence-free</strong></div>
             <div class="stage-toggles">
               <button id="fluid-vectors" class="active" aria-pressed="true">vectors</button>
               <button id="fluid-vorticity" class="active" aria-pressed="true">vorticity</button>
@@ -199,19 +197,6 @@
             <button id="fluid-play" class="primary" aria-pressed="true">Pause</button>
             <button id="fluid-new-seed">New realization</button>
           </div>
-          <aside class="tutorial-experiment stage-comparison">
-            <div>
-              <p class="random-eyebrow">Controlled comparison</p>
-              <h3>Use the same seed and the same particle clouds.</h3>
-              <p>Freeze the time noise first. Compare raw and projected Clebsch fields while watching divergence RMS and whether either cloud contracts. Then restore the temporal motion and watch the field correlation fall.</p>
-            </div>
-            <div class="tutorial-actions" aria-label="Load tutorial states in the live experiment">
-              <button data-fluid-tutorial-turnover="0">1 · Freeze time noise</button>
-              <button data-fluid-tutorial-projection="clebsch">2 · Show raw Clebsch</button>
-              <button data-fluid-tutorial-projection="clebsch-projected">3 · Apply the projection</button>
-              <button data-fluid-tutorial-turnover="0.42">4 · Restore time motion</button>
-            </div>
-          </aside>
           <div class="random-metrics">
             <div><span>time</span><strong id="fluid-time">0</strong></div>
             <div><span>RMS speed</span><strong id="fluid-rms">—</strong></div>
@@ -220,7 +205,7 @@
             <div><span>tangent defect</span><strong id="fluid-tangency">—</strong></div>
             <div><span>field correlation</span><strong id="fluid-correlation">—</strong></div>
           </div>
-          <p id="fluid-status" class="fluid-status" aria-live="polite">Seed 13 · projected Clebsch field ready on tree frog</p>
+          <p id="fluid-status" class="fluid-status" aria-live="polite">Seed 13 · coexact spectral field ready on tree frog</p>
         </section>
 
         <aside class="random-controls">
@@ -285,8 +270,8 @@
       </section>
 
       <section class="random-notes">
-        <article><span>CHECK 01 · RAW</span><h2>Vorticity does not imply incompressibility.</h2><p>A raw Clebsch field can swirl beautifully while still focusing particles. Use divergence RMS to detect the compressible component that trails alone may disguise.</p></article>
-        <article><span>CHECK 02 · PROJECTED</span><h2>The velocity changes; the target curl does not.</h2><p>The solve does not merely “clean up” the arrows. It selects the coexact velocity associated with the resolved Clebsch vorticity, modulo discretization and omitted harmonic circulation.</p></article>
+        <article><span>CHECK 01 · GEOMETRY</span><h2>The modes belong to the surface.</h2><p>On the frog, they are eigenvectors of the cotangent Laplace–Beltrami operator. On the sphere and periodic parameter surfaces, they come from the corresponding intrinsic harmonic families.</p></article>
+        <article><span>CHECK 02 · HODGE</span><h2>A quarter-turn changes the invariant.</h2><p>The exact gradient is curl-free and generally compressible. Its coexact quarter-turn is divergence-free and vortical, even though both start from the same scalar realization.</p></article>
         <article><span>CHECK 03 · PERLIN</span><h2>Smooth randomness is not fluid dynamics.</h2><p>Temporal Perlin noise prescribes how the random field changes; it is not a Navier–Stokes evolution. The particles respond to that kinematic velocity, but they do not feed back into it.</p></article>
       </section>
     </main>
