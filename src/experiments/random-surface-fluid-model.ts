@@ -763,10 +763,14 @@ export class RandomSurfaceFluidModel {
   }
 
   private projectionGrid(time: number): ProjectionGrid {
-    const cached = this.projectionCache.get(time);
+    const projectionInterval = 3 * this.parameters.timeStep;
+    const sampledTime = this.parameters.turnover === 0
+      ? 0
+      : Number((Math.round(time / projectionInterval) * projectionInterval).toFixed(12));
+    const cached = this.projectionCache.get(sampledTime);
     if (cached) return cached;
-    const grid = this.buildProjectionGrid(time);
-    this.projectionCache.set(time, grid);
+    const grid = this.buildProjectionGrid(sampledTime);
+    this.projectionCache.set(sampledTime, grid);
     while (this.projectionCache.size > 6) {
       const oldest = this.projectionCache.keys().next().value as number | undefined;
       if (oldest === undefined) break;
