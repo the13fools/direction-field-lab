@@ -11,8 +11,6 @@ import {
   type VertexVelocitySample,
 } from "./random-surface-fluid-model";
 
-const TAU = 2 * Math.PI;
-
 export interface FrogTriangleMesh {
   positions: Float64Array;
   faces: Uint32Array;
@@ -28,33 +26,32 @@ export interface FrogTriangleMesh {
   positionToVertex: Map<string, number>;
 }
 
+export interface FrogEigenbasis {
+  vertexCount: number;
+  modeCount: number;
+  eigenvalues: Float64Array;
+  modes: Float32Array;
+}
+
 interface FrogMode {
+  basisIndex: number;
   band: number;
   frequency: number;
   amplitude: number;
-  phase: number;
   timeOffset: number;
   timeRate: number;
   noiseSeed: number;
-  axis: Vec3;
 }
 
 interface PreparedFrogMode {
-  frequency: number;
-  amplitude: number;
-  phase: number;
-  axis: Vec3;
+  basisIndex: number;
+  coefficient: number;
 }
 
 interface PreparedFrogFields {
   primary: PreparedFrogMode[];
   alpha: PreparedFrogMode[];
   beta: PreparedFrogMode[];
-}
-
-interface ScalarSample {
-  value: number;
-  gradient: Vec3;
 }
 
 interface FrogFieldState {
@@ -135,13 +132,6 @@ function mulberry32(seed: number): () => number {
     value = value + Math.imul(value ^ (value >>> 7), 61 | value) ^ value;
     return ((value ^ (value >>> 14)) >>> 0) / 4294967296;
   };
-}
-
-function randomUnitVector(random: () => number): Vec3 {
-  const z = 2 * random() - 1;
-  const azimuth = TAU * random();
-  const radius = Math.sqrt(Math.max(0, 1 - z * z));
-  return { x: radius * Math.cos(azimuth), y: radius * Math.sin(azimuth), z };
 }
 
 function addEdgeWeight(weights: Map<string, number>, a: number, b: number, amount: number): void {
@@ -289,8 +279,33 @@ export function parseFrogTriangleMesh(source: string): FrogTriangleMesh {
   };
 }
 
+export function parseFrogEigenbasis(buffer: ArrayBuffer, expectedVertexCount?: number): FrogEigenbasis {
+  if (buffer.byteLength < 16) throw new Error("The frog Laplace–Beltrami basis is truncated.");
+  const bytes = new Uint8Array(buffer, 0, 4);
+  if (String.fromCharCode(...bytes) !== "LBE2") throw new Error("The frog eigenbasis has an invalid signature.");
+  const header = new DataView(buffer, 4, 12);
+  const version = header.getUint32(0, true);
+  const vertexCount = header.getUint32(4, true);
+  const modeCount = header.getUint32(8, true);
+  if (version !== 2) throw new Error(`Unsupported frog eigenbasis version ${version}.`);
+  if (expectedVertexCount !== undefined && vertexCount !== expectedVertexCount) {
+    throw new Error(`Frog eigenbasis has ${vertexCount} vertices; expected ${expectedVertexCount}.`);
+  }
+  const eigenvalueOffset = 16;
+  const modeOffset = eigenvalueOffset + 8 * modeCount;
+  const expectedBytes = modeOffset + 4 * vertexCount * modeCount;
+  if (buffer.byteLength !== expectedBytes) throw new Error("The frog eigenbasis has an invalid length.");
+  return {
+    vertexCount,
+    modeCount,
+    eigenvalues: new Float64Array(buffer, eigenvalueOffset, modeCount),
+    modes: new Float32Array(buffer, modeOffset, vertexCount * modeCount),
+  };
+}
+
 export class FrogSurfaceFluidModel extends RandomSurfaceFluidModel {
   readonly frogMesh: FrogTriangleMesh;
+  readonly frogEigenbasis: FrogEigenbasis;
   private frogPrimaryModes: FrogMode[] = [];
   private frogAlphaModes: FrogMode[] = [];
   private frogBetaModes: FrogMode[] = [];
@@ -301,9 +316,20 @@ export class FrogSurfaceFluidModel extends RandomSurfaceFluidModel {
   private particleStates = new WeakMap<FluidParticle, FrogParticleState>();
   private cloudFaces: [number[], number[]] = [[], []];
 
-  constructor(mesh: FrogTriangleMesh, parameters: Partial<RandomSurfaceFluidParameters> = {}) {
+  constructor(
+    mesh: FrogTriangleMesh,
+    eigenbasis: FrogEigenbasis,
+    parameters: Partial<RandomSurfaceFluidParameters> = {},
+  ) {
     super({ ...parameters, surface: "sphere" });
     this.frogMesh = mesh;
+    this.frogEigenbasis = eigenbasis;
+    if (eigenbasis.vertexCount !== mesh.positions.length / 3) {
+      throw new Error("The frog mesh and Laplace–Beltrami basis have different vertex counts.");
+    }
+    if (eigenbasis.modeCount < this.parameters.modeCount) {
+      throw new Error(`The frog eigenbasis needs at least ${this.parameters.modeCount} modes.`);
+    }
     this.rebuildFrog();
   }
 
@@ -333,18 +359,30 @@ export class FrogSurfaceFluidModel extends RandomSurfaceFluidModel {
 
   private makeFrogModes(random: () => number, seedOffset: number): FrogMode[] {
     const result: FrogMode[] = [];
+    const available = Math.min(
+      this.frogEigenbasis.modeCount,
+      Math.max(1, Math.round(this.parameters.maxBand / 12 * this.frogEigenbasis.modeCount)),
+    );
+    const basisOrder = Array.from({ length: available }, (_, index) => index);
+    for (let index = basisOrder.length - 1; index > 0; index -= 1) {
+      const swap = Math.floor(random() * (index + 1));
+      [basisOrder[index], basisOrder[swap]] = [basisOrder[swap]!, basisOrder[index]!];
+    }
     for (let index = 0; index < this.parameters.modeCount; index += 1) {
-      const band = 1 + (index % this.parameters.maxBand);
-      const frequency = Math.PI * band / 1.3;
+      const basisIndex = basisOrder[index % available]!;
+      const band = 1 + Math.min(
+        this.parameters.maxBand - 1,
+        Math.floor(basisIndex / Math.max(1, available) * this.parameters.maxBand),
+      );
+      const frequency = Math.sqrt(this.frogEigenbasis.eigenvalues[basisIndex]!);
       result.push({
+        basisIndex,
         band,
         frequency,
         amplitude: (random() < 0.5 ? -1 : 1) * frequency ** (-(this.parameters.spectralSlope + 2) / 2),
-        phase: TAU * random(),
         timeOffset: 40 * random() + 0.371 * seedOffset,
         timeRate: this.parameters.turnover * (0.42 + 0.3 * random()) * Math.sqrt(band),
         noiseSeed: (this.parameters.seed + seedOffset + 104729 * index) | 0,
-        axis: randomUnitVector(random),
       });
     }
     return result;
@@ -353,13 +391,9 @@ export class FrogSurfaceFluidModel extends RandomSurfaceFluidModel {
   private prepareModes(modes: readonly FrogMode[], time: number): PreparedFrogMode[] {
     return modes.map((mode) => {
       const coordinate = mode.timeOffset + time * mode.timeRate;
-      const envelope = 0.78 + 0.32 * temporalPerlinNoise(coordinate + 13.7, mode.noiseSeed + 17);
-      const phase = 1.85 * temporalPerlinNoise(coordinate, mode.noiseSeed);
       return {
-        frequency: mode.frequency,
-        amplitude: mode.amplitude * envelope,
-        phase: mode.phase + phase,
-        axis: mode.axis,
+        basisIndex: mode.basisIndex,
+        coefficient: mode.amplitude * (0.62 + 0.78 * temporalPerlinNoise(coordinate, mode.noiseSeed)),
       };
     });
   }
@@ -381,32 +415,76 @@ export class FrogSurfaceFluidModel extends RandomSurfaceFluidModel {
     return prepared;
   }
 
-  private scalar(modes: readonly PreparedFrogMode[], point: Vec3, normal: Vec3): ScalarSample {
-    let value = 0;
-    let ambientGradient = { x: 0, y: 0, z: 0 };
+  private scalarValues(modes: readonly PreparedFrogMode[]): Float64Array {
+    const values = new Float64Array(this.frogEigenbasis.vertexCount);
     for (const mode of modes) {
-      const argument = mode.frequency * dot(mode.axis, point) + mode.phase;
-      value += mode.amplitude * Math.sin(argument);
-      ambientGradient = add(ambientGradient, scale(mode.axis, mode.amplitude * mode.frequency * Math.cos(argument)));
+      const multiplier = mode.coefficient;
+      const offset = mode.basisIndex * this.frogEigenbasis.vertexCount;
+      for (let vertex = 0; vertex < values.length; vertex += 1) {
+        values[vertex] = values[vertex]!
+          + multiplier * this.frogEigenbasis.modes[offset + vertex]!;
+      }
     }
-    return { value, gradient: tangent(ambientGradient, normal) };
+    return values;
   }
 
-  private analyticVelocity(point: Vec3, normal: Vec3, time: number): Vec3 {
-    const fields = this.preparedAt(time);
-    const primary = this.scalar(fields.primary, point, normal);
-    if (this.parameters.projection === "curl-free") return primary.gradient;
-    if (this.parameters.projection === "divergence-free") return cross(normal, primary.gradient);
-    const alpha = this.scalar(fields.alpha, point, normal);
-    const beta = this.scalar(fields.beta, point, normal);
-    return add(primary.gradient, scale(beta.gradient, alpha.value));
+  private faceScalarGradients(values: Float64Array): Float64Array {
+    const gradients = new Float64Array(3 * this.frogMesh.faces.length / 3);
+    for (let face = 0; face < this.frogMesh.faces.length / 3; face += 1) {
+      let gradient = { x: 0, y: 0, z: 0 };
+      for (let local = 0; local < 3; local += 1) {
+        const vertex = this.frogMesh.faces[3 * face + local]!;
+        const offset = 9 * face + 3 * local;
+        gradient = add(gradient, scale({
+          x: this.frogMesh.faceGradients[offset]!,
+          y: this.frogMesh.faceGradients[offset + 1]!,
+          z: this.frogMesh.faceGradients[offset + 2]!,
+        }, values[vertex]!));
+      }
+      setArrayVector(gradients, face, gradient);
+    }
+    return gradients;
   }
 
-  private clebschVorticity(point: Vec3, normal: Vec3, time: number): number {
-    const fields = this.preparedAt(time);
-    const alpha = this.scalar(fields.alpha, point, normal);
-    const beta = this.scalar(fields.beta, point, normal);
-    return dot(normal, cross(alpha.gradient, beta.gradient));
+  private vertexAverage(faceVectors: Float64Array): Float64Array {
+    const result = new Float64Array(this.frogMesh.positions.length);
+    for (let vertex = 0; vertex < this.frogMesh.positions.length / 3; vertex += 1) {
+      let vector = { x: 0, y: 0, z: 0 };
+      let area = 0;
+      for (const face of this.frogMesh.vertexFaces[vertex]!) {
+        const faceArea = this.frogMesh.faceAreas[face]!;
+        vector = add(vector, scale(arrayVector(faceVectors, face), faceArea));
+        area += faceArea;
+      }
+      setArrayVector(
+        result,
+        vertex,
+        tangent(scale(vector, 1 / Math.max(1e-14, area)), arrayVector(this.frogMesh.vertexNormals, vertex)),
+      );
+    }
+    return result;
+  }
+
+  private clebschVorticity(
+    alphaGradient: Float64Array,
+    betaGradient: Float64Array,
+  ): Float64Array {
+    const result = new Float64Array(this.frogMesh.positions.length / 3);
+    for (let face = 0; face < this.frogMesh.faces.length / 3; face += 1) {
+      const value = dot(
+        arrayVector(this.frogMesh.faceNormals, face),
+        cross(arrayVector(alphaGradient, face), arrayVector(betaGradient, face)),
+      );
+      const weighted = this.frogMesh.faceAreas[face]! * value / 3;
+      for (let local = 0; local < 3; local += 1) {
+        const vertex = this.frogMesh.faces[3 * face + local]!;
+        result[vertex] = result[vertex]! + weighted;
+      }
+    }
+    for (let vertex = 0; vertex < result.length; vertex += 1) {
+      result[vertex] = result[vertex]! / Math.max(1e-14, this.frogMesh.vertexAreas[vertex]!);
+    }
+    return result;
   }
 
   private multiplyLaplace(vector: Float64Array, result: Float64Array): void {
@@ -500,65 +578,59 @@ export class FrogSurfaceFluidModel extends RandomSurfaceFluidModel {
   private buildState(time: number): FrogFieldState {
     const vertexCount = this.frogMesh.positions.length / 3;
     const faceCount = this.frogMesh.faces.length / 3;
-    const vertexVelocity = new Float64Array(3 * vertexCount);
+    const fields = this.preparedAt(time);
+    const primaryValues = this.scalarValues(fields.primary);
+    const primaryGradient = this.faceScalarGradients(primaryValues);
     const faceVelocity = new Float64Array(3 * faceCount);
-    const targetVorticity = new Float64Array(vertexCount);
+    let targetVorticity: Float64Array<ArrayBufferLike> = new Float64Array(vertexCount);
 
-    if (this.parameters.projection === "clebsch-projected") {
-      for (let vertex = 0; vertex < vertexCount; vertex += 1) {
-        targetVorticity[vertex] = this.clebschVorticity(
-          arrayVector(this.frogMesh.positions, vertex),
-          arrayVector(this.frogMesh.vertexNormals, vertex),
-          time,
+    if (this.parameters.projection === "curl-free") {
+      faceVelocity.set(primaryGradient);
+    } else if (this.parameters.projection === "divergence-free") {
+      for (let face = 0; face < faceCount; face += 1) {
+        setArrayVector(
+          faceVelocity,
+          face,
+          cross(arrayVector(this.frogMesh.faceNormals, face), arrayVector(primaryGradient, face)),
         );
       }
-      const streamFunction = this.solveStreamFunction(targetVorticity);
-      for (let face = 0; face < faceCount; face += 1) {
-        let gradient = { x: 0, y: 0, z: 0 };
-        for (let local = 0; local < 3; local += 1) {
-          const vertex = this.frogMesh.faces[3 * face + local]!;
-          const offset = 9 * face + 3 * local;
-          gradient = add(gradient, scale({
-            x: this.frogMesh.faceGradients[offset]!,
-            y: this.frogMesh.faceGradients[offset + 1]!,
-            z: this.frogMesh.faceGradients[offset + 2]!,
-          }, streamFunction[vertex]!));
-        }
-        setArrayVector(faceVelocity, face, cross(arrayVector(this.frogMesh.faceNormals, face), gradient));
-      }
-      for (let vertex = 0; vertex < vertexCount; vertex += 1) {
-        let velocity = { x: 0, y: 0, z: 0 };
-        let area = 0;
-        for (const face of this.frogMesh.vertexFaces[vertex]!) {
-          const faceArea = this.frogMesh.faceAreas[face]!;
-          velocity = add(velocity, scale(arrayVector(faceVelocity, face), faceArea));
-          area += faceArea;
-        }
-        setArrayVector(vertexVelocity, vertex, tangent(scale(velocity, 1 / Math.max(1e-14, area)), arrayVector(this.frogMesh.vertexNormals, vertex)));
-      }
     } else {
-      for (let vertex = 0; vertex < vertexCount; vertex += 1) {
-        const point = arrayVector(this.frogMesh.positions, vertex);
-        const normal = arrayVector(this.frogMesh.vertexNormals, vertex);
-        setArrayVector(vertexVelocity, vertex, this.analyticVelocity(point, normal, time));
-        if (this.parameters.projection === "clebsch") {
-          targetVorticity[vertex] = this.clebschVorticity(point, normal, time);
+      const alphaValues = this.scalarValues(fields.alpha);
+      const betaValues = this.scalarValues(fields.beta);
+      const alphaGradient = this.faceScalarGradients(alphaValues);
+      const betaGradient = this.faceScalarGradients(betaValues);
+      targetVorticity = this.clebschVorticity(alphaGradient, betaGradient);
+      if (this.parameters.projection === "clebsch") {
+        for (let face = 0; face < faceCount; face += 1) {
+          const alpha = (
+            alphaValues[this.frogMesh.faces[3 * face]!]!
+            + alphaValues[this.frogMesh.faces[3 * face + 1]!]!
+            + alphaValues[this.frogMesh.faces[3 * face + 2]!]!
+          ) / 3;
+          setArrayVector(faceVelocity, face, add(
+            arrayVector(primaryGradient, face),
+            scale(arrayVector(betaGradient, face), alpha),
+          ));
         }
-      }
-      for (let face = 0; face < faceCount; face += 1) {
-        const ids = [
-          this.frogMesh.faces[3 * face]!,
-          this.frogMesh.faces[3 * face + 1]!,
-          this.frogMesh.faces[3 * face + 2]!,
-        ];
-        const point = scale(add(add(
-          arrayVector(this.frogMesh.positions, ids[0]!),
-          arrayVector(this.frogMesh.positions, ids[1]!),
-        ), arrayVector(this.frogMesh.positions, ids[2]!)), 1 / 3);
-        setArrayVector(faceVelocity, face, this.analyticVelocity(point, arrayVector(this.frogMesh.faceNormals, face), time));
+      } else {
+        const streamFunction = this.solveStreamFunction(targetVorticity);
+        for (let face = 0; face < faceCount; face += 1) {
+          let gradient = { x: 0, y: 0, z: 0 };
+          for (let local = 0; local < 3; local += 1) {
+            const vertex = this.frogMesh.faces[3 * face + local]!;
+            const offset = 9 * face + 3 * local;
+            gradient = add(gradient, scale({
+              x: this.frogMesh.faceGradients[offset]!,
+              y: this.frogMesh.faceGradients[offset + 1]!,
+              z: this.frogMesh.faceGradients[offset + 2]!,
+            }, streamFunction[vertex]!));
+          }
+          setArrayVector(faceVelocity, face, cross(arrayVector(this.frogMesh.faceNormals, face), gradient));
+        }
       }
     }
 
+    const vertexVelocity = this.vertexAverage(faceVelocity);
     for (let index = 0; index < vertexVelocity.length; index += 1) vertexVelocity[index] = vertexVelocity[index]! * this.frogVelocityScale;
     for (let index = 0; index < faceVelocity.length; index += 1) faceVelocity[index] = faceVelocity[index]! * this.frogVelocityScale;
     const divergence = this.weakDivergence(faceVelocity);
@@ -749,11 +821,8 @@ export class FrogSurfaceFluidModel extends RandomSurfaceFluidModel {
     return { face, barycentric };
   }
 
-  private faceVelocity(face: number, point: Vec3, time: number): Vec3 {
-    if (this.parameters.projection === "clebsch-projected") {
-      return arrayVector(this.stateAt(time).faceVelocity, face);
-    }
-    return scale(this.analyticVelocity(point, arrayVector(this.frogMesh.faceNormals, face), time), this.frogVelocityScale);
+  private faceVelocity(face: number, _point: Vec3, time: number): Vec3 {
+    return arrayVector(this.stateAt(time).faceVelocity, face);
   }
 
   override particlePosition(particle: FluidParticle): Vec3 {

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS,
   RandomSurfaceFluidModel,
+  realSphericalHarmonic,
   squarePosition,
   temporalPerlinNoise,
   torusPosition,
@@ -13,6 +14,40 @@ function length(x: number, y: number, z: number): number {
 }
 
 describe("random fluids on surfaces", () => {
+  it("uses spherical harmonics with the Laplace–Beltrami eigenvalue l(l+1)", () => {
+    const raw = { x: 0.37, y: -0.52, z: 0.77 };
+    const rawLength = length(raw.x, raw.y, raw.z);
+    const point = { x: raw.x / rawLength, y: raw.y / rawLength, z: raw.z / rawLength };
+    const tangentAValue = { x: -point.y, y: point.x, z: 0 };
+    const tangentALength = length(tangentAValue.x, tangentAValue.y, tangentAValue.z);
+    const tangentA = {
+      x: tangentAValue.x / tangentALength,
+      y: tangentAValue.y / tangentALength,
+      z: 0,
+    };
+    const tangentB = {
+      x: point.y * tangentA.z - point.z * tangentA.y,
+      y: point.z * tangentA.x - point.x * tangentA.z,
+      z: point.x * tangentA.y - point.y * tangentA.x,
+    };
+    const exponential = (direction: typeof point, distance: number): typeof point => ({
+      x: Math.cos(distance) * point.x + Math.sin(distance) * direction.x,
+      y: Math.cos(distance) * point.y + Math.sin(distance) * direction.y,
+      z: Math.cos(distance) * point.z + Math.sin(distance) * direction.z,
+    });
+    const sample = realSphericalHarmonic(3, 2, "cosine", point);
+    const step = 1e-3;
+    const laplacian = (
+      realSphericalHarmonic(3, 2, "cosine", exponential(tangentA, step)).value
+      + realSphericalHarmonic(3, 2, "cosine", exponential(tangentA, -step)).value
+      + realSphericalHarmonic(3, 2, "cosine", exponential(tangentB, step)).value
+      + realSphericalHarmonic(3, 2, "cosine", exponential(tangentB, -step)).value
+      - 4 * sample.value
+    ) / step ** 2;
+    expect(laplacian).toBeCloseTo(-3 * 4 * sample.value, 4);
+    expect(sample.gradient.x * point.x + sample.gradient.y * point.y + sample.gradient.z * point.z).toBeCloseTo(0, 12);
+  });
+
   it("starts with one thousand particles", () => {
     expect(DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS.particleCount).toBe(1000);
     expect(DEFAULT_RANDOM_SURFACE_FLUID_PARAMETERS.projection).toBe("clebsch-projected");

@@ -4,9 +4,14 @@ import "katex/dist/katex.min.css";
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
 import katex from "katex";
+import treefrogEigenbasisUrl from "../assets/treefrog-lb-eigenbasis.bin?url";
 import treefrogUrl from "../assets/treefrog.obj?url";
 
-import { FrogSurfaceFluidModel, parseFrogTriangleMesh } from "./frog-surface-fluid-model";
+import {
+  FrogSurfaceFluidModel,
+  parseFrogEigenbasis,
+  parseFrogTriangleMesh,
+} from "./frog-surface-fluid-model";
 import {
   RandomSurfaceFluidModel,
   torusNormal,
@@ -44,9 +49,19 @@ const tutorialSection = byId<HTMLElement>("clebsch-tutorial");
 const liveExperimentSection = byId<HTMLElement>("live-fluid-lab");
 tutorialSection.before(liveExperimentSection);
 
-const treefrogResponse = await fetch(treefrogUrl);
+const [treefrogResponse, treefrogEigenbasisResponse] = await Promise.all([
+  fetch(treefrogUrl),
+  fetch(treefrogEigenbasisUrl),
+]);
 if (!treefrogResponse.ok) throw new Error(`Unable to load the tree-frog surface (${treefrogResponse.status}).`);
+if (!treefrogEigenbasisResponse.ok) {
+  throw new Error(`Unable to load the tree-frog Laplace–Beltrami basis (${treefrogEigenbasisResponse.status}).`);
+}
 const treefrogMesh = parseFrogTriangleMesh(await treefrogResponse.text());
+const treefrogEigenbasis = parseFrogEigenbasis(
+  await treefrogEigenbasisResponse.arrayBuffer(),
+  treefrogMesh.positions.length / 3,
+);
 
 const viewer = byId<HTMLDivElement>("random-fluid-viewer");
 const playButton = byId<HTMLButtonElement>("fluid-play");
@@ -139,7 +154,7 @@ function readModel(): RandomSurfaceFluidModel {
     particleCount: Math.round(Number(controls.particles.value)),
   };
   return surface === "frog"
-    ? new FrogSurfaceFluidModel(treefrogMesh, parameters)
+    ? new FrogSurfaceFluidModel(treefrogMesh, treefrogEigenbasis, parameters)
     : new RandomSurfaceFluidModel({ ...parameters, surface });
 }
 
@@ -233,9 +248,9 @@ function rebuildSurface(): void {
   fieldVertices = vertices.readable;
   allFieldVertices = vertices.all;
   const material = new THREE.MeshPhysicalMaterial({
-    color: surface === "frog" ? 0x123c2b : 0x3d2868,
-    emissive: surface === "frog" ? 0x061e15 : 0x111533,
-    emissiveIntensity: surface === "frog" ? 0.48 : 0.65,
+    color: surface === "frog" ? 0x42b96c : 0x3d2868,
+    emissive: surface === "frog" ? 0x0b743b : 0x111533,
+    emissiveIntensity: surface === "frog" ? 0.72 : 0.65,
     roughness: 0.55,
     metalness: 0.06,
     transparent: true,
@@ -248,9 +263,9 @@ function rebuildSurface(): void {
   const wire = new THREE.LineSegments(
     new THREE.WireframeGeometry(geometry),
     new THREE.LineBasicMaterial({
-      color: surface === "frog" ? 0x70c394 : 0x8edbe4,
+      color: surface === "frog" ? 0xa2ffb9 : 0x8edbe4,
       transparent: true,
-      opacity: surface === "frog" ? 0.055 : surface === "sphere" ? 0.09 : surface === "torus" ? 0.11 : 0.16,
+      opacity: surface === "frog" ? 0.09 : surface === "sphere" ? 0.09 : surface === "torus" ? 0.11 : 0.16,
     }),
   );
   wire.renderOrder = 2;
@@ -595,7 +610,7 @@ function updateConstructionCopy(): void {
   byId("fluid-invariant-label").textContent = copy.label;
   renderLatex(byId("fluid-invariant-equation"), copy.invariant);
   byId("fluid-construction-note").textContent = surface === "frog" && projection === "clebsch-projected"
-    ? "A cotangent-Laplacian Poisson solve on the frog’s actual triangles reconstructs the coexact velocity from the mean-free Clebsch vorticity. The result is discretely divergence-free."
+    ? "The scalar fields use cotangent Laplace–Beltrami eigenvectors of the frog mesh. A Poisson solve built from the same triangles reconstructs the coexact velocity from mean-free Clebsch vorticity."
     : copy.note;
 }
 
@@ -663,10 +678,6 @@ function clearPresetSelection(): void {
   }
 }
 
-function showLiveExperiment(): void {
-  document.getElementById("live-fluid-lab")?.scrollIntoView({ behavior: "smooth", block: "start" });
-}
-
 for (const input of Object.values(controls)) {
   input.addEventListener("input", updateControlOutputs);
   input.addEventListener("change", () => {
@@ -698,7 +709,6 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-t
   button.addEventListener("click", () => {
     projection = button.dataset.fluidTutorialProjection as FlowProjection;
     rebuild(`${projection} tutorial state loaded · same seed and particle clouds`);
-    showLiveExperiment();
   });
 }
 
@@ -709,7 +719,6 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-t
     updateControlOutputs();
     const frozen = Number(controls.turnover.value) === 0;
     rebuild(frozen ? "temporal Perlin coordinates frozen" : "smooth temporal Perlin motion restored");
-    showLiveExperiment();
   });
 }
 

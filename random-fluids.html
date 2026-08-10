@@ -28,12 +28,12 @@
         <div class="random-title">
           <p class="random-eyebrow">Stack spatial scales. Evolve them with time noise. Project. Advect.</p>
           <h1>Random fluids,<br /><em>bound to a surface.</em></h1>
-          <p>Build three seeded scalar fields, let their Fourier-like modes wander smoothly in time, form a raw Clebsch velocity, and project it onto its incompressible part. Begin with the live experiment; the guided derivation follows immediately afterward.</p>
+          <p>Build three seeded scalar fields from intrinsic surface modes, let their coefficients wander smoothly in time, form a raw Clebsch velocity, and project it onto its incompressible part. Begin with the live experiment; the guided derivation follows immediately afterward.</p>
           <a class="lesson-link" href="#live-fluid-lab">Open the live surface demo ↓</a>
         </div>
         <div class="construction-card">
           <span>THE CONSTRUCTION</span>
-          <div class="math-display" id="fluid-construction-equation" data-latex="f(x,t)=\sum_m A_m e_m(t)\sin(q_m(x)+\theta_m+p_m(t))">f(x,t) = sum of moving spatial modes</div>
+          <div class="math-display" id="fluid-construction-equation" data-latex="f(x,t)=\sum_j c_j(t)\,\varphi_j(x),\qquad -\Delta_S\varphi_j=\lambda_j\varphi_j">f(x,t) = time-varying coefficients times intrinsic surface eigenfunctions</div>
           <div class="math-display" id="fluid-projection-equation" data-latex="u_\perp=J\nabla_S\psi">u-perp = rotated gradient of psi</div>
           <div><strong>tangent</strong><span class="math-inline" data-latex="u\cdot n=0">u · n = 0</span></div>
           <div><strong id="fluid-invariant-label">area preserving</strong><span class="math-inline" id="fluid-invariant-equation" data-latex="\Delta_S\psi=\omega_{\mathrm C}">Laplacian psi = Clebsch vorticity</span></div>
@@ -53,18 +53,22 @@
         <div class="tutorial-pipeline">
           <article class="tutorial-step tutorial-noise">
             <div class="tutorial-step-label"><span>01</span><b>TIME COHERENCE</b></div>
-            <h3>Perlin noise moves the modes—not the mesh.</h3>
-            <p>For each scalar <span class="math-inline" data-latex="f\in\{\phi,\alpha,\beta\}">f in {phi, alpha, beta}</span>, the seed first fixes spatial waves. The square and torus use periodic Fourier modes. The sphere and tree frog use ambient plane waves restricted to the surface, then take intrinsic tangent gradients.</p>
+            <h3>Perlin noise moves coefficients—not geometry.</h3>
+            <p>For each scalar <span class="math-inline" data-latex="f\in\{\phi,\alpha,\beta\}">f in {phi, alpha, beta}</span>, the spatial functions are fixed first. The sphere uses real spherical harmonics. The tree frog uses eigenvectors of its cotangent Laplace–Beltrami operator. The periodic square uses Fourier eigenfunctions; the parameterized torus uses periodic coordinate modes. No ambient 3D plane wave is restricted onto either curved mesh.</p>
             <div class="tutorial-equation">
-              <div class="math-display" data-latex="f(x,t)=\sum_m A_m e_m(t)\,\sin\!\left(q_m(x)+\theta_m+p_m(t)\right)">f(x,t) = sum of moving spatial modes</div>
-              <small>spatial wave + smooth temporal envelope + smooth temporal phase</small>
+              <div class="math-display" data-latex="f(x,t)=\sum_j A_j\bigl(0.62+0.78N(o_j+r_jt)\bigr)\,\varphi_j(x)">f(x,t) = intrinsic spatial modes with smooth random coefficients</div>
+              <small>fixed intrinsic mode + smooth temporal Perlin coefficient</small>
+            </div>
+            <div class="tutorial-equation">
+              <div class="math-display" data-latex="K\varphi_j=\lambda_jM\varphi_j\quad\text{(triangle mesh)}">cotangent stiffness times mode = eigenvalue times lumped mass times mode</div>
+              <small>On the frog, <span class="math-inline" data-latex="K">K</span> and <span class="math-inline" data-latex="M">M</span> come from the actual triangles, so the modes depend on intrinsic mesh geometry—not its pose in space.</small>
             </div>
             <div class="noise-recipe" aria-label="How one-dimensional temporal Perlin noise is constructed">
               <div><b>1</b><span>Hash a random slope at each integer time lattice point.</span></div>
               <div><b>2</b><span>Take each slope’s linear contribution inside the current interval.</span></div>
               <div><b>3</b><span>Blend them with <span class="math-inline" data-latex="6\xi^5-15\xi^4+10\xi^3">the quintic fade curve</span> for smooth joins.</span></div>
             </div>
-            <p class="tutorial-detail">Each mode follows an independent 1D noise path <span class="math-inline" data-latex="N(o_m+r_mt)">N(o_m + r_m t)</span>. The turnover slider scales <span class="math-inline" data-latex="r_m">r_m</span>; finer bands also evolve faster by roughly <span class="math-inline" data-latex="\sqrt{\mathrm{band}}">square root of band</span>. At zero turnover, the random field freezes exactly.</p>
+            <p class="tutorial-detail">Each eigenfunction follows an independent 1D noise path <span class="math-inline" data-latex="N(o_j+r_jt)">N(o_j + r_j t)</span>. The turnover slider scales <span class="math-inline" data-latex="r_j">r_j</span>; finer bands also evolve faster by roughly <span class="math-inline" data-latex="\sqrt{\mathrm{band}}">square root of band</span>. The eigenvalue <span class="math-inline" data-latex="\lambda_j">lambda j</span> supplies the spatial frequency <span class="math-inline" data-latex="k_j=\sqrt{\lambda_j}">k j = square root of lambda j</span>. At zero turnover, the random field freezes exactly.</p>
           </article>
 
           <article class="tutorial-step">
@@ -100,7 +104,7 @@
           <article class="tutorial-step tutorial-projection">
             <div class="tutorial-step-label"><span>03</span><b>HODGE PROJECTION</b></div>
             <h3>Keep the resolved curl. Remove the collapse.</h3>
-            <p>The raw Clebsch field is tangent, but it is not generally divergence-free. This implementation projects the velocity after it is assembled; it does not project <span class="math-inline" data-latex="\phi,\alpha,\beta">phi, alpha, beta</span> separately. On the frog, the Poisson operator is assembled directly from cotangent weights on its triangles.</p>
+            <p>The raw Clebsch field is tangent, but it is not generally divergence-free. This implementation projects the velocity after it is assembled; it does not project <span class="math-inline" data-latex="\phi,\alpha,\beta">phi, alpha, beta</span> separately. On the frog, the same cotangent geometry underlies both the eigenmodes and the Poisson projection.</p>
             <ol class="projection-recipe">
               <li><span>measure</span><span class="math-display" data-latex="\omega_{\mathrm C}=\star d u_{\mathrm C}^{\flat}">measure Clebsch vorticity</span></li>
               <li><span>solve</span><span class="math-display" data-latex="\Delta_S\psi=\omega_{\mathrm C}">solve Poisson equation</span></li>
@@ -131,19 +135,6 @@
           </article>
         </div>
 
-        <aside class="tutorial-experiment">
-          <div>
-            <p class="random-eyebrow">Controlled comparison</p>
-            <h3>Use the same seed and the same particle clouds.</h3>
-            <p>Freeze the time noise first. Compare raw and projected Clebsch fields while watching divergence RMS and whether either cloud contracts. Then restore the temporal motion and watch the field correlation fall.</p>
-          </div>
-          <div class="tutorial-actions" aria-label="Load tutorial states in the live experiment">
-            <button data-fluid-tutorial-turnover="0">1 · Freeze time noise</button>
-            <button data-fluid-tutorial-projection="clebsch">2 · Show raw Clebsch</button>
-            <button data-fluid-tutorial-projection="clebsch-projected">3 · Apply the projection</button>
-            <button data-fluid-tutorial-turnover="0.42">4 · Restore time motion</button>
-          </div>
-        </aside>
       </section>
 
       <section id="live-fluid-lab" class="random-lab">
@@ -152,15 +143,15 @@
           <ol>
             <li><span>01</span><div><strong>Hold the realization fixed.</strong><p>A seed fixes the spatial modes, temporal noise paths, and initial particle clouds, so comparisons are repeatable.</p></div></li>
             <li><span>02</span><div><strong>Compare raw with projected.</strong><p>Watch divergence RMS, not just the apparent swirl. Projection should suppress compression without erasing the resolved vorticity.</p></div></li>
-            <li><span>03</span><div><strong>Then animate the coefficients.</strong><p>Turnover moves amplitude and phase along smooth noise paths. Field correlation measures memory of the initial velocity.</p></div></li>
+            <li><span>03</span><div><strong>Then animate the coefficients.</strong><p>Turnover moves the modal weights along smooth noise paths. Field correlation measures memory of the initial velocity.</p></div></li>
           </ol>
 
           <div class="surface-choice" aria-label="Surface">
             <span>SURFACE</span>
             <div>
-              <button class="active" data-fluid-surface="frog" aria-pressed="true"><b>Tree frog</b><small>9,665-vertex closed triangle mesh</small></button>
+              <button class="active" data-fluid-surface="frog" aria-pressed="true"><b>Tree frog</b><small>cotangent LB eigenmodes · 9,665 vertices</small></button>
               <button data-fluid-surface="square" aria-pressed="false"><b>Periodic square</b><small>flat 2-torus · wrap both edges</small></button>
-              <button data-fluid-surface="sphere" aria-pressed="false"><b>Sphere</b><small>ambient plane-wave stream modes</small></button>
+              <button data-fluid-surface="sphere" aria-pressed="false"><b>Sphere</b><small>real spherical-harmonic eigenmodes</small></button>
               <button data-fluid-surface="torus" aria-pressed="false"><b>Torus</b><small>periodic Fourier stream modes</small></button>
             </div>
           </div>
@@ -208,6 +199,19 @@
             <button id="fluid-play" class="primary" aria-pressed="true">Pause</button>
             <button id="fluid-new-seed">New realization</button>
           </div>
+          <aside class="tutorial-experiment stage-comparison">
+            <div>
+              <p class="random-eyebrow">Controlled comparison</p>
+              <h3>Use the same seed and the same particle clouds.</h3>
+              <p>Freeze time, compare raw and projected Clebsch, then restore temporal motion.</p>
+            </div>
+            <div class="tutorial-actions" aria-label="Load tutorial states in the live experiment">
+              <button data-fluid-tutorial-turnover="0">1 · Freeze time noise</button>
+              <button data-fluid-tutorial-projection="clebsch">2 · Show raw Clebsch</button>
+              <button data-fluid-tutorial-projection="clebsch-projected">3 · Apply the projection</button>
+              <button data-fluid-tutorial-turnover="0.42">4 · Restore time motion</button>
+            </div>
+          </aside>
           <div class="random-metrics">
             <div><span>time</span><strong id="fluid-time">0</strong></div>
             <div><span>RMS speed</span><strong id="fluid-rms">—</strong></div>
@@ -248,7 +252,7 @@
             <input id="fluid-slope" type="range" min="0" max="4" step="0.05" value="1.6667" />
           </label>
           <label>
-            <span><strong>Active modes</strong><small>independent seeded waves</small></span>
+            <span><strong>Active modes</strong><small>independent seeded coefficients</small></span>
             <output id="fluid-modes-output">28</output>
             <input id="fluid-modes" type="range" min="6" max="72" step="1" value="28" />
           </label>

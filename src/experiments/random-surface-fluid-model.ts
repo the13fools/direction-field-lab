@@ -65,12 +65,16 @@ interface FluidMode {
   timeOffset: number;
   timeRate: number;
   noiseSeed: number;
-  axis: Vec3;
   k: number;
   l: number;
+  degree: number;
+  order: number;
+  harmonicKind: SphereHarmonicKind;
 }
 
-interface SphereScalarSample {
+export type SphereHarmonicKind = "zonal" | "cosine" | "sine";
+
+export interface SphereHarmonicSample {
   value: number;
   gradient: Vec3;
 }
@@ -229,13 +233,6 @@ export function temporalPerlinNoise(position: number, seed: number): number {
   );
 }
 
-function randomUnitVector(random: () => number): Vec3 {
-  const z = 2 * random() - 1;
-  const azimuth = TAU * random();
-  const radius = Math.sqrt(Math.max(0, 1 - z * z));
-  return { x: radius * Math.cos(azimuth), y: radius * Math.sin(azimuth), z };
-}
-
 function gaussian(random: () => number): number {
   const radius = Math.sqrt(-2 * Math.log(Math.max(1e-12, random())));
   return radius * Math.cos(TAU * random());
@@ -331,6 +328,140 @@ function sphereExponential(point: Vec3, direction: Vec3, distance: number): Vec3
   return add(scale(point, Math.cos(distance)), scale(tangent, Math.sin(distance)));
 }
 
+function associatedLegendre(degree: number, order: number, coordinate: number): {
+  value: number;
+  previous: number;
+} {
+  const x = Math.max(-1, Math.min(1, coordinate));
+  let diagonal = 1;
+  if (order > 0) {
+    const sine = Math.sqrt(Math.max(0, (1 - x) * (1 + x)));
+    let factor = 1;
+    for (let index = 1; index <= order; index += 1) {
+      diagonal *= -factor * sine;
+      factor += 2;
+    }
+  }
+  if (degree === order) return { value: diagonal, previous: 0 };
+  let previous = diagonal;
+  let current = x * (2 * order + 1) * diagonal;
+  if (degree === order + 1) return { value: current, previous };
+  for (let index = order + 2; index <= degree; index += 1) {
+    const next = (
+      (2 * index - 1) * x * current
+      - (index + order - 1) * previous
+    ) / (index - order);
+    previous = current;
+    current = next;
+  }
+  return { value: current, previous };
+}
+
+function harmonicNormalization(degree: number, order: number): number {
+  let factorialRatio = 1;
+  for (let value = degree - order + 1; value <= degree + order; value += 1) {
+    factorialRatio /= value;
+  }
+  const realFactor = order === 0 ? 1 : 2;
+  return Math.sqrt(realFactor * (2 * degree + 1) * factorialRatio / (4 * Math.PI));
+}
+
+function realSphericalHarmonicValue(
+  degree: number,
+  order: number,
+  kind: SphereHarmonicKind,
+  point: Vec3,
+): number {
+  const unit = normalize(point);
+  const azimuth = Math.atan2(unit.y, unit.x);
+  const legendre = associatedLegendre(degree, order, unit.z).value;
+  const angular = kind === "zonal"
+    ? 1
+    : kind === "cosine"
+      ? Math.cos(order * azimuth)
+      : Math.sin(order * azimuth);
+  return harmonicNormalization(degree, order) * legendre * angular;
+}
+
+/** A normalized real eigenfunction of -Delta_S on the unit sphere, with eigenvalue l(l+1). */
+export function realSphericalHarmonic(
+  degree: number,
+  order: number,
+  kind: SphereHarmonicKind,
+  point: Vec3,
+): SphereHarmonicSample {
+  if (!Number.isInteger(degree) || degree < 0) throw new Error("degree must be a nonnegative integer");
+  if (!Number.isInteger(order) || order < 0 || order > degree) throw new Error("order must lie from 0 through degree");
+  if ((order === 0) !== (kind === "zonal")) throw new Error("order zero is zonal; positive orders use sine or cosine");
+  const unit = normalize(point);
+  const sineTheta = Math.hypot(unit.x, unit.y);
+  const value = realSphericalHarmonicValue(degree, order, kind, unit);
+  if (sineTheta < 1e-5) {
+    const reference = { x: 0, y: 1, z: 0 };
+    const tangentA = normalize(cross(reference, unit));
+    const tangentB = cross(unit, tangentA);
+    const step = 2e-5;
+    const derivativeA = (
+      realSphericalHarmonicValue(degree, order, kind, sphereExponential(unit, tangentA, step))
+      - realSphericalHarmonicValue(degree, order, kind, sphereExponential(unit, tangentA, -step))
+    ) / (2 * step);
+    const derivativeB = (
+      realSphericalHarmonicValue(degree, order, kind, sphereExponential(unit, tangentB, step))
+      - realSphericalHarmonicValue(degree, order, kind, sphereExponential(unit, tangentB, -step))
+    ) / (2 * step);
+    return { value, gradient: add(scale(tangentA, derivativeA), scale(tangentB, derivativeB)) };
+  }
+  const azimuth = Math.atan2(unit.y, unit.x);
+  const legendre = associatedLegendre(degree, order, unit.z);
+  const normalization = harmonicNormalization(degree, order);
+  const angular = kind === "zonal"
+    ? 1
+    : kind === "cosine"
+      ? Math.cos(order * azimuth)
+      : Math.sin(order * azimuth);
+  const angularDerivative = kind === "zonal"
+    ? 0
+    : kind === "cosine"
+      ? -order * Math.sin(order * azimuth)
+      : order * Math.cos(order * azimuth);
+  const thetaDerivative = normalization * (
+    degree * unit.z * legendre.value - (degree + order) * legendre.previous
+  ) / sineTheta * angular;
+  const azimuthDerivative = normalization * legendre.value * angularDerivative;
+  const thetaDirection = {
+    x: unit.z * Math.cos(azimuth),
+    y: unit.z * Math.sin(azimuth),
+    z: -sineTheta,
+  };
+  const azimuthDirection = { x: -Math.sin(azimuth), y: Math.cos(azimuth), z: 0 };
+  return {
+    value,
+    gradient: add(
+      scale(thetaDirection, thetaDerivative),
+      scale(azimuthDirection, azimuthDerivative / sineTheta),
+    ),
+  };
+}
+
+function shuffledSphereHarmonics(maxDegree: number, random: () => number): Array<{
+  degree: number;
+  order: number;
+  kind: SphereHarmonicKind;
+}> {
+  const basis: Array<{ degree: number; order: number; kind: SphereHarmonicKind }> = [];
+  for (let degree = 1; degree <= maxDegree; degree += 1) {
+    basis.push({ degree, order: 0, kind: "zonal" });
+    for (let order = 1; order <= degree; order += 1) {
+      basis.push({ degree, order, kind: "cosine" }, { degree, order, kind: "sine" });
+    }
+  }
+  for (let index = basis.length - 1; index > 0; index -= 1) {
+    const swap = Math.floor(random() * (index + 1));
+    [basis[index], basis[swap]] = [basis[swap]!, basis[index]!];
+  }
+  return basis;
+}
+
 export class RandomSurfaceFluidModel {
   parameters: RandomSurfaceFluidParameters;
   particles: FluidParticle[] = [];
@@ -369,20 +500,23 @@ export class RandomSurfaceFluidModel {
 
   private makeModeSet(random: () => number, seedOffset: number): FluidMode[] {
     const modes: FluidMode[] = [];
+    const sphereBasis = this.parameters.surface === "sphere"
+      ? shuffledSphereHarmonics(this.parameters.maxBand, random)
+      : [];
     for (let index = 0; index < this.parameters.modeCount; index += 1) {
-      const band = 1 + (index % this.parameters.maxBand);
-      const axis = randomUnitVector(random);
+      const harmonic = sphereBasis[index % Math.max(1, sphereBasis.length)];
+      const band = harmonic?.degree ?? 1 + (index % this.parameters.maxBand);
       let k = 0;
       let l = 0;
-      if (random() < 0.5) {
+      if (!harmonic && random() < 0.5) {
         k = (random() < 0.5 ? -1 : 1) * band;
         l = Math.round((2 * random() - 1) * band);
-      } else {
+      } else if (!harmonic) {
         l = (random() < 0.5 ? -1 : 1) * band;
         k = Math.round((2 * random() - 1) * band);
       }
-      const frequency = this.parameters.surface === "sphere"
-        ? Math.PI * band
+      const frequency = harmonic
+        ? Math.sqrt(harmonic.degree * (harmonic.degree + 1))
         : Math.max(1, Math.hypot(k, l));
       const amplitude = (random() < 0.5 ? -1 : 1)
         * frequency ** (-(this.parameters.spectralSlope + 2) / 2);
@@ -394,9 +528,11 @@ export class RandomSurfaceFluidModel {
         timeOffset: 40 * random() + 0.371 * seedOffset,
         timeRate: this.parameters.turnover * (0.42 + 0.3 * random()) * Math.sqrt(band),
         noiseSeed: (this.parameters.seed + seedOffset + 104729 * index) | 0,
-        axis,
         k,
         l,
+        degree: harmonic?.degree ?? 0,
+        order: harmonic?.order ?? 0,
+        harmonicKind: harmonic?.kind ?? "zonal",
       });
     }
     return modes;
@@ -416,17 +552,18 @@ export class RandomSurfaceFluidModel {
     return { amplitude: envelope, phase };
   }
 
-  private sphereScalar(modes: readonly FluidMode[], point: Vec3, time: number): SphereScalarSample {
+  private sphereScalar(modes: readonly FluidMode[], point: Vec3, time: number): SphereHarmonicSample {
     let value = 0;
     let gradient: Vec3 = { x: 0, y: 0, z: 0 };
     for (const mode of modes) {
-      const temporal = this.temporalState(mode, time);
-      const argument = mode.frequency * dot(mode.axis, point) + mode.phase + temporal.phase;
-      const amplitude = mode.amplitude * temporal.amplitude;
-      value += amplitude * Math.sin(argument);
-      gradient = add(gradient, scale(mode.axis, amplitude * mode.frequency * Math.cos(argument)));
+      const coordinate = mode.timeOffset + time * mode.timeRate;
+      const coefficient = mode.amplitude * (
+        0.62 + 0.78 * temporalPerlinNoise(coordinate, mode.noiseSeed)
+      );
+      const harmonic = realSphericalHarmonic(mode.degree, mode.order, mode.harmonicKind, point);
+      value += coefficient * harmonic.value;
+      gradient = add(gradient, scale(harmonic.gradient, coefficient));
     }
-    gradient = add(gradient, scale(point, -dot(point, gradient)));
     return { value, gradient };
   }
 

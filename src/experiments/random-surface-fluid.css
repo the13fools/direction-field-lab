@@ -158,6 +158,10 @@ button { cursor: pointer; }
 .tutorial-actions button { box-sizing: border-box; width: 100%; min-height: 48px; padding: 9px 12px; color: #eee6f5; border: 1px solid #79658f; border-radius: 4px; background: #21183c; font-size: 8px; font-weight: 800; }
 .tutorial-actions button:hover, .tutorial-actions button:focus-visible { color: var(--ink); border-color: var(--gold); background: var(--gold); }
 .tutorial-actions button.active { color: var(--ink); border-color: var(--cyan); background: var(--cyan); }
+.stage-comparison { grid-template-columns: minmax(180px, .72fr) minmax(300px, 1.28fr); gap: 16px; margin: 0 0 13px; padding: 15px; border-radius: 5px; box-shadow: none; }
+.stage-comparison h3 { margin: 5px 0; font-size: 14px; line-height: 1.08; }
+.stage-comparison > div > p:last-child { font-size: 8px; line-height: 1.45; }
+.stage-comparison .tutorial-actions button { min-height: 42px; padding: 7px 9px; }
 
 .random-lab {
   scroll-margin-top: 74px;
