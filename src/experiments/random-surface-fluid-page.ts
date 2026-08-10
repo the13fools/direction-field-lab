@@ -248,13 +248,13 @@ function rebuildSurface(): void {
   fieldVertices = vertices.readable;
   allFieldVertices = vertices.all;
   const material = new THREE.MeshPhysicalMaterial({
-    color: surface === "frog" ? 0x72ff72 : 0x3d2868,
-    emissive: surface === "frog" ? 0x16c94f : 0x111533,
-    emissiveIntensity: surface === "frog" ? 1.35 : 0.65,
-    roughness: surface === "frog" ? 0.38 : 0.55,
+    color: surface === "frog" ? 0x1eb45a : 0x3d2868,
+    emissive: surface === "frog" ? 0x08753a : 0x111533,
+    emissiveIntensity: surface === "frog" ? 0.78 : 0.65,
+    roughness: surface === "frog" ? 0.48 : 0.55,
     metalness: surface === "frog" ? 0.02 : 0.06,
     transparent: true,
-    opacity: surface === "frog" ? 0.96 : 0.9,
+    opacity: surface === "frog" ? 0.95 : 0.9,
     side: THREE.DoubleSide,
   });
   const mesh = new THREE.Mesh(geometry, material);
@@ -263,9 +263,9 @@ function rebuildSurface(): void {
   const wire = new THREE.LineSegments(
     new THREE.WireframeGeometry(geometry),
     new THREE.LineBasicMaterial({
-      color: surface === "frog" ? 0xd0ffda : 0x8edbe4,
+      color: surface === "frog" ? 0x84ed9d : 0x8edbe4,
       transparent: true,
-      opacity: surface === "frog" ? 0.16 : surface === "sphere" ? 0.09 : surface === "torus" ? 0.11 : 0.16,
+      opacity: surface === "frog" ? 0.11 : surface === "sphere" ? 0.09 : surface === "torus" ? 0.11 : 0.16,
     }),
   );
   wire.renderOrder = 2;
