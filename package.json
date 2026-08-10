@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "jszip": "3.10.1",
+    "katex": "^0.16.22",
     "three": "0.185.1"
   },
   "devDependencies": {

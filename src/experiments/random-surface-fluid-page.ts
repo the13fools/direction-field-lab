@@ -1,8 +1,12 @@
 import "./random-surface-fluid.css";
+import "katex/dist/katex.min.css";
 
 import * as THREE from "three";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
+import katex from "katex";
+import treefrogUrl from "../assets/treefrog.obj?url";
 
+import { FrogSurfaceFluidModel, parseFrogTriangleMesh } from "./frog-surface-fluid-model";
 import {
   RandomSurfaceFluidModel,
   torusNormal,
@@ -14,11 +18,35 @@ import {
   type VertexVelocitySample,
 } from "./random-surface-fluid-model";
 
+type DemoSurface = RandomFluidSurface | "frog";
+
 function byId<T extends HTMLElement>(id: string): T {
   const value = document.getElementById(id);
   if (!value) throw new Error(`Missing #${id}.`);
   return value as T;
 }
+
+function renderLatex(element: HTMLElement, source: string, displayMode = false): void {
+  katex.render(source, element, {
+    displayMode,
+    output: "htmlAndMathml",
+    throwOnError: false,
+  });
+}
+
+function renderStaticLatex(): void {
+  for (const element of document.querySelectorAll<HTMLElement>("[data-latex]")) {
+    renderLatex(element, element.dataset.latex!, element.classList.contains("math-display"));
+  }
+}
+
+const tutorialSection = byId<HTMLElement>("clebsch-tutorial");
+const liveExperimentSection = byId<HTMLElement>("live-fluid-lab");
+tutorialSection.before(liveExperimentSection);
+
+const treefrogResponse = await fetch(treefrogUrl);
+if (!treefrogResponse.ok) throw new Error(`Unable to load the tree-frog surface (${treefrogResponse.status}).`);
+const treefrogMesh = parseFrogTriangleMesh(await treefrogResponse.text());
 
 const viewer = byId<HTMLDivElement>("random-fluid-viewer");
 const playButton = byId<HTMLButtonElement>("fluid-play");
@@ -45,7 +73,7 @@ const outputs = {
   particles: byId<HTMLOutputElement>("fluid-particles-output"),
 };
 
-let surface: RandomFluidSurface = "sphere";
+let surface: DemoSurface = "frog";
 let projection: FlowProjection = "clebsch-projected";
 let model = readModel();
 let playing = true;
@@ -65,7 +93,7 @@ scene.background = new THREE.Color(0x0d081f);
 scene.fog = new THREE.FogExp2(0x0d081f, 0.075);
 
 const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 100);
-camera.position.set(2.8, 1.9, 3.5);
+camera.position.set(0.15, -0.15, 4.1);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
 renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
@@ -100,8 +128,7 @@ let fieldLines: THREE.LineSegments | undefined;
 let vorticityPoints: THREE.Points | undefined;
 
 function readModel(): RandomSurfaceFluidModel {
-  return new RandomSurfaceFluidModel({
-    surface,
+  const parameters = {
     projection,
     seed: Math.trunc(Number(controls.seed.value)),
     modeCount: Math.round(Number(controls.modes.value)),
@@ -110,7 +137,10 @@ function readModel(): RandomSurfaceFluidModel {
     turnover: Number(controls.turnover.value),
     speed: Number(controls.speed.value),
     particleCount: Math.round(Number(controls.particles.value)),
-  });
+  };
+  return surface === "frog"
+    ? new FrogSurfaceFluidModel(treefrogMesh, parameters)
+    : new RandomSurfaceFluidModel({ ...parameters, surface });
 }
 
 function updateControlOutputs(): void {
@@ -138,13 +168,13 @@ function clearGroup(group: THREE.Group): void {
 
 function vertexAt(
   positions: THREE.BufferAttribute | THREE.InterleavedBufferAttribute,
-  uvs: THREE.BufferAttribute | THREE.InterleavedBufferAttribute,
+  uvs: THREE.BufferAttribute | THREE.InterleavedBufferAttribute | undefined,
   index: number,
 ): { position: Vec3; u?: number; v?: number } {
   const position = { x: positions.getX(index), y: positions.getY(index), z: positions.getZ(index) };
-  return surface === "sphere"
+  return surface === "sphere" || surface === "frog"
     ? { position }
-    : { position, u: TAU * uvs.getX(index), v: TAU * uvs.getY(index) };
+    : { position, u: TAU * uvs!.getX(index), v: TAU * uvs!.getY(index) };
 }
 
 function fieldVerticesFromGeometry(geometry: THREE.BufferGeometry): {
@@ -153,6 +183,11 @@ function fieldVerticesFromGeometry(geometry: THREE.BufferGeometry): {
 } {
   const positions = geometry.getAttribute("position");
   const uvs = geometry.getAttribute("uv");
+  if (surface === "frog") {
+    const all = Array.from({ length: positions.count }, (_, index) => vertexAt(positions, uvs, index));
+    const stride = Math.max(1, Math.ceil(all.length / 420));
+    return { readable: all.filter((_, index) => index % stride === 0), all };
+  }
   const layout = surface === "sphere"
     ? { columns: 57, rowStart: 1, rowEnd: 34, rowStride: 2, columnEnd: 56, columnStride: 4 }
     : surface === "torus"
@@ -181,8 +216,16 @@ function fieldVerticesFromGeometry(geometry: THREE.BufferGeometry): {
 
 function rebuildSurface(): void {
   clearGroup(surfaceGroup);
-  const geometry = surface === "sphere"
-    ? new THREE.SphereGeometry(1, 56, 34)
+  const geometry = surface === "frog"
+    ? (() => {
+      const frogGeometry = new THREE.BufferGeometry();
+      frogGeometry.setAttribute("position", new THREE.BufferAttribute(Float32Array.from(treefrogMesh.positions), 3));
+      frogGeometry.setIndex(new THREE.BufferAttribute(treefrogMesh.faces, 1));
+      frogGeometry.computeVertexNormals();
+      return frogGeometry;
+    })()
+    : surface === "sphere"
+      ? new THREE.SphereGeometry(1, 56, 34)
     : surface === "torus"
       ? new THREE.TorusGeometry(1.25, 0.46, 30, 72)
       : new THREE.PlaneGeometry(2.8, 2.8, 28, 28);
@@ -207,7 +250,7 @@ function rebuildSurface(): void {
     new THREE.LineBasicMaterial({
       color: 0x8edbe4,
       transparent: true,
-      opacity: surface === "sphere" ? 0.09 : surface === "torus" ? 0.11 : 0.16,
+      opacity: surface === "frog" ? 0.055 : surface === "sphere" ? 0.09 : surface === "torus" ? 0.11 : 0.16,
     }),
   );
   wire.renderOrder = 2;
@@ -216,6 +259,7 @@ function rebuildSurface(): void {
 
 function renderPosition(particle: FluidParticle): Vec3 {
   const position = model.particlePosition(particle);
+  if (surface === "frog") return position;
   if (particle.surface === "sphere") {
     return { x: 1.022 * position.x, y: 1.022 * position.y, z: 1.022 * position.z };
   }
@@ -249,7 +293,7 @@ function initializeParticles(): void {
   particlePoints = new THREE.Points(
     geometry,
     new THREE.PointsMaterial({
-      size: surface === "square" ? 0.028 : surface === "sphere" ? 0.035 : 0.032,
+      size: surface === "frog" ? 0.022 : surface === "square" ? 0.028 : surface === "sphere" ? 0.035 : 0.032,
       sizeAttenuation: true,
       vertexColors: true,
       transparent: true,
@@ -340,7 +384,7 @@ function updateField(): FieldSample[] {
   const colors = new Float32Array(vectorSamples.length * 6);
   const cyan = new THREE.Color(0x59e3ef);
   const gold = new THREE.Color(0xffd86d);
-  const vectorLift = surface === "square" ? 0.012 : surface === "sphere" ? 0.012 : 0.018;
+  const vectorLift = surface === "frog" ? 0.008 : surface === "square" ? 0.012 : surface === "sphere" ? 0.012 : 0.018;
   vectorSamples.forEach((sample, index) => {
     const velocity = sample.velocity;
     const speed = Math.hypot(velocity.x, velocity.y, velocity.z);
@@ -391,7 +435,7 @@ function updateField(): FieldSample[] {
   const neutral = new THREE.Color(0x31274e);
   const positive = new THREE.Color(0xff7a3d);
   samples.forEach((sample, index) => {
-    const lift = surface === "square" ? 0.028 : surface === "sphere" ? 0.024 : 0.03;
+    const lift = surface === "frog" ? 0.014 : surface === "square" ? 0.028 : surface === "sphere" ? 0.024 : 0.03;
     vorticityPositions.set([
       sample.position.x + lift * sample.normal.x,
       sample.position.y + lift * sample.normal.y,
@@ -411,7 +455,7 @@ function updateField(): FieldSample[] {
   vorticityPoints = new THREE.Points(
     vorticityGeometry,
     new THREE.PointsMaterial({
-      size: surface === "square" ? 0.12 : 0.075,
+      size: surface === "frog" ? 0.035 : surface === "square" ? 0.12 : 0.075,
       sizeAttenuation: true,
       vertexColors: true,
       transparent: true,
@@ -522,35 +566,37 @@ function updateConstructionCopy(): void {
     note: string;
   }> = {
     "curl-free": {
-      equation: "u = ∇ₛ φ",
+      equation: String.raw`u = \nabla_S \phi`,
       label: "irrotational",
-      invariant: "curlₛ u = 0",
+      invariant: String.raw`\operatorname{curl}_S u = 0`,
       note: "Every scale is a surface gradient before summation. The result is exactly curl-free, but its nonzero divergence can focus or disperse particle clouds.",
     },
     "divergence-free": {
-      equation: "u = J ∇ₛ ψ",
+      equation: String.raw`u = J\nabla_S\psi`,
       label: "area preserving",
-      invariant: "divₛ u = 0",
+      invariant: String.raw`\operatorname{div}_S u = 0`,
       note: "Every scale is rotated in the tangent plane before summation. The result remains divergence-free under the temporal Perlin modulation and carries visible vorticity.",
     },
     clebsch: {
-      equation: "u♭ = dφ + α dβ",
+      equation: String.raw`u^\flat = d\phi + \alpha\,d\beta`,
       label: "vorticity two-form",
-      invariant: "du♭ = dα ∧ dβ",
+      invariant: String.raw`d u^\flat = d\alpha \wedge d\beta`,
       note: "Three independent multiscale scalar fields evolve in time. Their Clebsch combination is tangent and vortical, but this raw field has not yet been projected to be incompressible.",
     },
     "clebsch-projected": {
-      equation: "u⊥ = J ∇ₛψ",
+      equation: String.raw`u_\perp = J\nabla_S\psi`,
       label: "area preserving",
-      invariant: "Δₛψ = ωClebsch",
+      invariant: String.raw`\Delta_S\psi = \omega_{\mathrm C}`,
       note: "A finite-volume surface Poisson solve reconstructs the coexact velocity from the raw Clebsch vorticity. The projected field preserves area while retaining the vorticity resolved by the projection grid.",
     },
   };
   const copy = projectionCopy[projection];
-  byId("fluid-projection-equation").textContent = copy.equation;
+  renderLatex(byId("fluid-projection-equation"), copy.equation, true);
   byId("fluid-invariant-label").textContent = copy.label;
-  byId("fluid-invariant-equation").textContent = copy.invariant;
-  byId("fluid-construction-note").textContent = copy.note;
+  renderLatex(byId("fluid-invariant-equation"), copy.invariant);
+  byId("fluid-construction-note").textContent = copy.note + (surface === "frog" && projection === "clebsch-projected"
+    ? " On the frog, the Poisson solve uses cotangent edge weights on the actual triangle mesh."
+    : "");
 }
 
 function resizeRenderer(): void {
@@ -581,7 +627,7 @@ function rebuild(reason: string): void {
       : projection === "clebsch"
         ? "Clebsch / raw"
         : "Clebsch / Hodge-projected";
-  byId("fluid-stage-title").textContent = `${surface} · ${projectionName}`;
+  byId("fluid-stage-title").textContent = `${surface === "frog" ? "tree frog" : surface} · ${projectionName}`;
   byId("fluid-status").textContent = `Seed ${model.parameters.seed} · ${reason}`;
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-surface]")) {
     const active = button.dataset.fluidSurface === surface;
@@ -631,8 +677,9 @@ for (const input of Object.values(controls)) {
 
 for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-surface]")) {
   button.addEventListener("click", () => {
-    surface = button.dataset.fluidSurface as RandomFluidSurface;
-    if (surface === "square") camera.position.set(0.15, -0.2, 4.35);
+    surface = button.dataset.fluidSurface as DemoSurface;
+    if (surface === "frog") camera.position.set(0.15, -0.15, 4.1);
+    else if (surface === "square") camera.position.set(0.15, -0.2, 4.35);
     else camera.position.set(2.8, 1.9, 3.5);
     orbit.target.set(0, 0, 0);
     orbit.update();
@@ -764,6 +811,7 @@ const resizeObserver = new ResizeObserver(() => {
 resizeObserver.observe(viewer);
 window.addEventListener("resize", drawSpectrum);
 
+renderStaticLatex();
 updateControlOutputs();
 rebuild("mesh-vertex field ready · temporal-Perlin coefficients live");
 animate();
