@@ -594,9 +594,9 @@ function updateConstructionCopy(): void {
   renderLatex(byId("fluid-projection-equation"), copy.equation, true);
   byId("fluid-invariant-label").textContent = copy.label;
   renderLatex(byId("fluid-invariant-equation"), copy.invariant);
-  byId("fluid-construction-note").textContent = copy.note + (surface === "frog" && projection === "clebsch-projected"
-    ? " On the frog, the Poisson solve uses cotangent edge weights on the actual triangle mesh."
-    : "");
+  byId("fluid-construction-note").textContent = surface === "frog" && projection === "clebsch-projected"
+    ? "A cotangent-Laplacian Poisson solve on the frog’s actual triangles reconstructs the coexact velocity from the mean-free Clebsch vorticity. The result is discretely divergence-free."
+    : copy.note;
 }
 
 function resizeRenderer(): void {

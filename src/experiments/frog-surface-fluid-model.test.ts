@@ -1,10 +1,7 @@
-import { readFileSync } from "node:fs";
-
 import { describe, expect, it } from "vitest";
+import frogSource from "../assets/treefrog.obj?raw";
 
 import { FrogSurfaceFluidModel, parseFrogTriangleMesh } from "./frog-surface-fluid-model";
-
-const frogSource = readFileSync(new URL("../assets/treefrog.obj", import.meta.url), "utf8");
 
 describe("tree-frog surface fluid", () => {
   it("parses the closed triangle surface and builds face adjacency", () => {

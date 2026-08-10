@@ -122,7 +122,7 @@ button { cursor: pointer; }
 .noise-recipe { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 18px 0; padding: 1px; background: #d5c9df; }
 .noise-recipe div { min-width: 0; padding: 13px; background: #faf6ff; }
 .noise-recipe b { display: grid; place-items: center; width: 22px; height: 22px; margin-bottom: 8px; color: white; border-radius: 50%; background: var(--orange); font: 800 7px var(--mono); }
-.noise-recipe span { color: var(--muted); font-size: 8px; line-height: 1.48; }
+.noise-recipe div > span { color: var(--muted); font-size: 8px; line-height: 1.48; }
 .noise-recipe .math-inline { color: var(--violet); }
 .tutorial-detail { padding-top: 14px; border-top: 1px solid var(--line); }
 .streamfunction-intuition { grid-column: 1 / -1; display: grid; grid-template-columns: minmax(250px, .72fr) minmax(520px, 1.28fr); gap: 26px 42px; align-items: center; padding: clamp(24px, 4vw, 44px); color: white; border: 1px solid #604d7b; border-top: 7px solid var(--cyan); border-radius: 8px; background: linear-gradient(135deg, #21133f, #35245a 52%, #125266); box-shadow: 8px 8px 0 rgba(89, 227, 239, .12); }

@@ -757,7 +757,9 @@ export class FrogSurfaceFluidModel extends RandomSurfaceFluidModel {
   }
 
   override particlePosition(particle: FluidParticle): Vec3 {
-    return particle.position!;
+    const state = this.particleStates.get(particle);
+    if (!state) return particle.position!;
+    return add(particle.position!, scale(arrayVector(this.frogMesh.faceNormals, state.face), 0.012));
   }
 
   override step(count = 1): void {
