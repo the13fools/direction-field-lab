@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#183f3d" />
+    <meta name="description" content="An interactive periodic-grid tutorial for the shallow-water equations in Clebsch variables, with scalar fields, vectors, covectors, vorticity, and material advection." />
+    <meta property="og:title" content="Clebsch shallow water · Direction Field Lab" />
+    <meta property="og:description" content="See how four scalar fields become a shallow-water velocity one-form, then a vector that moves material." />
+    <meta property="og:image" content="./og.png" />
+    <title>Clebsch shallow water · Direction Field Lab</title>
+  </head>
+  <body>
+    <header class="cw-header">
+      <a href="./shallow-water.html">← Shallow-water baseline</a>
+      <div><span>LESSON F · CLEBSCH VARIABLES</span><strong>Four scalars, one moving fluid</strong></div>
+      <nav><a href="./random-fluids.html">Random fluids</a><a href="./dec-playground.html">DEC operators</a><a href="./references.html#flow">Sources</a></nav>
+    </header>
+
+    <main>
+      <section class="cw-hero">
+        <div class="cw-title">
+          <p class="cw-eyebrow">A periodic plane · material labels · one-forms · shallow water</p>
+          <h1>Clebsch variables,<br /><em>without the sleight of hand.</em></h1>
+          <p>The variables are scalar fields. They do not become a velocity until their differentials are assembled into a one-form and the metric raises that covector to a vector. This lab keeps every step visible on one planar grid.</p>
+          <a href="#clebsch-water-lab">Open the live grid ↓</a>
+        </div>
+        <div class="cw-equation-card">
+          <span>THE REPRESENTATION</span>
+          <div class="cw-math-display" data-latex="u^\flat=d\phi+\alpha\,d\beta">u flat = d phi + alpha d beta</div>
+          <div class="cw-math-display accent" data-latex="u=(u^\flat)^\sharp">velocity vector = metric raised one-form</div>
+          <p><b>On this Cartesian plane</b>, raising an index preserves the two displayed components. That numerical coincidence is why vectors and covectors are easy to conflate here.</p>
+        </div>
+      </section>
+
+      <section class="variable-ribbon" aria-label="Clebsch shallow-water variables">
+        <article data-variable="height"><span>HEIGHT / DENSITY</span><strong>h(x,y,t)</strong><p>Water column carried by the flux <i>hu</i>. Pressure comes from its gradient.</p></article>
+        <article data-variable="phi"><span>BERNOULLI POTENTIAL</span><strong>φ(x,y,t)</strong><p>Its differential <i>dφ</i> supplies the exact, curl-free part of the velocity one-form.</p></article>
+        <article data-variable="alpha"><span>LABEL WEIGHT</span><strong>α(x,y,t)</strong><p>A materially transported scalar that weights how strongly the β-label contributes.</p></article>
+        <article data-variable="beta"><span>MATERIAL LABEL</span><strong>β(x,y,t)</strong><p>Another transported scalar. Its level curves move with the water.</p></article>
+      </section>
+
+      <section id="clebsch-water-lab" class="cw-lab">
+        <aside class="cw-guide">
+          <p class="cw-eyebrow">How to read the grid</p>
+          <ol>
+            <li><span>01</span><div><strong>Begin with β.</strong><p>The colors are scalar values. Neighboring colors tell you the covector <span class="cw-math-inline" data-latex="d\beta">d beta</span>.</p></div></li>
+            <li><span>02</span><div><strong>Switch to covector bars.</strong><p>Each little stack is tangent to the kernel of the one-form. Crossing the bars measures change.</p></div></li>
+            <li><span>03</span><div><strong>Raise the index.</strong><p>Velocity arrows are <span class="cw-math-inline" data-latex="(d\phi+\alpha d\beta)^\sharp">the raised Clebsch one-form</span>.</p></div></li>
+            <li><span>04</span><div><strong>Follow the labels.</strong><p>Play the flow: α and β deform but remain material scalars.</p></div></li>
+          </ol>
+          <details open><summary>So which things are vectors?</summary><p><b>u</b> and the mass flux <b>hu</b> are vectors. The gradients drawn as arrows are metric-dual vectors used to visualize the covectors <b>dφ</b> and <b>dβ</b>. The primitive Clebsch variables themselves are scalars.</p></details>
+          <details><summary>Why draw a covector as bars?</summary><p>A covector assigns a number to every test displacement. Its kernel is the line of displacements on which that number is zero. Parallel bars make that kernel visible; their normal points in the measuring direction.</p></details>
+          <details><summary>What is omitted?</summary><p>This periodic example has zero prescribed harmonic circulation. On a torus, two additional global periods may be needed. On a curved surface, the metric-dependent sharp map is no longer visually invisible.</p></details>
+        </aside>
+
+        <section class="cw-stage">
+          <div class="cw-stage-head"><div><span>LIVE PERIODIC GRID</span><strong id="cw-caption">height h with velocity vectors</strong></div><div id="cw-status">ready</div></div>
+          <canvas id="cw-canvas" aria-label="Clebsch shallow-water scalar field with vector or covector glyphs"></canvas>
+          <div class="cw-layer-switch" aria-label="Displayed scalar field">
+            <button class="active" data-cw-layer="height">h</button><button data-cw-layer="phi">φ</button><button data-cw-layer="alpha">α</button><button data-cw-layer="beta">β</button><button data-cw-layer="vorticity">ζ</button><button data-cw-layer="pv">q = ζ/h</button><button data-cw-layer="tracer">dye</button>
+          </div>
+          <div class="cw-glyph-switch" aria-label="Displayed vector or covector field">
+            <span>GLYPHS</span><button class="active" data-cw-glyph="velocity">u vectors</button><button data-cw-glyph="u-flat">u♭ covectors</button><button data-cw-glyph="d-phi">dφ covectors</button><button data-cw-glyph="alpha-d-beta">αdβ covectors</button><button data-cw-glyph="flux">hu flux</button><button data-cw-glyph="none">none</button>
+          </div>
+          <p id="cw-glyph-note" class="cw-glyph-note">Arrows are vectors: they point where a particle moves.</p>
+          <div class="cw-actions"><button id="cw-reset">Reset</button><button id="cw-step">One step</button><button id="cw-play" class="primary" aria-pressed="false">Play</button></div>
+          <div class="cw-metrics">
+            <div><span>time</span><strong id="cw-time">0</strong></div><div><span>mass drift</span><strong id="cw-mass">—</strong></div><div><span>energy</span><strong id="cw-energy">—</strong></div><div><span>divergence RMS</span><strong id="cw-divergence">—</strong></div><div><span>vorticity RMS</span><strong id="cw-vorticity">—</strong></div><div><span>ζ − dα∧dβ RMS</span><strong id="cw-identity">—</strong></div>
+          </div>
+          <div class="cw-atlas">
+            <header><span>THE FOUR STATE FIELDS AT ONCE</span><strong>Click a tile to bring it to the main grid.</strong></header>
+            <button data-cw-atlas="height"><canvas aria-label="Height field h"></canvas><span>h · water column</span></button>
+            <button data-cw-atlas="phi"><canvas aria-label="Bernoulli potential phi"></canvas><span>φ · exact potential</span></button>
+            <button data-cw-atlas="alpha"><canvas aria-label="Clebsch scalar alpha"></canvas><span>α · label weight</span></button>
+            <button data-cw-atlas="beta"><canvas aria-label="Clebsch scalar beta"></canvas><span>β · material label</span></button>
+          </div>
+        </section>
+
+        <aside class="cw-controls">
+          <p class="cw-eyebrow">Initial state</p>
+          <div class="cw-presets" aria-label="Clebsch field presets"><button class="active" data-cw-preset="crossing-labels">Crossing labels</button><button data-cw-preset="potential-pulse">Exact pulse</button><button data-cw-preset="vortical-patch">Vortical patch</button></div>
+          <label><span><strong>Resolution</strong><small>periodic cells per direction</small></span><output id="cw-resolution-output">40 × 40</output><input id="cw-resolution" type="range" min="24" max="64" step="8" value="40" /></label>
+          <label><span><strong>Time step</strong><small>semi-Lagrangian material update</small></span><output id="cw-dt-output">0.0015</output><input id="cw-dt" type="range" min="0.0005" max="0.004" step="0.0005" value="0.0015" /></label>
+          <label><span><strong>Gravity g</strong><small>height-pressure strength</small></span><output id="cw-gravity-output">9.81</output><input id="cw-gravity" type="range" min="1" max="16" step="0.01" value="9.81" /></label>
+          <label><span><strong>Mean depth H</strong><small>reference water column</small></span><output id="cw-depth-output">1.00</output><input id="cw-depth" type="range" min="0.4" max="1.8" step="0.05" value="1" /></label>
+          <label><span><strong>Clebsch strength</strong><small>initial amplitude of αdβ</small></span><output id="cw-strength-output">0.16</output><input id="cw-strength" type="range" min="0" max="0.32" step="0.01" value="0.16" /></label>
+
+          <section class="cw-probe">
+            <span>POINT PROBE · CLICK THE GRID</span><strong id="cw-probe-location">x = 0.62 · y = 0.54</strong>
+            <div class="cw-probe-values"><div><small>h</small><b id="cw-probe-h">—</b></div><div><small>α</small><b id="cw-probe-alpha">—</b></div><div><small>β</small><b id="cw-probe-beta">—</b></div><div><small>ζ/h</small><b id="cw-probe-pv">—</b></div></div>
+            <div class="cw-probe-equation"><span class="cw-math-display" data-latex="u^\flat(\delta x)=u_x\,\delta x^x+u_y\,\delta x^y">one-form acting on displacement</span><b id="cw-probe-pairing">—</b></div>
+            <label><span><strong>Test displacement δx</strong><small>rotate the vector fed to the covector</small></span><output id="cw-angle-output">25°</output><input id="cw-angle" type="range" min="0" max="355" step="5" value="25" /></label>
+            <p id="cw-probe-breakdown">Choose a point to inspect the exact and label pieces.</p>
+          </section>
+        </aside>
+      </section>
+
+      <section class="cw-tutorial">
+        <header><p class="cw-eyebrow">The careful version</p><h2>Scalar → covector → vector → transport.</h2><p>Clebsch notation is compact because it suppresses those type conversions. Expand them, and the construction becomes much less mysterious.</p></header>
+        <div class="cw-type-grid">
+          <article><span>0-FORMS · SCALARS</span><h3>φ, α, β, h</h3><p>Each assigns one number to every grid point. Their colors have no direction.</p><code>φ(x,y), α(x,y), β(x,y), h(x,y)</code></article>
+          <i>take d</i>
+          <article><span>1-FORMS · COVECTORS</span><h3>dφ + αdβ</h3><p>A one-form measures displacements. Its kernel bars show which displacements produce zero reading.</p><code>u♭(δx) ∈ ℝ</code></article>
+          <i>raise ♯</i>
+          <article><span>VECTORS</span><h3>u</h3><p>The metric turns the measuring one-form into the arrow that transports water and labels.</p><code>ẋ = u(x,t)</code></article>
+        </div>
+
+        <div class="cw-explanation-grid">
+          <article class="cw-vorticity-card">
+            <span>WHERE DOES ROTATION COME FROM?</span><h3>The crossing of two scalar foliations.</h3>
+            <div class="cw-math-display" data-latex="d u^\flat=d(d\phi)+d(\alpha d\beta)=d\alpha\wedge d\beta">vorticity two-form = d alpha wedge d beta</div>
+            <p>The exact piece disappears because <span class="cw-math-inline" data-latex="d^2\phi=0">d squared phi is zero</span>. Rotation is large where α and β change strongly in independent directions. If their contours are parallel, their wedge product vanishes.</p>
+          </article>
+          <article class="cw-vector-card">
+            <span>VECTOR VS. COVECTOR</span><h3>Same two numbers here; different jobs.</h3>
+            <div class="cw-dual-demo"><div><b>vector u</b><i class="vector-glyph"></i><p>Consumes time and produces displacement.</p></div><div><b>covector u♭</b><i class="covector-glyph"></i><p>Consumes displacement and produces a number.</p></div></div>
+            <p>In Cartesian coordinates with the identity metric, <span class="cw-math-inline" data-latex="u_i=\delta_{ij}u^j">lowering an index</span> copies the components. On a curved or stretched mesh, the metric changes them.</p>
+          </article>
+        </div>
+
+        <article class="cw-evolution-card">
+          <div><span>THE SHALLOW-WATER SYSTEM IN CLEBSCH VARIABLES</span><h3>The labels move; height compresses; φ pays the Bernoulli bill.</h3><p><span class="cw-math-inline" data-latex="D_t=\partial_t+u\cdot\nabla">D t is the material derivative</span>. The lab semi-Lagrangian-advects the labels and φ, advances h with conservative periodic face fluxes, and fixes the irrelevant spatial mean of φ.</p></div>
+          <ol>
+            <li><span class="cw-math-display" data-latex="D_t\alpha=0,\qquad D_t\beta=0">alpha and beta are material invariants</span><p>The two labels are painted onto the water.</p></li>
+            <li><span class="cw-math-display" data-latex="D_t\phi=\tfrac12|u|^2-g(h-H)">Bernoulli evolution of phi</span><p>Kinetic and pressure terms update the exact potential.</p></li>
+            <li><span class="cw-math-display" data-latex="\partial_t h+\nabla\cdot(hu)=0">mass continuity</span><p>Height is a density, so it changes under compression.</p></li>
+            <li><span class="cw-math-display" data-latex="u=(d\phi+\alpha d\beta)^\sharp">reconstruct velocity</span><p>The one-form is rebuilt from the four scalar fields.</p></li>
+          </ol>
+        </article>
+      </section>
+    </main>
+
+    <script type="module" src="/src/experiments/clebsch-shallow-water-page.ts"></script>
+  </body>
+</html>

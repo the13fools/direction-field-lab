@@ -13,6 +13,7 @@ export default defineConfig({
         "dec-playground.html",
         "getting-started.html",
         "shallow-water.html",
+        "clebsch-shallow-water.html",
         "random-fluids.html",
         "representations.html",
         "references.html",

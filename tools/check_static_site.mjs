@@ -1,6 +1,6 @@
 import { readFileSync, statSync } from "node:fs";
 
-const pages = ["index.html", "vertex-curl.html", "energy-playground.html", "dec-playground.html", "getting-started.html", "shallow-water.html", "random-fluids.html", "representations.html", "references.html"];
+const pages = ["index.html", "vertex-curl.html", "energy-playground.html", "dec-playground.html", "getting-started.html", "shallow-water.html", "clebsch-shallow-water.html", "random-fluids.html", "representations.html", "references.html"];
 const assets = ["wasm/gp_lab_kernels.js", "wasm/gp_lab_kernels.wasm", "og.png", "random-fluids-og-v2.png"];
 const failures = [];
 
