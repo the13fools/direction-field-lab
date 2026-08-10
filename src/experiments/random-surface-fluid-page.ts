@@ -93,7 +93,7 @@ scene.background = new THREE.Color(0x0d081f);
 scene.fog = new THREE.FogExp2(0x0d081f, 0.075);
 
 const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 100);
-camera.position.set(0.15, -0.15, 4.1);
+camera.position.set(0.15, -0.15, 6.99);
 
 const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
 renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
@@ -233,9 +233,9 @@ function rebuildSurface(): void {
   fieldVertices = vertices.readable;
   allFieldVertices = vertices.all;
   const material = new THREE.MeshPhysicalMaterial({
-    color: 0x3d2868,
-    emissive: 0x111533,
-    emissiveIntensity: 0.65,
+    color: surface === "frog" ? 0x123c2b : 0x3d2868,
+    emissive: surface === "frog" ? 0x061e15 : 0x111533,
+    emissiveIntensity: surface === "frog" ? 0.48 : 0.65,
     roughness: 0.55,
     metalness: 0.06,
     transparent: true,
@@ -248,7 +248,7 @@ function rebuildSurface(): void {
   const wire = new THREE.LineSegments(
     new THREE.WireframeGeometry(geometry),
     new THREE.LineBasicMaterial({
-      color: 0x8edbe4,
+      color: surface === "frog" ? 0x70c394 : 0x8edbe4,
       transparent: true,
       opacity: surface === "frog" ? 0.055 : surface === "sphere" ? 0.09 : surface === "torus" ? 0.11 : 0.16,
     }),
@@ -678,7 +678,7 @@ for (const input of Object.values(controls)) {
 for (const button of document.querySelectorAll<HTMLButtonElement>("[data-fluid-surface]")) {
   button.addEventListener("click", () => {
     surface = button.dataset.fluidSurface as DemoSurface;
-    if (surface === "frog") camera.position.set(0.15, -0.15, 4.1);
+    if (surface === "frog") camera.position.set(0.15, -0.15, 6.99);
     else if (surface === "square") camera.position.set(0.15, -0.2, 4.35);
     else camera.position.set(2.8, 1.9, 3.5);
     orbit.target.set(0, 0, 0);
