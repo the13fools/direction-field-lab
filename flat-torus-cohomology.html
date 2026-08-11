@@ -19,7 +19,7 @@
         <div>
           <p class="ft-eyebrow">Same local curl · different global transport</p>
           <h1>What did<br />vorticity <em>forget?</em></h1>
-          <p>On a periodic square, two constant flows are both curl-free and divergence-free. Vorticity cannot distinguish them. Choose an integer harmonic field, subtract it, and watch how the local vortices stay fixed while the particles acquire a different global winding.</p>
+          <p>On a periodic square, adding a constant flow changes how particles wind around the torus but changes no local vorticity. The missing information is exactly two numbers: circulation around the horizontal cycle and circulation around the vertical cycle.</p>
         </div>
         <aside>
           <span>VELOCITY RECONSTRUCTION ON THE FLAT TORUS</span>
@@ -29,12 +29,33 @@
         </aside>
       </section>
 
+      <section class="ft-state-ledger" aria-label="What vorticity determines and forgets on a flat torus">
+        <article>
+          <span>PATCH DATA</span>
+          <h2>Vorticity fixes local boundary circulation.</h2>
+          <div class="ft-math-display" data-latex="\omega=d\eta,\qquad \oint_{\partial A}\eta=\int_A\omega">vorticity and Stokes</div>
+          <p>For every contractible loop that bounds a patch A, vorticity determines the circulation.</p>
+        </article>
+        <article>
+          <span>LOOP DATA</span>
+          <h2>Two noncontractible periods remain.</h2>
+          <div class="ft-math-display" data-latex="\Gamma_x=\oint_{\gamma_x}\eta=c_x,\qquad \Gamma_y=\oint_{\gamma_y}\eta=c_y">normalized horizontal and vertical periods</div>
+          <p>Neither generator is a patch boundary. These two numbers are independent velocity data.</p>
+        </article>
+        <article class="accent">
+          <span>HARMONIC DATA</span>
+          <h2>The periods select one velocity among many.</h2>
+          <div class="ft-math-display" data-latex="\eta=d^+\omega+c_x\,dx+c_y\,dy">coexact reconstruction plus two harmonic modes</div>
+          <p>All choices share the same vorticity. Pressure cannot choose between them because subtracting <span class="ft-math-inline" data-latex="dp">d p</span> changes no closed-loop period.</p>
+        </article>
+      </section>
+
       <section class="ft-lab" aria-label="Interactive harmonic fields on a flat torus">
         <aside class="ft-guide">
           <p class="ft-eyebrow">Read the experiment</p>
           <ol>
             <li><span>01</span><div><strong>Start from vorticity</strong><p>The Taylor-Green cells determine the coexact velocity <span class="ft-math-inline" data-latex="d^+\omega">d plus omega</span>.</p></div></li>
-            <li><span>02</span><div><strong>Add two missing numbers</strong><p>The periods <span class="ft-math-inline" data-latex="c_x,c_y">c x and c y</span> are constant harmonic flows around the two torus cycles.</p></div></li>
+            <li><span>02</span><div><strong>Add two missing numbers</strong><p>The periods <span class="ft-math-inline" data-latex="c_x,c_y">c x and c y</span> choose the constant harmonic flow around the two torus cycles.</p></div></li>
             <li><span>03</span><div><strong>Choose a lattice point</strong><p>Click <span class="ft-math-inline" data-latex="(m,n)\in\mathbb Z^2">an integer pair</span> to subtract the quantized field <span class="ft-math-inline" data-latex="q(m\,dx+n\,dy)">q times m dx plus n dy</span>.</p></div></li>
             <li><span>04</span><div><strong>Compare identical particles</strong><p>Orange uses the raw periods. Cyan uses the residual periods. Both clouds see exactly the same vorticity.</p></div></li>
           </ol>
@@ -80,8 +101,8 @@
 
         <aside class="ft-controls">
           <p class="ft-eyebrow">The real harmonic state</p>
-          <label><span><strong>Horizontal period cₓ</strong><small>mean flow through the vertical cross-section</small></span><output id="ft-period-x-output">0.85</output><input id="ft-period-x" type="range" min="-1.25" max="1.25" step="0.05" value="0.85" /></label>
-          <label><span><strong>Vertical period cᵧ</strong><small>mean flow through the horizontal cross-section</small></span><output id="ft-period-y-output">−0.55</output><input id="ft-period-y" type="range" min="-1.25" max="1.25" step="0.05" value="-0.55" /></label>
+          <label><span><strong>Horizontal period cₓ</strong><small>circulation around the horizontal generator</small></span><output id="ft-period-x-output">0.85</output><input id="ft-period-x" type="range" min="-1.25" max="1.25" step="0.05" value="0.85" /></label>
+          <label><span><strong>Vertical period cᵧ</strong><small>circulation around the vertical generator</small></span><output id="ft-period-y-output">−0.55</output><input id="ft-period-y" type="range" min="-1.25" max="1.25" step="0.05" value="-0.55" /></label>
           <label><span><strong>Vortex strength A</strong><small>changes local curl, not either period</small></span><output id="ft-vortex-output">0.72</output><input id="ft-vortex" type="range" min="0" max="1.2" step="0.02" value="0.72" /></label>
           <label><span><strong>Circulation quantum q</strong><small>spacing of the imposed harmonic lattice</small></span><output id="ft-quantum-output">0.50</output><input id="ft-quantum" type="range" min="0.4" max="1" step="0.05" value="0.5" /></label>
 
@@ -109,7 +130,7 @@
         </header>
         <div class="ft-operation-grid">
           <article><span>01 · PRESSURE</span><h3>Remove an exact field</h3><div class="ft-math-display" data-latex="\eta\mapsto\eta-dp">eta minus d p</div><p>Enforces zero divergence. Closed-loop periods and vorticity are unchanged because an exact form integrates to zero around every closed loop.</p></article>
-          <article><span>02 · STREAMFUNCTION</span><h3>Recover the coexact field</h3><div class="ft-math-display" data-latex="\omega\mapsto d^+\omega">vorticity maps to curl pseudoinverse</div><p>Recovers the least-norm velocity seen by vorticity. On a torus it necessarily forgets the two harmonic periods.</p></article>
+          <article><span>02 · STREAMFUNCTION</span><h3>Recover the coexact field</h3><div class="ft-math-display" data-latex="\omega\mapsto d^+\omega">vorticity maps to curl pseudoinverse</div><p>Recovers the least-norm velocity seen by vorticity. “Least norm” silently sets both harmonic periods to zero; it does not infer them.</p></article>
           <article class="accent"><span>03 · THIS LAB</span><h3>Change the harmonic representative</h3><div class="ft-math-display" data-latex="(c_x,c_y)\mapsto(c_x-qm,c_y-qn)">subtract a lattice vector</div><p>Preserves divergence and vorticity, but changes cross-sectional flux. The nearest lattice point minimizes residual harmonic energy only among the imposed lattice choices.</p></article>
         </div>
         <aside class="ft-paper-bridge">

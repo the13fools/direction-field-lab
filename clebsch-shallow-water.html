@@ -40,6 +40,19 @@
         <article data-variable="beta"><span>MATERIAL LABEL</span><strong>β(x,y,t)</strong><p>Another transported scalar. Its level curves move with the water.</p></article>
       </section>
 
+      <section class="cw-scope-note" aria-label="How shallow water differs from incompressible projection">
+        <div>
+          <span>THE IMPORTANT CHANGE OF PROBLEM</span>
+          <h2>Do not project shallow water to zero divergence.</h2>
+          <p>In the random-flow lab, subtracting <span class="cw-math-inline" data-latex="dp">d p</span> is a useful incompressible comparison. In shallow water, convergence and divergence are physical: they raise and lower the water column. Pressure acts through the evolution of φ while the continuity equation evolves h.</p>
+        </div>
+        <div class="cw-scope-equations">
+          <div class="cw-math-display" data-latex="\partial_t h+\operatorname{div}(hu)=0">height changes with mass-flux divergence</div>
+          <div class="cw-math-display" data-latex="D_t\phi=\tfrac12|u|^2-g(h-H)">pressure enters the Bernoulli potential</div>
+          <p>On a torus, the velocity state may also carry two harmonic periods. This planar lab sets them to zero; a topology-aware solver must retain and audit them separately.</p>
+        </div>
+      </section>
+
       <section id="clebsch-water-lab" class="cw-lab">
         <aside class="cw-guide">
           <p class="cw-eyebrow">How to read the grid</p>
@@ -51,7 +64,7 @@
           </ol>
           <details open><summary>So which things are vectors?</summary><p><b>u</b> and the mass flux <b>hu</b> are vectors. The gradients drawn as arrows are metric-dual vectors used to visualize the covectors <b>dφ</b> and <b>dβ</b>. The primitive Clebsch variables themselves are scalars.</p></details>
           <details><summary>Why draw a covector as bars?</summary><p>A covector assigns a number to every test displacement. Its kernel is the line of displacements on which that number is zero. Parallel bars make that kernel visible; their normal points in the measuring direction.</p></details>
-          <details><summary>What is omitted?</summary><p>This periodic example has zero prescribed harmonic circulation. On a torus, two additional global periods may be needed. On a curved surface, the metric-dependent sharp map is no longer visually invisible.</p></details>
+          <details><summary>What is omitted?</summary><p>This periodic example fixes both harmonic circulations to zero. Vorticity cannot reconstruct those two torus periods; a complete torus solver must store or evolve them. On a curved surface, the metric-dependent sharp map is no longer visually invisible.</p></details>
         </aside>
 
         <section class="cw-stage">

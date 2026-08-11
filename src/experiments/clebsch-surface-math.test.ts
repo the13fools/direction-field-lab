@@ -2,6 +2,9 @@ import katex from "katex";
 import { describe, expect, it } from "vitest";
 import actionPageSource from "../../clebsch-surfaces-action.html?raw";
 import introPageSource from "../../clebsch-surfaces.html?raw";
+import shallowWaterPageSource from "../../clebsch-shallow-water.html?raw";
+import flatTorusPageSource from "../../flat-torus-cohomology.html?raw";
+import randomFluidPageSource from "../../random-fluids.html?raw";
 
 describe("Clebsch surface lesson math", () => {
   it("renders every static LaTeX expression on both tutorial pages", () => {
@@ -40,7 +43,7 @@ describe("Clebsch surface lesson math", () => {
 
   it("explains how a target field determines the roles of alpha, beta, and phi", () => {
     expect(actionPageSource).toContain("Do not choose three mysterious fields at once");
-    expect(actionPageSource).toContain("d(u^\\flat-\\alpha d\\beta)=0");
+    expect(actionPageSource).toContain("u^\\flat=d\\phi+\\alpha d\\beta+h");
     expect(actionPageSource).toContain('data-cs-choice-preset="parallel"');
     expect(actionPageSource).toContain('data-cs-choice-preset="vortical"');
     expect(actionPageSource).toContain('data-cs-choice-preset="exact"');
@@ -54,5 +57,30 @@ describe("Clebsch surface lesson math", () => {
     expect(actionPageSource).toContain("D_t\\phi=\\tfrac12|u|^2-p");
     expect(actionPageSource).toContain("pressure changes it along the trajectory");
     expect(actionPageSource).toContain("not yet a free-running nonlinear solver");
+  });
+
+  it("distinguishes loop circulation from patch vorticity before introducing topology", () => {
+    expect(introPageSource).toContain("circulation is attached to a loop");
+    expect(introPageSource).toContain("vorticity is attached to an area");
+    expect(introPageSource).toContain("\\Gamma(C)=\\oint_C u^\\flat");
+    expect(introPageSource).toContain("\\oint_{\\partial A}\\eta=\\int_A d\\eta");
+    expect(introPageSource).toContain("Vorticity recovers boundary circulation—not every period");
+  });
+
+  it("treats both torus harmonic periods as physical velocity state", () => {
+    expect(actionPageSource).toContain("There are two harmonic numbers");
+    expect(actionPageSource).toContain("\\dim\\mathcal H^1(T^2)=2");
+    expect(actionPageSource).toContain("pressure projection subtracts an exact form and therefore cannot remove them");
+    expect(flatTorusPageSource).toContain("Two noncontractible periods remain");
+    expect(flatTorusPageSource).toContain("\\Gamma_x=\\oint_{\\gamma_x}\\eta=c_x");
+    expect(flatTorusPageSource).toContain("These two numbers are independent velocity data");
+  });
+
+  it("keeps the random lab kinematic and separates it from shallow-water dynamics", () => {
+    expect(randomFluidPageSource).toContain("kinematic playground");
+    expect(randomFluidPageSource).toContain("zero-harmonic sector");
+    expect(shallowWaterPageSource).toContain("Do not project shallow water to zero divergence");
+    expect(shallowWaterPageSource).toContain("\\partial_t h+\\operatorname{div}(hu)=0");
+    expect(shallowWaterPageSource).toContain("must store or evolve them");
   });
 });

@@ -18,9 +18,9 @@
       <section class="cs-intro">
         <div><p class="cs-eyebrow">Begin with the physical problem</p><h1>A fluid must<br /><em>move and remember.</em></h1></div>
         <div class="cs-intro-copy">
-          <p>A surface-fluid solver must move particles, avoid artificial sources and sinks, and preserve the rotation already present in the flow. Clebsch variables are one way to organize that information. They are not a new kind of fluid.</p>
-          <div class="cs-math-display" data-latex="\dot x=u(x),\qquad \operatorname{div}u=0,qquad \omega=d(u^\flat)">motion, incompressibility, and vorticity</div>
-          <p>The solver ultimately needs the velocity vector <span class="cs-math-inline" data-latex="u">u</span>. Everything else on this page is a representation that helps us construct or evolve it.</p>
+          <p>A surface-fluid solver must move particles and remember how the velocity acts around loops. Before introducing Clebsch variables, separate two words that are easy to blur: <strong>circulation is attached to a loop; vorticity is attached to an area.</strong></p>
+          <div class="cs-math-display" data-latex="\Gamma(C)=\oint_C u^\flat,\qquad \omega=d(u^\flat),\qquad \int_A\omega=\oint_{\partial A}u^\flat">circulation, vorticity, and Stokes</div>
+          <p>The solver ultimately needs the velocity vector <span class="cs-math-inline" data-latex="u">u</span>. Clebsch variables are one possible representation of its metric-dual one-form <span class="cs-math-inline" data-latex="u^\flat">u flat</span>; they are not a new kind of fluid.</p>
         </div>
       </section>
 
@@ -30,6 +30,27 @@
           <h2 id="cs-roadmap-title">Start with one rotating flow.</h2>
           <p>We will describe exactly the same counterclockwise motion four ways. The objects are related by translation; they are not four successive simulation steps.</p>
         </header>
+
+        <section class="cs-loop-patch" aria-label="Circulation and vorticity compared">
+          <article>
+            <span>1D · LOOP MEASUREMENT</span>
+            <h3>Circulation asks about one chosen loop.</h3>
+            <div class="cs-math-display" data-latex="\Gamma(C)=\oint_C\eta,\qquad \eta=u^\flat">circulation is the velocity one-form integrated around C</div>
+            <p>It is one number: the signed tendency to move around <em>that</em> closed curve. Different loops can have different circulations.</p>
+          </article>
+          <article>
+            <span>2D · PATCH DENSITY</span>
+            <h3>Vorticity asks about local spinning.</h3>
+            <div class="cs-math-display" data-latex="\omega=d\eta\in\Omega^2(S)">vorticity is a two-form</div>
+            <p>Integrating <span class="cs-math-inline" data-latex="\omega">omega</span> over a small patch gives the circulation around that patch's boundary.</p>
+          </article>
+          <article class="accent">
+            <span>STOKES · AND ITS LIMIT</span>
+            <h3>Vorticity recovers boundary circulation—not every period.</h3>
+            <div class="cs-math-display" data-latex="\oint_{\partial A}\eta=\int_A d\eta">Stokes theorem on a patch</div>
+            <p>On a torus, a loop around a handle is not the boundary of a patch. Its circulation is extra harmonic data that <span class="cs-math-inline" data-latex="\omega=d\eta">vorticity</span> cannot recover.</p>
+          </article>
+        </section>
 
         <div class="cs-roadmap-task">
           <strong>THE TARGET MOTION</strong>
@@ -42,12 +63,12 @@
           <ol>
             <li><b>Velocity vector</b><div><div class="cs-math-display" data-latex="u=-y\,\partial_x+x\,\partial_y">the particle-motion field</div><p>This is what the advection step needs.</p></div></li>
             <li><b>Velocity one-form</b><div><div class="cs-math-display" data-latex="\eta=u^\flat=-y\,dx+x\,dy">lower the index using the metric</div><p>The one-form measures motion along a tangent direction; integrated around a loop, it measures circulation.</p></div></li>
-            <li><b>Vorticity two-form</b><div><div class="cs-math-display" data-latex="\omega=d\eta=2\,dx\wedge dy">differentiate the velocity one-form</div><p>This directly records local rotation, but it no longer tells a particle which direction to move.</p></div></li>
+            <li><b>Vorticity two-form</b><div><div class="cs-math-display" data-latex="\omega=d\eta=2\,dx\wedge dy">differentiate the velocity one-form</div><p>This records local circulation density. It no longer tells a particle which direction to move, and on a surface with handles it also misses global loop circulations.</p></div></li>
             <li><b>Clebsch variables</b><div><div class="cs-math-display" data-latex="\alpha=2x,\quad\beta=y,\quad\phi=-xy,\qquad d\phi+\alpha d\beta=\eta">one encoding of the same one-form</div><p>Three nonunique scalar fields reproduce the velocity one-form, while <span class="cs-math-inline" data-latex="d\alpha\wedge d\beta=\omega">their crossing reproduces vorticity</span>.</p></div></li>
           </ol>
         </section>
 
-        <aside class="cs-foundation-summary"><strong>The role of each symbol</strong><p><span class="cs-math-inline" data-latex="u">u</span> moves particles. <span class="cs-math-inline" data-latex="u^\flat">u flat</span> measures circulation. <span class="cs-math-inline" data-latex="\omega=d(u^\flat)">omega</span> measures rotation. The Clebsch fields <span class="cs-math-inline" data-latex="(\phi,\alpha,\beta)">phi, alpha, beta</span> are an overcomplete way to encode the velocity one-form.</p></aside>
+        <aside class="cs-foundation-summary"><strong>The role of each symbol</strong><p><span class="cs-math-inline" data-latex="u">u</span> moves particles. <span class="cs-math-inline" data-latex="u^\flat">u flat</span> integrates to circulation on loops. <span class="cs-math-inline" data-latex="\omega=d(u^\flat)">omega</span> is local circulation density on patches. The Clebsch fields <span class="cs-math-inline" data-latex="(\phi,\alpha,\beta)">phi, alpha, beta</span> are an overcomplete way to encode the velocity one-form; on genus <span class="cs-math-inline" data-latex="g">g</span>, vorticity reconstruction still needs <span class="cs-math-inline" data-latex="2g">two g</span> harmonic periods.</p></aside>
       </section>
 
       <section class="cs-tutorial">
@@ -62,11 +83,11 @@
           <article>
             <div class="cs-state-number">2</div>
             <div><span>VORTICITY TWO-FORM</span><h3>Store the rotation directly.</h3><p>The two-form <span class="cs-math-inline" data-latex="\omega=d\eta">omega equals d eta</span> is natural when vortex transport is the central concern.</p></div>
-            <div class="cs-state-tradeoff"><strong>BENEFIT</strong><p>Rotation is represented explicitly.</p><strong>RESPONSIBILITY</strong><p>Before moving particles, reconstruct a velocity satisfying <span class="cs-math-inline" data-latex="d\eta=\omega">d eta equals omega</span> and <span class="cs-math-inline" data-latex="\delta\eta=0">delta eta equals zero</span>.</p></div>
+            <div class="cs-state-tradeoff"><strong>BENEFIT</strong><p>Local rotation is represented explicitly.</p><strong>RESPONSIBILITY</strong><p>Before moving particles, reconstruct a velocity satisfying <span class="cs-math-inline" data-latex="d\eta=\omega">d eta equals omega</span> and the intended divergence. On genus <span class="cs-math-inline" data-latex="g">g</span>, also supply the <span class="cs-math-inline" data-latex="2g">two g</span> harmonic periods that vorticity forgot.</p></div>
           </article>
           <article>
             <div class="cs-state-number">3</div>
-            <div><span>CLEBSCH POTENTIALS</span><h3>Store scalar labels whose crossing carries vorticity.</h3><div class="cs-math-display" data-latex="\eta_C=d\phi+\alpha d\beta,qquad d\eta_C=d\alpha\wedge d\beta">Clebsch velocity candidate and vorticity</div><p>The labels can be carried with the fluid and arise naturally in some variational or Hamiltonian formulations.</p></div>
+            <div><span>CLEBSCH POTENTIALS</span><h3>Store scalar labels whose crossing carries vorticity.</h3><div class="cs-math-display" data-latex="\eta_C=d\phi+\alpha d\beta,\qquad d\eta_C=d\alpha\wedge d\beta">Clebsch velocity candidate and vorticity</div><p>The labels can be carried with the fluid and arise naturally in some variational or Hamiltonian formulations.</p></div>
             <div class="cs-state-tradeoff"><strong>BENEFIT</strong><p>The curl identity is built into the representation.</p><strong>RESPONSIBILITY</strong><p>The potentials are nonunique, can have global topological issues, and do not enforce zero divergence by themselves.</p></div>
           </article>
         </section>
@@ -74,11 +95,11 @@
         <section class="cs-projection-answer" aria-labelledby="cs-projection-title">
           <header><p class="cs-eyebrow">Why projection still appears</p><h2 id="cs-projection-title">Clebsch gives a candidate, not automatically a fluid velocity.</h2></header>
           <ol class="cs-projection-steps">
-            <li><div><span>BUILD THE CANDIDATE</span><h3>Its vorticity is already known.</h3><p>The labels determine <span class="cs-math-inline" data-latex="\omega=d\alpha\wedge d\beta">omega</span>, but the raw one-form may contain a source–sink component.</p></div><div class="cs-math-display" data-latex="d\eta_C=\omega,qquad \delta\eta_C\ne0\ \text{in general}">raw Clebsch properties</div></li>
-            <li><div><span>CHOOSE THE EXACT PART</span><h3>Solve one scalar Poisson problem.</h3><p>Subtract an exact one-form whose divergence matches the candidate. In Clebsch language this changes only φ.</p></div><div class="cs-math-display" data-latex="\delta dp=\delta\eta_C,qquad \eta=d(\phi-p)+\alpha d\beta">projection selects phi</div></li>
-            <li><div><span>USE THE RESULT</span><h3>Move particles with the projected velocity.</h3><p>The correction removes divergence without changing vorticity because <span class="cs-math-inline" data-latex="d^2p=0">d squared p is zero</span>.</p></div><div class="cs-math-display" data-latex="\delta\eta=0,qquad d\eta=\omega,qquad u=\eta^{\sharp_g}">usable incompressible velocity</div></li>
+            <li><div><span>BUILD THE CANDIDATE</span><h3>Its vorticity is already known.</h3><p>The labels determine <span class="cs-math-inline" data-latex="\omega=d\alpha\wedge d\beta">omega</span>, but the raw one-form may contain a source–sink component.</p></div><div class="cs-math-display" data-latex="d\eta_C=\omega,\qquad \delta\eta_C\ne0\ \text{in general}">raw Clebsch properties</div></li>
+            <li><div><span>CHOOSE THE EXACT PART</span><h3>Solve one scalar Poisson problem.</h3><p>Subtract an exact one-form whose divergence matches the candidate. In Clebsch language this changes only φ.</p></div><div class="cs-math-display" data-latex="\delta dp=\delta\eta_C,\qquad \eta=d(\phi-p)+\alpha d\beta">projection selects phi</div></li>
+            <li><div><span>USE THE RESULT</span><h3>Move particles with the projected velocity.</h3><p>The correction removes divergence without changing vorticity or any closed-loop circulation: <span class="cs-math-inline" data-latex="d^2p=0">d squared p is zero</span> and <span class="cs-math-inline" data-latex="\oint_Cdp=0">the period of d p vanishes</span>.</p></div><div class="cs-math-display" data-latex="\delta\eta=0,\qquad d\eta=\omega,\qquad \oint_C\eta=\oint_C\eta_C">projection preserves curl and periods</div></li>
           </ol>
-          <aside class="cs-projection-takeaway"><strong>The short answer</strong><p>Clebsch plus Hodge projection is worthwhile when the scalar labels themselves are useful. It is not automatically cheaper or more complete than storing velocity or vorticity.</p></aside>
+          <aside class="cs-projection-takeaway"><strong>The short answer</strong><p>Clebsch plus an incompressible Hodge projection is worthwhile when the scalar labels themselves are useful. It is not automatically cheaper or more complete than storing velocity or vorticity. In shallow water, divergence changes the layer height, so this projection is a kinematic comparison—not the time integrator.</p></aside>
         </section>
 
         <section class="cs-course-handoff" aria-labelledby="cs-handoff-title">

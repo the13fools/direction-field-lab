@@ -241,6 +241,14 @@ button { cursor: pointer; }
 .cs-roadmap > header { max-width: 940px; }
 .cs-roadmap > header h2 { margin: 10px 0 0; color: var(--ink); font-size: clamp(2.8rem, 5vw, 5.8rem); line-height: .9; letter-spacing: -.06em; }
 .cs-roadmap > header > p:last-child { max-width: 790px; margin: 23px 0 0; color: var(--muted); font-size: 12px; line-height: 1.75; }
+.cs-loop-patch { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 32px; }
+.cs-loop-patch article { min-width: 0; padding: 23px; border: 1px solid #cdbddd; border-top: 6px solid var(--violet); border-radius: 6px; background: #fbf8ff; }
+.cs-loop-patch article:nth-child(2) { border-top-color: var(--cyan); }
+.cs-loop-patch article.accent { border-top-color: var(--orange); background: #fffaf2; }
+.cs-loop-patch article > span { color: var(--violet); font: 700 7px var(--mono); letter-spacing: .09em; }
+.cs-loop-patch h3 { margin: 10px 0 15px; color: var(--ink); font-size: 21px; line-height: 1.04; }
+.cs-loop-patch .cs-math-display { min-width: 0; padding: 13px 8px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 9px; }
+.cs-loop-patch p { margin: 14px 0 0; color: var(--muted); font-size: 9px; line-height: 1.65; }
 .cs-roadmap-task { margin-top: 32px; padding: 25px 28px; color: white; border-top: 6px solid var(--orange); border-radius: 6px; background: linear-gradient(145deg, #19102f, #31204e 60%, #135363); }
 .cs-roadmap-task > strong { color: var(--gold); font: 700 8px var(--mono); letter-spacing: .09em; }
 .cs-roadmap-task .cs-math-display { margin: 16px 0 12px; color: var(--cyan); font-size: 13px; }
@@ -277,6 +285,15 @@ button { cursor: pointer; }
 .cs-torus-coordinate-answer strong { color: var(--ink); font-size: 15px; line-height: 1.05; }
 .cs-torus-coordinate-answer p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.68; }
 .cs-torus-coordinate-answer em { color: var(--violet); font-style: normal; font-weight: 800; }
+.cs-torus-cycle-ledger { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin-top: 21px; }
+.cs-torus-cycle-ledger article { min-width: 0; padding: 19px; border: 1px solid #cdbddd; border-top: 6px solid var(--violet); border-radius: 5px; background: #fffdf8; }
+.cs-torus-cycle-ledger article:nth-child(2) { border-top-color: var(--cyan); }
+.cs-torus-cycle-ledger article.accent { border-top-color: var(--orange); }
+.cs-torus-cycle-ledger span, .cs-torus-cycle-ledger strong { display: block; }
+.cs-torus-cycle-ledger span { color: var(--violet); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-torus-cycle-ledger strong { margin-top: 7px; color: var(--ink); font-size: 15px; }
+.cs-torus-cycle-ledger .cs-math-display { margin-top: 12px; padding: 12px 7px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 9px; }
+.cs-torus-cycle-ledger p { margin: 12px 0 0; color: var(--muted); font-size: 8px; line-height: 1.6; }
 .cs-torus-atlas-lab { display: grid; grid-template-columns: minmax(470px, 1.2fr) minmax(320px, .8fr); gap: 8px; margin-top: 27px; }
 .cs-torus-atlas-visual { position: sticky; top: 84px; align-self: start; min-width: 0; height: min(68vh, 620px); min-height: 480px; overflow: hidden; border: 1px solid #594771; border-radius: 7px; background: radial-gradient(circle at 50% 45%, #263e58, #0d081f 74%); }
 #cs-torus-chart-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
@@ -533,6 +550,7 @@ button { cursor: pointer; }
   .cs-foundation-equation { grid-column: 1 / -1; }
   .cs-foundation-summary { grid-template-columns: 1fr; }
   .cs-diagram-grid { grid-template-columns: repeat(2, 1fr); }
+  .cs-loop-patch { grid-template-columns: 1fr; }
   .cs-same-flow li > b { flex-basis: 135px; }
   .cs-same-flow li > div { flex-direction: column; align-items: stretch; gap: 8px; }
   .cs-exact-ambiguity aside { flex-direction: column; align-items: flex-start; gap: 9px; }
@@ -541,7 +559,7 @@ button { cursor: pointer; }
   .cs-material-stage > header { align-items: flex-start; }
   .cs-material-legend { white-space: normal; text-align: right; }
   #cs-material-canvas { height: min(78vw, 610px); min-height: 420px; }
-  .cs-torus-atlas-lab, .cs-torus-atlas-proof, .cs-torus-coordinate-answer { grid-template-columns: 1fr; }
+  .cs-torus-atlas-lab, .cs-torus-atlas-proof, .cs-torus-coordinate-answer, .cs-torus-cycle-ledger { grid-template-columns: 1fr; }
   .cs-torus-coordinate-answer { gap: 8px; }
   .cs-torus-atlas-visual { position: relative; top: auto; height: 400px; min-height: 0; }
   .cs-state-choices > article { grid-template-columns: 45px 1fr; }

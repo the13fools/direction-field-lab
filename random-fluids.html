@@ -28,7 +28,7 @@
         <div class="random-title">
           <p class="random-eyebrow">Stack intrinsic scales. Modulate them with smooth time noise. Advect.</p>
           <h1>Random fluids,<br /><em>bound to a surface.</em></h1>
-          <p>Build one seeded scalar field from intrinsic surface eigenmodes, let its coefficients wander smoothly in time, then choose its exact gradient or coexact quarter-turned gradient. This page is about the random spectral ensemble; the Clebsch construction now has its own focused lab.</p>
+          <p>Build one seeded scalar field from intrinsic surface eigenmodes, let its coefficients wander smoothly in time, then choose its exact gradient or coexact quarter-turned gradient. This is a <strong>kinematic playground</strong>: it isolates representation and projection before a physical evolution law is added. The Clebsch construction has its own focused tutorial.</p>
           <a class="lesson-link" href="#live-fluid-lab">Open the live surface demo ↓</a>
         </div>
         <div class="construction-card">
@@ -47,7 +47,7 @@
             <p class="random-eyebrow">Guided derivation · about five minutes</p>
             <h2>From intrinsic modes to a random surface flow.</h2>
           </div>
-          <p>The geometry and randomness have separate jobs. Laplace–Beltrami eigenfunctions supply spatial patterns intrinsic to the surface. Smooth one-dimensional noise changes their coefficients in time. A Hodge choice then turns the scalar into either exact or coexact motion.</p>
+          <p>The geometry and randomness have separate jobs. Laplace–Beltrami eigenfunctions supply spatial patterns intrinsic to the surface. Smooth one-dimensional noise changes their coefficients in time. A Hodge choice then turns the scalar into either exact or coexact motion. None of these choices is yet a shallow-water time step.</p>
         </header>
 
         <div class="tutorial-pipeline">
@@ -85,6 +85,7 @@
               <small>The velocity now follows scalar contours instead of crossing them.</small>
             </div>
             <p class="tutorial-detail">The randomness is identical in both cases. Switching the field construction isolates the geometric effect of the quarter-turn <span class="math-inline" data-latex="J">J</span>.</p>
+            <p class="tutorial-detail"><strong>Topology audit:</strong> scalar gradients and rotated scalar gradients carry no independently prescribed harmonic periods. On the torus this lab therefore explores the zero-harmonic sector. The <a href="./flat-torus-cohomology.html">flat-torus lab</a> adds the two loop circulations that vorticity cannot see.</p>
           </article>
 
           <aside class="streamfunction-intuition">
@@ -271,8 +272,8 @@
 
       <section class="random-notes">
         <article><span>CHECK 01 · GEOMETRY</span><h2>The modes belong to the surface.</h2><p>On the frog, they are eigenvectors of the cotangent Laplace–Beltrami operator. On the sphere and periodic parameter surfaces, they come from the corresponding intrinsic harmonic families.</p></article>
-        <article><span>CHECK 02 · HODGE</span><h2>A quarter-turn changes the invariant.</h2><p>The exact gradient is curl-free and generally compressible. Its coexact quarter-turn is divergence-free and vortical, even though both start from the same scalar realization.</p></article>
-        <article><span>CHECK 03 · PERLIN</span><h2>Smooth randomness is not fluid dynamics.</h2><p>Temporal Perlin noise prescribes how the random field changes; it is not a Navier–Stokes evolution. The particles respond to that kinematic velocity, but they do not feed back into it.</p></article>
+        <article><span>CHECK 02 · HODGE</span><h2>A quarter-turn changes the local invariant.</h2><p>The exact gradient is curl-free and generally compressible. Its coexact quarter-turn is divergence-free and vortical. On a torus, neither construction supplies the two independent harmonic circulations.</p></article>
+        <article><span>CHECK 03 · PERLIN</span><h2>Smooth randomness is not fluid dynamics.</h2><p>Temporal Perlin noise prescribes how the random field changes; it is not a Navier–Stokes or shallow-water evolution. The particles respond to that kinematic velocity, but they do not feed back into it.</p></article>
       </section>
     </main>
 

@@ -18,18 +18,18 @@
       <section class="cs-intro">
         <div><p class="cs-eyebrow">Part II · put the representation to work</p><h1>Build the field.<br /><em>Find the seam.</em></h1></div>
         <div class="cs-intro-copy">
-          <p>Part I introduced the fluid problem and the three state representations. Here the objects become visible: paint α and β, differentiate them, form their wedge product, assemble the velocity one-form, and project away divergence.</p>
-          <div class="cs-math-display" data-latex="(\phi,\alpha,\beta)\longrightarrow d\phi+\alpha d\beta\longrightarrow d\alpha\wedge d\beta">potentials, velocity one-form, and vorticity</div>
-          <p>After the construction, the torus exposes the global question that the plane hides: can these potentials remain single-valued after going around a noncontractible loop?</p>
+          <p>Part I separated a loop measurement from a patch density. Keep that distinction visible here: the Clebsch triple builds the whole velocity one-form, while differentiation keeps only its local vorticity.</p>
+          <div class="cs-math-display" data-latex="\eta=d\phi+\alpha d\beta,\qquad \Gamma(C)=\oint_C\eta,\qquad \omega=d\eta=d\alpha\wedge d\beta">one-form, loop circulation, and vorticity</div>
+          <p>The plane experiment controls <span class="cs-math-inline" data-latex="\omega">omega</span>. The torus then exposes what that local data cannot determine: two circulations around the two noncontractible cycles.</p>
         </div>
       </section>
 
       <section class="cs-choice-principle" aria-labelledby="cs-choice-principle-title">
-        <header><p class="cs-eyebrow">How the potentials are chosen</p><h2 id="cs-choice-principle-title">Do not choose three mysterious fields at once.</h2><p>Start from the physical velocity or vorticity you want. The Clebsch fields are a nonunique factorization of that data—not three additional observables.</p></header>
+        <header><p class="cs-eyebrow">How the potentials are chosen</p><h2 id="cs-choice-principle-title">Do not choose three mysterious fields at once.</h2><p>Start from the physical velocity you want. Split its specification into local vorticity and, when the surface has handles, global loop circulations. The Clebsch fields are a nonunique factorization of that data—not three additional observables.</p></header>
         <ol>
-          <li><span>01</span><div><strong>Name the target rotation.</strong><div class="cs-math-display" data-latex="\omega=du^\flat">vorticity is d of velocity flat</div><p>This is the local circulation density the labels must reproduce.</p></div></li>
+          <li><span>01</span><div><strong>Name what is local and what is global.</strong><div class="cs-math-display" data-latex="\omega=du^\flat,\qquad \Gamma_i=\oint_{\gamma_i}u^\flat">vorticity plus independent periods</div><p>The two-form is local circulation density. The periods are additional state only for noncontractible cycles; a genus-g surface has 2g of them.</p></div></li>
           <li><span>02</span><div><strong>Choose two label families whose crossing matches it.</strong><div class="cs-math-display" data-latex="d\alpha\wedge d\beta=\omega">factor the target vorticity</div><p>This factorization is local and highly nonunique. In a material formulation, these labels can instead be initialized once and transported with the fluid.</p></div></li>
-          <li><span>03</span><div><strong>Complete the velocity with the curl-free remainder.</strong><div class="cs-math-display" data-latex="d(u^\flat-\alpha d\beta)=0\quad\Longrightarrow\quad u^\flat=d\phi+\alpha d\beta\ \text{locally}">the remaining closed part is locally exact</div><p>Globally, a harmonic term may still be needed. For incompressible flow, projection changes this exact part by replacing φ with φ − p.</p></div></li>
+          <li><span>03</span><div><strong>Complete the velocity, including its periods.</strong><div class="cs-math-display" data-latex="u^\flat=d\phi+\alpha d\beta+h,\qquad h\in\mathcal H^1(S)">exact, label, and harmonic pieces</div><p>Locally the closed remainder is dφ. Globally, h supplies any periods the chosen labels do not carry. An incompressible projection changes only the exact part.</p></div></li>
         </ol>
       </section>
 
@@ -158,7 +158,7 @@
               <div><small>EXACT POTENTIAL</small><b id="cs-material-phi">φ —</b><em id="cs-material-phi-change">Δφ —</em></div>
               <div><small>INCOMPRESSIBILITY AUDIT</small><b id="cs-material-area">area ratio —</b><em id="cs-material-vorticity-error">Δω —</em></div>
             </div>
-            <p class="cs-material-caveat">The translucent quadrilateral is a small material patch; its area should remain one times its initial area. This controlled steady-flow test isolates the Clebsch transport laws—it is not yet a free-running nonlinear solver.</p>
+            <p class="cs-material-caveat">The translucent quadrilateral is a small material patch; its area should remain one times its initial area. Its vorticity color describes local circulation density—not a torus period. This controlled steady-flow test isolates the Clebsch transport laws; it is not yet a free-running nonlinear solver.</p>
           </aside>
         </div>
       </section>
@@ -174,8 +174,14 @@
           <header>
             <span>THE TOPOLOGICAL OBSTRUCTION, MADE VISIBLE</span>
             <h3 id="cs-torus-atlas-title">Follow one circulation all the way around a torus.</h3>
-            <p>The smooth one-form <span class="cs-math-inline" data-latex="\eta_h=c\,d\theta">eta h equals c d theta</span> circulates around the torus hole. Locally it looks like the differential of an angle. Globally that angle must jump somewhere. The four views below separate the roles of charts, Clebsch labels, the exact term <span class="cs-math-inline" data-latex="d\phi">d phi</span>, and harmonic circulation.</p>
+            <p>The smooth one-form <span class="cs-math-inline" data-latex="\eta_h=c\,d\theta">eta h equals c d theta</span> has zero vorticity everywhere yet a nonzero circulation around the torus hole. Locally it looks like the differential of an angle. Globally that angle must jump somewhere. The four views below separate charts, Clebsch labels, the exact term <span class="cs-math-inline" data-latex="d\phi">d phi</span>, and harmonic circulation.</p>
           </header>
+
+          <div class="cs-torus-cycle-ledger" aria-label="Local and global data on the torus">
+            <article><span>LOCAL PATCH TEST</span><strong>No vorticity.</strong><div class="cs-math-display" data-latex="d\eta_h=0">d eta h is zero</div><p>Every small contractible loop has zero circulation because it bounds a patch with zero vorticity.</p></article>
+            <article><span>GLOBAL LOOP TEST</span><strong>One visible period.</strong><div class="cs-math-display" data-latex="\Gamma_\theta=\oint_{\gamma_\theta}\eta_h=2\pi c">period around the theta cycle</div><p>The displayed loop is not a patch boundary, so Stokes does not force this number to vanish.</p></article>
+            <article class="accent"><span>FULL TORUS STATE</span><strong>There are two harmonic numbers.</strong><div class="cs-math-display" data-latex="h=c_\theta h_\theta+c_\varphi h_\varphi,\qquad \dim\mathcal H^1(T^2)=2">two harmonic basis forms</div><p>This embedded-torus demo isolates the θ coefficient. The flat-torus lab exposes both coefficients and both particle windings.</p></article>
+          </div>
 
           <aside class="cs-torus-coordinate-answer">
             <strong>Are α and β coordinates?</strong>
@@ -237,7 +243,7 @@
             <article><span>WHY ONE GLOBAL φ IS IMPOSSIBLE</span><h4>Exact forms have zero period.</h4><div class="cs-math-display" data-latex="\oint_{\gamma_\theta}d\phi=0\quad\text{but}\quad\oint_{\gamma_\theta}c\,d\theta=2\pi c">closed-loop contradiction</div><p>A single-valued scalar returns to its starting value after a closed loop. The toroidal circulation does not. Therefore <span class="cs-math-inline" data-latex="c\,d\theta">c d theta</span> is closed but not globally exact.</p></article>
             <article><span>HOW THE EXTRA CHART FIXES IT</span><h4>Move the cuts and glue derivatives.</h4><div class="cs-math-display" data-latex="\phi_B=\phi_A+2\pi k\quad\Longrightarrow\quad d\phi_B=d\phi_A=d\theta">transition on each overlap component</div><p>Chart A fails only at one meridian; chart B puts its cut at another. On overlaps their angle values differ by a constant, so their differentials—and hence the velocity—agree exactly.</p></article>
             <article><span>A CLEBSCH WORKAROUND</span><h4>Two periodic labels can hide the cut.</h4><div class="cs-math-display" data-latex="\alpha=-2\sin\theta,\quad\beta=\cos\theta,\quad\phi=\tfrac12\sin2\theta\quad\Longrightarrow\quad d\phi+\alpha d\beta=d\theta">a global Clebsch triple for this example</div><p>The pair (α,β) traces an ellipse in label space; it is not a coordinate chart on the torus. Its weighted differential αdβ carries the desired period plus an oscillation, and the exact term dφ cancels that oscillation. The sum is smooth and uniform.</p></article>
-            <article><span>WHAT A SOLVER USUALLY STORES</span><h4>Keep topology as a harmonic coefficient.</h4><div class="cs-math-display" data-latex="\eta=d\chi+\star_g d\psi+c_1h_1+c_2h_2,\qquad \dim\mathcal H^1(T^2)=2">Hodge decomposition on the torus</div><p>Rather than manage multivalued potentials, a mesh solver can store two global harmonic basis one-forms and their circulation coefficients. Charts explain the geometry; harmonic modes are often the cleaner numerical representation.</p></article>
+            <article><span>WHAT A SOLVER USUALLY STORES</span><h4>Keep topology as two state variables.</h4><div class="cs-math-display" data-latex="\eta=d\chi+\star_g d\psi+c_1h_1+c_2h_2,\qquad \dim\mathcal H^1(T^2)=2">Hodge decomposition on the torus</div><p>Rather than manage multivalued potentials, a mesh solver can store two harmonic basis one-forms and two circulation coefficients. Vorticity determines the coexact part, not c₁ and c₂; pressure projection subtracts an exact form and therefore cannot remove them.</p></article>
           </div>
 
           <p class="cs-source-note">The distinction between closed and exact forms is the de Rham-cohomology obstruction. The torus has two independent degree-one classes, corresponding to its two noncontractible cycles; see the <a href="https://math.mit.edu/~tristanc/Math18.966/HW3.pdf">MIT notes on de Rham cohomology and the Hodge Laplacian</a>. The form and metric conventions follow <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a>. The real harmonic coefficients and their role in fluid reconstruction follow <a href="https://yhesper.github.io/fc23/fc23.html">Fluid Cohomology</a>; the integer qk lattice is an added tutorial experiment.</p>
@@ -370,9 +376,9 @@
 
           <details>
             <summary>What can fail globally on a surface?</summary>
-            <p>Locally, factor <span class="cs-math-inline" data-latex="\omega=d\alpha\wedge d\beta">omega</span>; then <span class="cs-math-inline" data-latex="u^\flat-\alpha d\beta">u flat minus alpha d beta</span> is closed and is locally <span class="cs-math-inline" data-latex="d\phi">d phi</span>. Globally, topology can contribute harmonic circulation:</p>
+            <p>Locally, factor <span class="cs-math-inline" data-latex="\omega=d\alpha\wedge d\beta">omega</span>; then <span class="cs-math-inline" data-latex="u^\flat-\alpha d\beta">u flat minus alpha d beta</span> is closed and is locally <span class="cs-math-inline" data-latex="d\phi">d phi</span>. Globally, topology contributes independent loop circulations:</p>
             <div class="cs-math-display" data-latex="u^\flat=d\chi+\star_g d\psi+h,\qquad \dim\mathcal H^1(S)=2g">Hodge decomposition on a closed genus-g surface</div>
-            <p>A single globally single-valued Clebsch pair may need to be supplemented by multiple charts, multiple pairs, or an explicit harmonic component.</p>
+            <p>Writing <span class="cs-math-inline" data-latex="h=\sum_{i=1}^{2g}c_i h_i">h as a harmonic basis expansion</span>, the coefficients are fixed by the noncontractible periods. They are physical degrees of freedom of velocity—not gauge—and must be evolved or constrained separately. A single globally single-valued Clebsch pair may need multiple charts, multiple pairs, or this explicit harmonic component.</p>
           </details>
 
           <p class="cs-source-note">The velocity-versus-vorticity tradeoff and the circulation-preserving covector alternative are discussed in <a href="https://cseweb.ucsd.edu/~viscomp/projects/SIG22CovectorFluids/">Covector Fluids</a>. The differential-form conventions follow <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a>.</p>
