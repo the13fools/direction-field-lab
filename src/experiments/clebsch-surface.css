@@ -147,6 +147,42 @@ button { cursor: pointer; }
 .cs-probe b { margin-top: 4px; color: var(--gold); font: 8px var(--mono); }
 .cs-probe > p { margin: 11px 0 0; color: #c5b8d0; font-size: 8px; line-height: 1.5; }
 
+.cs-pairing { padding: 76px max(24px, calc((100vw - 1320px) / 2)); color: white; background: linear-gradient(145deg, #120a2a, #172541 58%, #351746); }
+.cs-pairing > header { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(390px, .95fr); gap: clamp(35px, 7vw, 90px); align-items: end; margin-bottom: 30px; }
+.cs-pairing .cs-eyebrow { color: var(--cyan); }
+.cs-pairing h2 { margin: 10px 0 0; color: white; font-size: clamp(2.8rem, 5vw, 5.8rem); line-height: .9; letter-spacing: -.06em; }
+.cs-pairing > header > p { margin: 0; color: #c8bdd4; font-size: 11px; line-height: 1.72; }
+.cs-pairing > header .cs-math-inline { color: var(--gold); }
+.cs-pairing-grid { display: grid; grid-template-columns: minmax(500px, 1.25fr) minmax(330px, .75fr); gap: 10px; }
+.cs-pairing-visual { position: relative; min-width: 0; overflow: hidden; border: 1px solid #594771; border-radius: 7px; background: radial-gradient(circle at 50% 48%, #243d59, #0d081f 74%); }
+#cs-pairing-canvas { display: block; width: 100%; height: 430px; }
+.cs-pairing-legend { position: absolute; right: 12px; bottom: 11px; left: 12px; display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; padding: 8px 10px; color: #b9adca; border: 1px solid rgba(255,255,255,.1); border-radius: 3px; background: rgba(13,8,31,.8); font: 700 7px var(--mono); pointer-events: none; }
+.cs-pairing-legend span { display: flex; gap: 6px; align-items: center; }
+.cs-pairing-legend i { display: inline-block; width: 18px; height: 2px; background: #8c79a7; }
+.cs-pairing-legend span:nth-child(2) i { height: 3px; background: var(--cyan); }
+.cs-pairing-legend span:nth-child(3) i { height: 4px; background: var(--orange); }
+.cs-pairing-controls { padding: 18px 22px; border: 1px solid #594771; border-radius: 7px; background: rgba(24,16,47,.92); }
+.cs-pairing-reading { padding: 17px; border: 1px solid #624d7a; border-top: 5px solid var(--gold); border-radius: 5px; background: linear-gradient(145deg, #21163e, #27375a); }
+.cs-pairing-reading > span { display: block; color: var(--gold); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-pairing-reading .cs-math-display { margin: 15px 0 10px; color: var(--cyan); font-size: 13px; }
+.cs-pairing-reading strong { display: block; color: white; font: 700 15px var(--mono); }
+.cs-pairing-reading p { margin: 9px 0 0; color: #c5b8d0; font-size: 8px; line-height: 1.55; }
+.cs-pairing-controls > label { display: grid; grid-template-columns: 1fr auto; gap: 5px 10px; padding: 17px 0 12px; border-bottom: 1px solid #493a63; }
+.cs-pairing-controls > label:last-child { border-bottom: 0; }
+.cs-pairing-controls label span strong, .cs-pairing-controls label span small { display: block; }
+.cs-pairing-controls label span strong { color: white; font-size: 10px; }
+.cs-pairing-controls label span small { margin-top: 4px; color: #9f91b1; font-size: 8px; line-height: 1.4; }
+.cs-pairing-controls output { color: var(--orange); font: 700 9px var(--mono); }
+.cs-pairing-controls input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--orange); }
+.cs-pairing-bridge { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.cs-pairing-bridge article { padding: 18px 20px; border: 1px solid #56436e; border-top: 5px solid var(--violet); border-radius: 5px; background: rgba(21,14,43,.86); }
+.cs-pairing-bridge article:nth-child(2) { border-top-color: var(--cyan); }
+.cs-pairing-bridge article:nth-child(3) { border-top-color: var(--orange); }
+.cs-pairing-bridge article > span { display: block; color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-pairing-bridge strong { display: block; margin: 8px 0 7px; color: white; font-size: 14px; }
+.cs-pairing-bridge p { margin: 0; color: #b9adca; font-size: 8px; line-height: 1.6; }
+.cs-pairing-bridge .cs-math-inline { color: var(--gold); }
+
 .cs-foundations { padding: 76px max(24px, calc((100vw - 1320px) / 2)); background: #f7f1ff; }
 .cs-foundations > header { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(350px, .85fr); gap: clamp(35px, 7vw, 90px); align-items: end; margin-bottom: 31px; }
 .cs-foundations h2 { margin: 10px 0 0; color: var(--ink); font-size: clamp(2.8rem, 5vw, 5.8rem); line-height: .9; letter-spacing: -.06em; }
@@ -230,6 +266,7 @@ button { cursor: pointer; }
   .cs-controls > .cs-second-label { grid-row: 1; margin-top: 0; }
   .cs-controls > .cs-glyph-list { grid-row: 2 / span 2; }
   .cs-controls > label, .cs-controls > .cs-probe { grid-column: 1 / -1; }
+  .cs-pairing-grid { grid-template-columns: minmax(440px, 1.1fr) minmax(310px, .9fr); }
   .cs-foundation-step { grid-template-columns: 54px 1fr; }
   .cs-foundation-equation { grid-column: 2; }
   .cs-diagram-grid { grid-template-columns: repeat(3, 1fr); }
@@ -239,7 +276,7 @@ button { cursor: pointer; }
   .cs-header { grid-template-columns: 1fr auto; }
   .cs-header > div { display: none; }
   .cs-header nav a:not(:first-child) { display: none; }
-  .cs-intro, .cs-foundations > header, .cs-dec > header { grid-template-columns: 1fr; gap: 25px; }
+  .cs-intro, .cs-pairing > header, .cs-foundations > header, .cs-dec > header { grid-template-columns: 1fr; gap: 25px; }
   .cs-intro h1 { font-size: clamp(3.1rem, 15vw, 5.5rem); }
   .cs-lab { grid-template-columns: 1fr; }
   .cs-guide { border-right: 0; border-bottom: 1px solid var(--line); }
@@ -248,6 +285,8 @@ button { cursor: pointer; }
   .cs-controls { display: block; grid-row: 3; }
   .cs-controls > .cs-second-label { margin-top: 22px; }
   #cs-viewer { height: 62vh; min-height: 430px; }
+  .cs-pairing-grid { grid-template-columns: 1fr; }
+  .cs-pairing-bridge { grid-template-columns: 1fr; }
   .cs-stage-equation { grid-template-columns: 1fr; }
   .cs-stage-example { padding: 13px 0 0; border-top: 1px solid #493a63; border-left: 0; }
   .cs-foundation-step { grid-template-columns: 45px 1fr; }
@@ -262,7 +301,7 @@ button { cursor: pointer; }
 
 @media (max-width: 530px) {
   .cs-header nav { gap: 8px; }
-  .cs-intro, .cs-foundations, .cs-dec, .cs-tutorial { padding-inline: 15px; }
+  .cs-intro, .cs-pairing, .cs-foundations, .cs-dec, .cs-tutorial { padding-inline: 15px; }
   .cs-intro-copy { padding: 20px; }
   .cs-surfaces, .cs-steps, .cs-diagram-grid { grid-template-columns: 1fr; }
   .cs-stage { padding: 10px; }
@@ -270,4 +309,5 @@ button { cursor: pointer; }
   .cs-stage-key { display: none; }
   .cs-stage-actions { grid-template-columns: 1fr; }
   .cs-glyph-list { grid-template-columns: 1fr 1fr; }
+  #cs-pairing-canvas { height: 330px; }
 }

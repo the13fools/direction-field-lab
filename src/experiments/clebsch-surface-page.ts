@@ -47,6 +47,192 @@ function renderStaticLatex(): void {
   }
 }
 
+function initializeDualPairingLab(): void {
+  const canvas = byId<HTMLCanvasElement>("cs-pairing-canvas");
+  const canvasContext = canvas.getContext("2d");
+  if (!canvasContext) throw new Error("Unable to create the dual-pairing canvas.");
+  const context: CanvasRenderingContext2D = canvasContext;
+
+  const angleInput = byId<HTMLInputElement>("cs-vector-angle");
+  const lengthInput = byId<HTMLInputElement>("cs-vector-length");
+  const strengthInput = byId<HTMLInputElement>("cs-covector-strength");
+  const angleOutput = byId<HTMLOutputElement>("cs-vector-angle-output");
+  const lengthOutput = byId<HTMLOutputElement>("cs-vector-length-output");
+  const strengthOutput = byId<HTMLOutputElement>("cs-covector-strength-output");
+  const equation = byId<HTMLDivElement>("cs-pairing-equation");
+  const valueOutput = byId<HTMLElement>("cs-pairing-value");
+  const copy = byId<HTMLParagraphElement>("cs-pairing-copy");
+
+  function arrow(
+    startX: number,
+    startY: number,
+    endX: number,
+    endY: number,
+    color: string,
+    width: number,
+  ): void {
+    const direction = Math.atan2(endY - startY, endX - startX);
+    const head = 10 + width;
+    context.beginPath();
+    context.moveTo(startX, startY);
+    context.lineTo(endX, endY);
+    context.strokeStyle = color;
+    context.lineWidth = width;
+    context.lineCap = "round";
+    context.stroke();
+    context.beginPath();
+    context.moveTo(endX, endY);
+    context.lineTo(
+      endX - head * Math.cos(direction - Math.PI / 6),
+      endY - head * Math.sin(direction - Math.PI / 6),
+    );
+    context.lineTo(
+      endX - head * Math.cos(direction + Math.PI / 6),
+      endY - head * Math.sin(direction + Math.PI / 6),
+    );
+    context.closePath();
+    context.fillStyle = color;
+    context.fill();
+  }
+
+  function draw(): void {
+    const bounds = canvas.getBoundingClientRect();
+    const width = Math.max(1, bounds.width);
+    const height = Math.max(1, bounds.height);
+    const pixelRatio = Math.min(2, window.devicePixelRatio || 1);
+    const pixelWidth = Math.round(width * pixelRatio);
+    const pixelHeight = Math.round(height * pixelRatio);
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+    }
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    context.clearRect(0, 0, width, height);
+
+    const angleDegrees = Number(angleInput.value);
+    const angle = angleDegrees * Math.PI / 180;
+    const drawnAngle = -angle;
+    const vectorLength = Number(lengthInput.value);
+    const strength = Number(strengthInput.value);
+    const pairing = strength * vectorLength * Math.cos(angle);
+    const originX = width * 0.48;
+    const originY = height * 0.51;
+    const physicalScale = Math.min(102, width * 0.16, height * 0.27);
+    const levelSpacing = physicalScale / strength;
+    const vectorPixels = physicalScale * vectorLength;
+    const vectorEndX = originX + vectorPixels * Math.cos(drawnAngle);
+    const vectorEndY = originY + vectorPixels * Math.sin(drawnAngle);
+    const plotBottom = height - 48;
+
+    context.save();
+    context.beginPath();
+    context.rect(0, 0, width, plotBottom);
+    context.clip();
+
+    const furthestLevel = Math.ceil(width / levelSpacing) + 1;
+    for (let level = -furthestLevel; level <= furthestLevel; level += 1) {
+      const x = originX + level * levelSpacing;
+      if (x < 10 || x > width - 10) continue;
+      context.beginPath();
+      context.moveTo(x, 18);
+      context.lineTo(x, plotBottom - 10);
+      context.strokeStyle = level === 0 ? "rgba(89, 227, 239, .78)" : "rgba(179, 160, 203, .28)";
+      context.lineWidth = level === 0 ? 2 : 1;
+      context.stroke();
+      if (Math.abs(level) <= 3) {
+        context.fillStyle = level === 0 ? "#59e3ef" : "#9d8db1";
+        context.font = "700 10px SFMono-Regular, Consolas, monospace";
+        context.textAlign = "center";
+        context.fillText(`η=${level}`, x, 15);
+      }
+    }
+
+    context.beginPath();
+    context.arc(originX, originY, 38, 0, drawnAngle, drawnAngle < 0);
+    context.strokeStyle = "rgba(255, 216, 109, .78)";
+    context.lineWidth = 2;
+    context.stroke();
+    const angleLabelDirection = drawnAngle / 2;
+    context.fillStyle = "#ffd86d";
+    context.font = "700 10px SFMono-Regular, Consolas, monospace";
+    context.textAlign = "center";
+    context.fillText(
+      `${angleDegrees}°`,
+      originX + 52 * Math.cos(angleLabelDirection),
+      originY + 52 * Math.sin(angleLabelDirection),
+    );
+
+    const sharpPixels = physicalScale * Math.min(strength, 1.75);
+    arrow(originX, originY, originX + sharpPixels, originY, "#59e3ef", 3);
+    context.fillStyle = "#59e3ef";
+    context.font = "700 12px SFMono-Regular, Consolas, monospace";
+    context.textAlign = "left";
+    context.fillText("η♯", originX + sharpPixels + 8, originY + 4);
+
+    arrow(originX, originY, vectorEndX, vectorEndY, "#ff7a3d", 5);
+    context.fillStyle = "#ffb084";
+    context.font = "700 12px SFMono-Regular, Consolas, monospace";
+    context.textAlign = vectorEndX >= originX ? "left" : "right";
+    context.fillText("v", vectorEndX + (vectorEndX >= originX ? 9 : -9), vectorEndY - 7);
+
+    const projectedPixels = vectorEndX - originX;
+    if (Math.abs(projectedPixels) > 1e-6) {
+      for (let level = -furthestLevel; level <= furthestLevel; level += 1) {
+        if (level === 0) continue;
+        const lineX = originX + level * levelSpacing;
+        const t = (lineX - originX) / projectedPixels;
+        if (t <= 0 || t >= 1) continue;
+        const lineY = originY + t * (vectorEndY - originY);
+        context.beginPath();
+        context.arc(lineX, lineY, 5, 0, TAU);
+        context.fillStyle = "#ffd86d";
+        context.fill();
+        context.strokeStyle = "#21163e";
+        context.lineWidth = 2;
+        context.stroke();
+      }
+    }
+
+    context.beginPath();
+    context.arc(originX, originY, 6, 0, TAU);
+    context.fillStyle = "#fffdf7";
+    context.fill();
+    context.strokeStyle = "#24164c";
+    context.lineWidth = 2;
+    context.stroke();
+    context.fillStyle = "#d7cbe2";
+    context.font = "700 10px SFMono-Regular, Consolas, monospace";
+    context.textAlign = "right";
+    context.fillText("p", originX - 10, originY + 4);
+    context.restore();
+
+    angleOutput.value = `${angleDegrees}°`;
+    lengthOutput.value = vectorLength.toFixed(2);
+    strengthOutput.value = strength.toFixed(2);
+    renderLatex(
+      equation,
+      String.raw`\eta(v)=${strength.toFixed(2)}\cdot${vectorLength.toFixed(2)}\cos(${angleDegrees}^{\circ})=${pairing.toFixed(3)}`,
+      true,
+    );
+    valueOutput.textContent = `η(v) = ${pairing.toFixed(3)} level spacings`;
+    copy.textContent = Math.abs(pairing) < 0.015
+      ? "The vector follows a covector level line, so it produces no signed crossing."
+      : pairing > 0
+        ? `The endpoint moves ${pairing.toFixed(3)} level spacings in the positive covector direction.`
+        : `The endpoint moves ${Math.abs(pairing).toFixed(3)} level spacings in the negative covector direction.`;
+    canvas.setAttribute(
+      "aria-label",
+      `A tangent vector at ${angleDegrees} degrees has covector pairing ${pairing.toFixed(3)}.`,
+    );
+  }
+
+  for (const input of [angleInput, lengthInput, strengthInput]) {
+    input.addEventListener("input", draw);
+  }
+  new ResizeObserver(draw).observe(canvas);
+  draw();
+}
+
 function magnitude(vector: Vec3): number {
   return Math.hypot(vector.x, vector.y, vector.z);
 }
@@ -595,6 +781,7 @@ function animate(): void {
 
 new ResizeObserver(resizeRenderer).observe(viewer);
 renderStaticLatex();
+initializeDualPairingLab();
 updateControlOutputs();
 rebuildSurface();
 activateStep("labels");

@@ -94,6 +94,39 @@
         </aside>
       </section>
 
+      <section class="cs-pairing" aria-labelledby="cs-pairing-title">
+        <header>
+          <div><p class="cs-eyebrow">Chapter 1 picture · dual pairing</p><h2 id="cs-pairing-title">Make the covector visible.</h2></div>
+          <p>For this planar microscope, fix <span class="cs-math-inline" data-latex="\eta=s\,dx">eta equals s d x</span>. Its level lines are vertical. Rotate the orange tangent vector and watch the pairing count signed crossings. The cyan arrow is <span class="cs-math-inline" data-latex="\eta^\sharp">eta sharp</span>, which can be drawn only after choosing the Euclidean metric.</p>
+        </header>
+
+        <div class="cs-pairing-grid">
+          <div class="cs-pairing-visual">
+            <canvas id="cs-pairing-canvas" role="img" aria-label="A tangent vector crossing the parallel level lines that represent a covector"></canvas>
+            <div class="cs-pairing-legend"><span><i></i>covector level lines</span><span><i></i>metric-dual η♯</span><span><i></i>test vector v</span></div>
+          </div>
+
+          <div class="cs-pairing-controls">
+            <section class="cs-pairing-reading" aria-live="polite">
+              <span>THE NUMBER RETURNED BY THE COVECTOR</span>
+              <div id="cs-pairing-equation" class="cs-math-display" data-latex="\eta(v)=1.2\cdot1.0\cos 55^\circ">eta of v</div>
+              <strong id="cs-pairing-value">η(v) = 0.688</strong>
+              <p id="cs-pairing-copy">The vector crosses the level lines in the positive direction.</p>
+            </section>
+
+            <label><span><strong>Angle of the tangent vector v</strong><small>90° follows a level line; 180° reverses direction</small></span><output id="cs-vector-angle-output">55°</output><input id="cs-vector-angle" type="range" min="-180" max="180" step="1" value="55" /></label>
+            <label><span><strong>Length of v</strong><small>a longer displacement can cross more level lines</small></span><output id="cs-vector-length-output">1.00</output><input id="cs-vector-length" type="range" min="0.25" max="1.6" step="0.05" value="1" /></label>
+            <label><span><strong>Covector strength s</strong><small>larger s packs the level lines more densely</small></span><output id="cs-covector-strength-output">1.20</output><input id="cs-covector-strength" type="range" min="0.35" max="2.2" step="0.05" value="1.2" /></label>
+          </div>
+        </div>
+
+        <div class="cs-pairing-bridge">
+          <article><span>WITHOUT A METRIC</span><strong>The pairing already exists.</strong><p><span class="cs-math-inline" data-latex="\eta_p(v)">eta at p acting on v</span> only needs a vector and a covector at the same point.</p></article>
+          <article><span>WITH A METRIC</span><strong>We may draw η as an arrow.</strong><p>The metric defines <span class="cs-math-inline" data-latex="\eta^\sharp">eta sharp</span>, so in this Euclidean picture <span class="cs-math-inline" data-latex="\eta(v)=g(\eta^\sharp,v)">eta of v is the metric pairing</span>.</p></article>
+          <article><span>ALONG A FLUID PATH</span><strong>Add the local readings.</strong><p>Set <span class="cs-math-inline" data-latex="v=\dot\gamma(t)">v equal to gamma dot</span> and integrate: <span class="cs-math-inline" data-latex="\int_\gamma u^\flat">integral of u flat along gamma</span> is circulation.</p></article>
+        </div>
+      </section>
+
       <section class="cs-foundations">
         <header>
           <div><p class="cs-eyebrow">Notes-guided path · Chapters 1, 2, and 5</p><h2>From arrows to circulation.</h2></div>
