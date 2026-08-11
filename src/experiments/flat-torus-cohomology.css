@@ -23,6 +23,8 @@ button { cursor: pointer; }
 .ft-eyebrow { margin: 0; color: var(--indigo); font: 800 8px var(--mono); letter-spacing: .11em; text-transform: uppercase; }
 .ft-math-inline { display: inline-block; color: var(--indigo); vertical-align: -.08em; }
 .ft-math-display .katex-display { margin: 0; overflow-x: auto; overflow-y: hidden; }
+.ft-math-display .katex { font-size: clamp(14px, 1vw, 18px); }
+.ft-math-inline .katex { font-size: 1.1em; }
 
 .ft-header {
   position: sticky;
@@ -109,6 +111,8 @@ button { cursor: pointer; }
 .ft-view-controls > span { margin-right: 4px; color: var(--cyan); font: 800 7px var(--mono); letter-spacing: .08em; }
 .ft-view-controls button, .ft-actions button { min-height: 36px; padding: 7px 10px; color: #d4deea; border: 1px solid #51647a; border-radius: 3px; background: #12233a; font-size: 9px; font-weight: 800; }
 .ft-view-controls button.active { color: var(--night); border-color: var(--cyan); background: var(--cyan); }
+.ft-material-view { padding-top: 5px; }
+.ft-material-view button.active { border-color: var(--gold); background: linear-gradient(135deg, var(--gold), var(--cyan)); }
 .ft-actions { padding: 7px 0 10px; }
 .ft-actions button { min-width: 112px; }
 .ft-actions button.primary { color: var(--night); border-color: var(--gold); background: linear-gradient(135deg, var(--gold), var(--orange)); }

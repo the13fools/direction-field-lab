@@ -49,7 +49,7 @@ export interface ClebschPointSample {
 }
 
 export const DEFAULT_CLEBSCH_SHALLOW_WATER_PARAMETERS: ClebschShallowWaterParameters = {
-  resolution: 40,
+  resolution: 56,
   timeStep: 0.0015,
   gravity: 9.81,
   meanDepth: 1,
@@ -240,6 +240,26 @@ export class ClebschShallowWaterModel {
     for (let index = 0; index < values.length; index += 1) values[index] = values[index]! - mean;
   }
 
+  private deAlias(values: Float64Array, timeStep: number, diffusivity = 5e-4): Float64Array {
+    const n = this.parameters.resolution;
+    const amount = Math.min(0.08, 4 * diffusivity * timeStep * n * n);
+    if (amount <= 0) return values;
+    const result = new Float64Array(values.length);
+    for (let row = 0; row < n; row += 1) {
+      for (let column = 0; column < n; column += 1) {
+        const center = this.index(column, row);
+        const neighborMean = 0.25 * (
+          values[this.index(column - 1, row)]!
+          + values[this.index(column + 1, row)]!
+          + values[this.index(column, row - 1)]!
+          + values[this.index(column, row + 1)]!
+        );
+        result[center] = (1 - amount) * values[center]! + amount * neighborMean;
+      }
+    }
+    return result;
+  }
+
   private advanceHeight(velocity: readonly Vec2[], timeStep: number): Float64Array {
     const n = this.parameters.resolution;
     const gravity = this.parameters.gravity;
@@ -311,12 +331,13 @@ export class ClebschShallowWaterModel {
         );
       }
     }
-    this.removeMean(nextPhi);
+    const filteredPhi = this.deAlias(nextPhi, timeStep);
+    this.removeMean(filteredPhi);
     this.state.height = nextHeight;
-    this.state.phi = nextPhi;
-    this.state.alpha = nextAlpha;
-    this.state.beta = nextBeta;
-    this.state.tracer = nextTracer;
+    this.state.phi = filteredPhi;
+    this.state.alpha = this.deAlias(nextAlpha, timeStep);
+    this.state.beta = this.deAlias(nextBeta, timeStep);
+    this.state.tracer = this.deAlias(nextTracer, timeStep);
     this.state.time += timeStep;
   }
 

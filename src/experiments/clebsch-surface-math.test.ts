@@ -2,13 +2,14 @@ import katex from "katex";
 import { describe, expect, it } from "vitest";
 import actionPageSource from "../../clebsch-surfaces-action.html?raw";
 import introPageSource from "../../clebsch-surfaces.html?raw";
+import referencePageSource from "../../clebsch-surfaces-reference.html?raw";
 import shallowWaterPageSource from "../../clebsch-shallow-water.html?raw";
 import flatTorusPageSource from "../../flat-torus-cohomology.html?raw";
 import randomFluidPageSource from "../../random-fluids.html?raw";
 
 describe("Clebsch surface lesson math", () => {
   it("renders every static LaTeX expression on both tutorial pages", () => {
-    const formulas = [introPageSource, actionPageSource]
+    const formulas = [introPageSource, actionPageSource, referencePageSource]
       .flatMap((source) => [...source.matchAll(/data-latex="([^"]*)"/g)])
       .map((match) => match[1]!);
 
@@ -39,6 +40,10 @@ describe("Clebsch surface lesson math", () => {
   it("links the gentle introduction to the action tutorial and back", () => {
     expect(introPageSource).toContain('href="./clebsch-surfaces-action.html"');
     expect(actionPageSource).toContain('href="./clebsch-surfaces.html"');
+    expect(actionPageSource).toContain('href="./clebsch-surfaces-reference.html"');
+    expect(referencePageSource).toContain('href="./clebsch-surfaces-action.html"');
+    expect(actionPageSource).toContain('<template id="cs-reference-content-moved">');
+    expect(referencePageSource).toContain('id="cs-reference-dec"');
   });
 
   it("explains how a target field determines the roles of alpha, beta, and phi", () => {

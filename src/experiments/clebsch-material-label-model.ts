@@ -51,7 +51,7 @@ export class ClebschMaterialLabelModel {
   readonly initialPatchArea: number;
   time = 0;
 
-  constructor(amplitude = 0.8, lineCount = 9, samplesPerLine = 72) {
+  constructor(amplitude = 0.8, lineCount = 9, samplesPerLine = 240) {
     if (!(Number.isFinite(amplitude) && amplitude > 0)) throw new Error("amplitude must be positive and finite");
     if (!Number.isInteger(lineCount) || lineCount < 3) throw new Error("lineCount must be an integer of at least three");
     if (!Number.isInteger(samplesPerLine) || samplesPerLine < 16) throw new Error("samplesPerLine must be an integer of at least sixteen");
@@ -122,15 +122,21 @@ export class ClebschMaterialLabelModel {
   }
 
   private advancePoint(point: ClebschMaterialPoint, timeStep: number): void {
-    const first = this.velocity(point.x, point.y);
-    const midpointX = wrap(point.x + 0.5 * timeStep * first.x);
-    const midpointY = wrap(point.y + 0.5 * timeStep * first.y);
-    const midpointVelocity = this.velocity(midpointX, midpointY);
-    point.unwrappedX += timeStep * midpointVelocity.x;
-    point.unwrappedY += timeStep * midpointVelocity.y;
+    const x = point.unwrappedX;
+    const y = point.unwrappedY;
+    const k1 = this.velocity(x, y);
+    const k2 = this.velocity(x + 0.5 * timeStep * k1.x, y + 0.5 * timeStep * k1.y);
+    const k3 = this.velocity(x + 0.5 * timeStep * k2.x, y + 0.5 * timeStep * k2.y);
+    const k4 = this.velocity(x + timeStep * k3.x, y + timeStep * k3.y);
+    point.unwrappedX += timeStep * (k1.x + 2 * k2.x + 2 * k3.x + k4.x) / 6;
+    point.unwrappedY += timeStep * (k1.y + 2 * k2.y + 2 * k3.y + k4.y) / 6;
     point.x = wrap(point.unwrappedX);
     point.y = wrap(point.unwrappedY);
-    point.phi += timeStep * this.bernoulliPhiRate(midpointX, midpointY);
+    const r1 = this.bernoulliPhiRate(x, y);
+    const r2 = this.bernoulliPhiRate(x + 0.5 * timeStep * k1.x, y + 0.5 * timeStep * k1.y);
+    const r3 = this.bernoulliPhiRate(x + 0.5 * timeStep * k2.x, y + 0.5 * timeStep * k2.y);
+    const r4 = this.bernoulliPhiRate(x + timeStep * k3.x, y + timeStep * k3.y);
+    point.phi += timeStep * (r1 + 2 * r2 + 2 * r3 + r4) / 6;
   }
 
   step(timeStep: number): void {

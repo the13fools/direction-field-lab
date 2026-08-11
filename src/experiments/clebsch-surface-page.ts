@@ -303,7 +303,10 @@ function initializeMaterialLabelLab(): void {
       const crossedSeam = previous
         ? Math.abs(point.x - previous.x) > Math.PI || Math.abs(point.y - previous.y) > Math.PI
         : true;
-      if (crossedSeam) context.moveTo(drawX, drawY);
+      const unresolvedStretch = previous
+        ? side * Math.hypot(point.x - previous.x, point.y - previous.y) / TAU > 0.085 * side
+        : false;
+      if (crossedSeam || unresolvedStretch) context.moveTo(drawX, drawY);
       else context.lineTo(drawX, drawY);
     }
     context.strokeStyle = color;

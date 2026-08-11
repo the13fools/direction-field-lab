@@ -60,4 +60,12 @@ describe("Clebsch shallow-water model", () => {
       expect(Object.values(model.diagnostics()).every(Number.isFinite)).toBe(true);
     }
   });
+
+  it("de-aliases transported labels before grid-scale folds dominate the display", () => {
+    const model = new ClebschShallowWaterModel({ resolution: 40 });
+    model.step(1000);
+    const diagnostics = model.diagnostics();
+    expect(diagnostics.clebschIdentityRms / diagnostics.vorticityRms).toBeLessThan(0.3);
+    expect(Math.min(...model.state.height)).toBeGreaterThan(0);
+  });
 });

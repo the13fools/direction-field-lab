@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#130c2b" />
+    <meta name="description" content="A compact exterior-calculus and DEC reference for the Clebsch variables on surfaces tutorial." />
+    <title>Clebsch exterior-calculus reference · Direction Field Lab</title>
+  </head>
+  <body>
+    <header class="cs-header">
+      <a href="./clebsch-surfaces-action.html">← Part II · In action</a>
+      <div><span>CLEBSCH · TUTORIAL 03 OF 03</span><strong>Forms, DEC, and solver checklist</strong></div>
+      <nav><a href="./flat-torus-cohomology.html">Torus lab</a><a href="./clebsch-shallow-water.html">Clebsch water</a></nav>
+    </header>
+
+    <main>
+      <section class="cs-intro">
+        <div><p class="cs-eyebrow">A reference page, not another experiment</p><h1>Keep the types<br /><em>in view.</em></h1></div>
+        <div class="cs-intro-copy">
+          <p>The live page is now reserved for choosing fields and watching material labels. This page holds the exterior-calculus bookkeeping you need when implementing the same ideas on a mesh.</p>
+          <div class="cs-math-display" data-latex="(\phi,\alpha,\beta)\in\Omega^0(S)^3\longrightarrow \eta=d\phi+\alpha d\beta\in\Omega^1(S)\longrightarrow\omega=d\eta\in\Omega^2(S)">scalars to velocity one-form to vorticity two-form</div>
+          <p>Read straight through once; return later as a solver checklist.</p>
+        </div>
+      </section>
+
+      <section class="cs-foundations" id="cs-reference-derivation">
+        <header>
+          <div><p class="cs-eyebrow">Exterior calculus in six moves</p><h2>What each object does.</h2></div>
+          <p>The organizing principle is integration: zero-forms are sampled at points, one-forms are integrated along curves, and two-forms are integrated over oriented patches.</p>
+        </header>
+
+        <article class="cs-foundation-step">
+          <div class="cs-foundation-number">0</div>
+          <div><span>VECTOR ↔ COVECTOR</span><h3>Motion and measurement are different jobs.</h3><p>A tangent vector is a possible displacement. A covector consumes that displacement and returns a signed number. The metric relates the two, but does not make their roles identical.</p></div>
+          <div class="cs-foundation-equation"><span>THE METRIC DUAL</span><div class="cs-math-display" data-latex="\eta=u^\flat,\qquad u=\eta^{\sharp_g},\qquad \eta(v)=g(u,v)">lower, raise, and pair</div><small>Advection uses u. Circulation integrates η.</small></div>
+        </article>
+
+        <article class="cs-foundation-step">
+          <div class="cs-foundation-number">1</div>
+          <div><span>LOOPS AND PATCHES</span><h3>Circulation is not vorticity.</h3><p>Circulation belongs to one selected loop. Vorticity is a local areal density. Stokes relates them only when the loop is the boundary of a patch.</p></div>
+          <div class="cs-foundation-equation accent"><span>STOKES</span><div class="cs-math-display" data-latex="\Gamma(C)=\oint_C\eta,\qquad \omega=d\eta,\qquad \oint_{\partial A}\eta=\int_A\omega">loop integral, exterior derivative, patch integral</div><small>A noncontractible torus loop is not ∂A and therefore carries additional period data.</small></div>
+        </article>
+
+        <article class="cs-foundation-step">
+          <div class="cs-foundation-number">2</div>
+          <div><span>CLEBSCH ASSEMBLY</span><h3>Three scalar fields encode one one-form.</h3><p>The term dφ is exact and curl-free. The weighted label differential αdβ supplies the part whose derivative is the wedge of two label gradients.</p></div>
+          <div class="cs-foundation-equation"><span>THE IDENTITY</span><div class="cs-math-display" data-latex="\eta_C=d\phi+\alpha d\beta,\qquad d\eta_C=d\alpha\wedge d\beta">Clebsch candidate and its vorticity</div><small>The identity d² = 0 removes d(dφ) and d(dβ).</small></div>
+        </article>
+
+        <article class="cs-foundation-step">
+          <div class="cs-foundation-number">3</div>
+          <div><span>INCOMPRESSIBLE PROJECTION</span><h3>Subtract only the exact source–sink component.</h3><p>Solve one scalar Poisson equation and subtract dp. This changes divergence but cannot change vorticity or a closed-loop period.</p></div>
+          <div class="cs-foundation-equation accent"><span>THE PRESERVATION AUDIT</span><div class="cs-math-display" data-latex="\delta dp=\delta\eta_C,\qquad \eta_\perp=\eta_C-dp,\qquad d\eta_\perp=d\eta_C,\qquad \oint_C\eta_\perp=\oint_C\eta_C">project and preserve</div><small>This is the incompressible kinematic projection, not a shallow-water time step.</small></div>
+        </article>
+
+        <article class="cs-foundation-step">
+          <div class="cs-foundation-number">4</div>
+          <div><span>TOPOLOGY</span><h3>Vorticity reconstruction leaves harmonic state.</h3><p>On a closed genus-g surface, 2g noncontractible periods remain after local vorticity and divergence are fixed.</p></div>
+          <div class="cs-foundation-equation"><span>HODGE DECOMPOSITION</span><div class="cs-math-display" data-latex="\eta=d\chi+\star_g d\psi+\sum_{i=1}^{2g}c_i h_i,\qquad \dim\mathcal H^1(S)=2g">exact, coexact, and harmonic pieces</div><small>For a torus, store or evolve two coefficients.</small></div>
+        </article>
+
+        <article class="cs-foundation-step">
+          <div class="cs-foundation-number">5</div>
+          <div><span>CLEBSCH GAUGE</span><h3>The potentials are not unique physical observables.</h3><p>Different triples can encode the same one-form. This representational freedom is distinct from changing a harmonic period, which changes the fluid.</p></div>
+          <div class="cs-foundation-equation"><span>ONE GAUGE FAMILY</span><div class="cs-math-display" data-latex="\phi'=\phi-F(\beta),\qquad \alpha'=\alpha+F'(\beta),\qquad d\phi'+\alpha'd\beta=d\phi+\alpha d\beta">same one-form, different potentials</div><small>Gauge changes leave η fixed; harmonic subtraction does not.</small></div>
+        </article>
+      </section>
+
+      <section class="cs-dec" id="cs-reference-dec">
+        <header><div><p class="cs-eyebrow">Smooth object first · cochain second</p><h2>What a triangle mesh stores.</h2></div><p>DEC stores integrals of smooth forms on oriented mesh elements. The arrows shown in a viewer are reconstructed visualizations, not the primary discrete one-form.</p></header>
+        <div class="cs-diagram-grid">
+          <article><span>01 · VERTICES</span><h3>Sample the scalar labels</h3><div class="cs-math-display" data-latex="\alpha_i=\alpha(v_i),\qquad \beta_i=\beta(v_i),\qquad \phi_i=\phi(v_i)">discrete zero-cochains</div><p>Each vertex stores one number for each scalar field.</p></article>
+          <article><span>02 · EDGES</span><h3>Differentiate by oriented differences</h3><div class="cs-math-display" data-latex="\int_{e_{ij}}d\alpha=\alpha_j-\alpha_i">exact edge one-form</div><p>Reversing the edge orientation reverses the sign.</p></article>
+          <article><span>03 · FACES</span><h3>Store integrated vorticity</h3><div class="cs-math-display" data-latex="\int_f\omega=\oint_{\partial f}\eta">discrete Stokes theorem</div><p>The signed face value is the circulation around its oriented boundary.</p></article>
+          <article><span>04 · METRIC</span><h3>Introduce Hodge stars deliberately</h3><div class="cs-math-display" data-latex="\star_k:\mathcal C^k\longrightarrow\mathcal C^{2-k}">primal-to-dual metric map</div><p>Incidence gives d; lengths, areas, and angles enter through the discrete Hodge stars.</p></article>
+          <article><span>05 · PROJECTION</span><h3>Solve the scalar Poisson system</h3><div class="cs-math-display" data-latex="\delta d p=\delta\eta_C,\qquad \eta_\perp=\eta_C-dp">discrete pressure correction</div><p>Audit divergence, face circulation, and harmonic periods separately.</p></article>
+        </div>
+      </section>
+
+      <section class="cs-tutorial">
+        <section class="cs-course-handoff">
+          <div><p class="cs-eyebrow">Return to an experiment</p><h2>Use the reference only when a type or operator becomes ambiguous.</h2><p>The flat-torus lab isolates the two harmonic coefficients. The shallow-water lab shows why divergence is part of the dynamics rather than something to erase.</p></div>
+          <a href="./flat-torus-cohomology.html"><span>NEXT EXPERIMENT</span><strong>Compare two harmonic periods with material grids →</strong></a>
+        </section>
+      </section>
+    </main>
+
+    <script type="module" src="/src/experiments/clebsch-surface-reference-page.ts"></script>
+  </body>
+</html>

@@ -48,6 +48,8 @@ function fitCanvas(target: HTMLCanvasElement): { context: CanvasRenderingContext
 }
 
 const canvas = byId<HTMLCanvasElement>("cw-canvas");
+const scalarRaster = document.createElement("canvas");
+const scalarRasterContext = context2d(scalarRaster);
 const playButton = byId<HTMLButtonElement>("cw-play");
 const controls = {
   resolution: byId<HTMLInputElement>("cw-resolution"),
@@ -141,18 +143,33 @@ function maximumMagnitude(values: ArrayLike<number>): number {
   return Math.max(1e-12, maximum);
 }
 
-function scalarColor(value: number, scale: number, layer: ScalarLayer): string {
+function scalarColor(value: number, scale: number, layer: ScalarLayer): [number, number, number] {
   if (layer === "tracer") {
     const amount = Math.max(0, Math.min(1, value / scale));
-    return `rgb(${Math.round(14 + 237 * amount)},${Math.round(42 + 151 * amount)},${Math.round(40 + 40 * amount)})`;
+    return [Math.round(14 + 237 * amount), Math.round(42 + 151 * amount), Math.round(40 + 40 * amount)];
   }
   const normalized = Math.max(-1, Math.min(1, value / scale));
   if (normalized >= 0) {
     const amount = Math.sqrt(normalized);
-    return `rgb(${Math.round(18 + 236 * amount)},${Math.round(48 + 93 * amount)},${Math.round(48 + 20 * amount)})`;
+    return [Math.round(18 + 236 * amount), Math.round(48 + 93 * amount), Math.round(48 + 20 * amount)];
   }
   const amount = Math.sqrt(-normalized);
-  return `rgb(${Math.round(12 + 29 * amount)},${Math.round(52 + 171 * amount)},${Math.round(49 + 177 * amount)})`;
+  return [Math.round(12 + 29 * amount), Math.round(52 + 171 * amount), Math.round(49 + 177 * amount)];
+}
+
+function samplePeriodicScalar(values: ArrayLike<number>, gridX: number, gridY: number, n: number): number {
+  const left = Math.floor(gridX);
+  const bottom = Math.floor(gridY);
+  const tx = gridX - left;
+  const ty = gridY - bottom;
+  const index = (column: number, row: number): number => (
+    ((row % n + n) % n) * n + ((column % n + n) % n)
+  );
+  const v00 = values[index(left, bottom)]!;
+  const v10 = values[index(left + 1, bottom)]!;
+  const v01 = values[index(left, bottom + 1)]!;
+  const v11 = values[index(left + 1, bottom + 1)]!;
+  return (1 - ty) * ((1 - tx) * v00 + tx * v10) + ty * ((1 - tx) * v01 + tx * v11);
 }
 
 function drawScalarCells(
@@ -165,16 +182,33 @@ function drawScalarCells(
   showGrid: boolean,
 ): void {
   const n = model.parameters.resolution;
-  const cell = side / n;
   const scale = maximumMagnitude(values);
-  for (let row = 0; row < n; row += 1) {
-    for (let column = 0; column < n; column += 1) {
-      const index = row * n + column;
-      context.fillStyle = scalarColor(values[index]!, scale, layer);
-      context.fillRect(left + column * cell, top + (n - 1 - row) * cell, cell + 0.6, cell + 0.6);
+  const rasterSize = Math.min(224, Math.max(112, 4 * n));
+  if (scalarRaster.width !== rasterSize || scalarRaster.height !== rasterSize) {
+    scalarRaster.width = rasterSize;
+    scalarRaster.height = rasterSize;
+  }
+  const image = scalarRasterContext.createImageData(rasterSize, rasterSize);
+  for (let row = 0; row < rasterSize; row += 1) {
+    for (let column = 0; column < rasterSize; column += 1) {
+      const gridX = n * (column + 0.5) / rasterSize - 0.5;
+      const gridY = n * (1 - (row + 0.5) / rasterSize) - 0.5;
+      const [red, green, blue] = scalarColor(samplePeriodicScalar(values, gridX, gridY, n), scale, layer);
+      const offset = 4 * (row * rasterSize + column);
+      image.data[offset] = red;
+      image.data[offset + 1] = green;
+      image.data[offset + 2] = blue;
+      image.data[offset + 3] = 255;
     }
   }
+  scalarRasterContext.putImageData(image, 0, 0);
+  context.save();
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+  context.drawImage(scalarRaster, left, top, side, side);
+  context.restore();
   if (!showGrid) return;
+  const cell = side / n;
   const coarse = Math.max(1, Math.round(n / 8));
   context.strokeStyle = "rgba(255,255,255,.14)";
   context.lineWidth = 1;
@@ -310,7 +344,7 @@ function drawField(): void {
   context.strokeRect(left, top, side, side);
   context.fillStyle = "rgba(255,255,255,.72)";
   context.font = "700 8px ui-monospace, monospace";
-  context.fillText("periodic plane · opposite edges identified", left + 7, top + 13);
+  context.fillText("bilinear view · faint lines show the periodic computational grid", left + 7, top + 13);
 }
 
 function drawAtlas(): void {

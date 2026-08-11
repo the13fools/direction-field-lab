@@ -14,6 +14,8 @@ button { cursor: pointer; }
 .cw-eyebrow { margin: 0 0 10px; color: var(--green); font: 800 8px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
 .cw-math-inline { display: inline-block; color: var(--green); vertical-align: -.08em; }
 .cw-math-display .katex-display { margin: 0; overflow-x: auto; overflow-y: hidden; }
+.cw-math-display .katex { font-size: clamp(14px, 1vw, 18px); }
+.cw-math-inline .katex { font-size: 1.1em; }
 .cw-hero { display: grid; grid-template-columns: minmax(430px,1.25fr) minmax(360px,.75fr); gap: clamp(42px,8vw,120px); align-items: center; min-height: 530px; padding: 70px max(24px, calc((100vw - 1280px) / 2)); }
 .cw-title h1 { max-width: 920px; margin: 0 0 25px; color: var(--ink); font-size: clamp(3.8rem,7.2vw,7.8rem); line-height: .82; letter-spacing: -.075em; }
 .cw-title h1 em { color: var(--orange); font-style: normal; }

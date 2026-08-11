@@ -63,4 +63,25 @@ describe("flat-torus harmonic lattice", () => {
     expect(diagnostics.rawMeanWinding.x).toBeGreaterThan(1);
     expect(diagnostics.reducedMeanWinding).toEqual({ x: 0, y: 0 });
   });
+
+  it("advects matched material grids under the raw and reduced reconstructions", () => {
+    const model = new FlatTorusCohomologyModel({
+      vortexStrength: 0,
+      periodX: 0.6,
+      periodY: 0,
+      quantum: 0.3,
+      subtractX: 2,
+      subtractY: 0,
+      particleCount: 4,
+    });
+    const point = model.materialLines[0]![0]!;
+    expect(point.raw).toEqual(point.reduced);
+    model.step(0.25);
+    expect(point.raw.x).not.toBeCloseTo(point.reduced.x, 12);
+    expect(model.materialLines.length).toBeGreaterThanOrEqual(12);
+    expect(model.materialLines.every((line) => line.every((pair) => (
+      pair.raw.x >= 0 && pair.raw.x < 1
+      && pair.reduced.x >= 0 && pair.reduced.x < 1
+    )))).toBe(true);
+  });
 });

@@ -37,4 +37,16 @@ describe("Clebsch material labels", () => {
     for (let step = 0; step < 250; step += 1) model.step(0.003);
     expect(model.diagnostics().patchAreaRatio).toBeCloseTo(1, 3);
   });
+
+  it("keeps the dense material grid finite through the long-time teaching view", () => {
+    expect(new ClebschMaterialLabelModel().alphaLines[0]!.length).toBeGreaterThanOrEqual(200);
+    const model = new ClebschMaterialLabelModel(0.8, 3, 20);
+    for (let step = 0; step < 600; step += 1) model.step(0.015);
+    for (const line of [...model.alphaLines, ...model.betaLines]) {
+      for (const point of line) {
+        expect(Number.isFinite(point.x) && Number.isFinite(point.y)).toBe(true);
+      }
+    }
+    expect(Math.abs(model.diagnostics().tracerVorticityError)).toBeLessThan(1e-6);
+  });
 });

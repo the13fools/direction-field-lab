@@ -93,7 +93,7 @@
         <aside class="cw-controls">
           <p class="cw-eyebrow">Initial state</p>
           <div class="cw-presets" aria-label="Clebsch field presets"><button class="active" data-cw-preset="crossing-labels">Crossing labels</button><button data-cw-preset="potential-pulse">Exact pulse</button><button data-cw-preset="vortical-patch">Vortical patch</button></div>
-          <label><span><strong>Resolution</strong><small>periodic cells per direction</small></span><output id="cw-resolution-output">40 × 40</output><input id="cw-resolution" type="range" min="24" max="64" step="8" value="40" /></label>
+          <label><span><strong>Resolution</strong><small>periodic cells per direction</small></span><output id="cw-resolution-output">56 × 56</output><input id="cw-resolution" type="range" min="24" max="64" step="8" value="56" /></label>
           <label><span><strong>Time step</strong><small>semi-Lagrangian material update</small></span><output id="cw-dt-output">0.0015</output><input id="cw-dt" type="range" min="0.0005" max="0.004" step="0.0005" value="0.0015" /></label>
           <label><span><strong>Gravity g</strong><small>height-pressure strength</small></span><output id="cw-gravity-output">9.81</output><input id="cw-gravity" type="range" min="1" max="16" step="0.01" value="9.81" /></label>
           <label><span><strong>Mean depth H</strong><small>reference water column</small></span><output id="cw-depth-output">1.00</output><input id="cw-depth" type="range" min="0.4" max="1.8" step="0.05" value="1" /></label>
@@ -133,7 +133,7 @@
         </div>
 
         <article class="cw-evolution-card">
-          <div><span>THE SHALLOW-WATER SYSTEM IN CLEBSCH VARIABLES</span><h3>The labels move; height compresses; φ pays the Bernoulli bill.</h3><p><span class="cw-math-inline" data-latex="D_t=\partial_t+u\cdot\nabla">D t is the material derivative</span>. The lab semi-Lagrangian-advects the labels and φ, advances h with conservative periodic face fluxes, and fixes the irrelevant spatial mean of φ.</p></div>
+          <div><span>THE SHALLOW-WATER SYSTEM IN CLEBSCH VARIABLES</span><h3>The labels move; height compresses; φ pays the Bernoulli bill.</h3><p><span class="cw-math-inline" data-latex="D_t=\partial_t+u\cdot\nabla">D t is the material derivative</span>. The lab semi-Lagrangian-advects the labels and φ, advances h with conservative periodic face fluxes, and fixes the irrelevant spatial mean of φ. A weak periodic de-aliasing diffusion <span class="cw-math-inline" data-latex="\kappa=5\times10^{-4}">kappa equals five times ten to the minus four</span> suppresses grid-scale folds once the transported labels become finer than the mesh; the vorticity audit makes the remaining representation error visible.</p></div>
           <ol>
             <li><span class="cw-math-display" data-latex="D_t\alpha=0,\qquad D_t\beta=0">alpha and beta are material invariants</span><p>The two labels are painted onto the water.</p></li>
             <li><span class="cw-math-display" data-latex="D_t\phi=\tfrac12|u|^2-g(h-H)">Bernoulli evolution of phi</span><p>Kinetic and pressure terms update the exact potential.</p></li>

@@ -57,7 +57,7 @@
             <li><span>01</span><div><strong>Start from vorticity</strong><p>The Taylor-Green cells determine the coexact velocity <span class="ft-math-inline" data-latex="d^+\omega">d plus omega</span>.</p></div></li>
             <li><span>02</span><div><strong>Add two missing numbers</strong><p>The periods <span class="ft-math-inline" data-latex="c_x,c_y">c x and c y</span> choose the constant harmonic flow around the two torus cycles.</p></div></li>
             <li><span>03</span><div><strong>Choose a lattice point</strong><p>Click <span class="ft-math-inline" data-latex="(m,n)\in\mathbb Z^2">an integer pair</span> to subtract the quantized field <span class="ft-math-inline" data-latex="q(m\,dx+n\,dy)">q times m dx plus n dy</span>.</p></div></li>
-            <li><span>04</span><div><strong>Compare identical particles</strong><p>Orange uses the raw periods. Cyan uses the residual periods. Both clouds see exactly the same vorticity.</p></div></li>
+            <li><span>04</span><div><strong>Compare identical material</strong><p>Orange uses the raw periods. Cyan uses the residual periods. Turn on their material grids to see the same local shearing plus different global translation.</p></div></li>
           </ol>
           <section class="ft-warning">
             <span>DO NOT CALL THIS A GAUGE TRANSFORMATION</span>
@@ -69,9 +69,9 @@
         <section class="ft-stage">
           <header>
             <div><span>PERIODIC FUNDAMENTAL DOMAIN</span><strong>opposite edges are identified</strong></div>
-            <div class="ft-legend"><i></i> raw cloud <i></i> after subtraction</div>
+            <div class="ft-legend"><i></i> raw material <i></i> after subtraction</div>
           </header>
-          <canvas id="ft-canvas" role="img" aria-label="Particles moving through a Taylor-Green vortex field on a periodic square"></canvas>
+          <canvas id="ft-canvas" role="img" aria-label="Matched material grids and particles moving through two Taylor-Green reconstructions on a periodic square"></canvas>
           <div class="ft-view-controls" role="group" aria-label="Vector field display">
             <span>ARROWS</span>
             <button data-ft-arrows="raw">raw field</button>
@@ -79,15 +79,22 @@
             <button data-ft-arrows="coexact">vorticity-only</button>
             <button data-ft-arrows="none">none</button>
           </div>
+          <div class="ft-view-controls ft-material-view" role="group" aria-label="Advected material-grid display">
+            <span>MATERIAL GRID</span>
+            <button class="active" data-ft-material="both" aria-pressed="true">both</button>
+            <button data-ft-material="raw" aria-pressed="false">raw only</button>
+            <button data-ft-material="reduced" aria-pressed="false">after subtraction</button>
+            <button data-ft-material="none" aria-pressed="false">off</button>
+          </div>
           <div class="ft-actions">
-            <button id="ft-reset">Reset identical clouds</button>
+            <button id="ft-reset">Reset identical material</button>
             <button id="ft-step">One step</button>
             <button id="ft-play" class="primary">Play</button>
           </div>
           <section class="ft-period-equation">
             <span>SELECTED RECONSTRUCTION</span>
             <div id="ft-live-equation" class="ft-math-display" data-latex="(c_x,c_y)-q(m,n)=(-0.15,-0.05)">residual periods</div>
-            <p id="ft-live-copy">The cyan cloud has a small residual southwest drift; the orange cloud retains the original northeast/southward global transport.</p>
+            <p id="ft-live-copy">The two material grids begin identically. Their local bending comes from the shared vorticity; their relative slide records the different harmonic periods.</p>
           </section>
           <div class="ft-metrics">
             <div><span>raw periods</span><strong id="ft-raw-period">—</strong></div>

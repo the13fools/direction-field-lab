@@ -21,7 +21,8 @@ button, input { font: inherit; }
 button { cursor: pointer; }
 .cs-math-inline { display: inline-block; color: var(--violet); vertical-align: -.08em; }
 .cs-math-display .katex-display { margin: 0; overflow-x: auto; overflow-y: hidden; }
-.katex { font-size: 1.04em; }
+.cs-math-display .katex { font-size: clamp(14px, 1vw, 18px); }
+.cs-math-inline .katex { font-size: 1.1em; }
 
 .cs-header {
   position: sticky;
@@ -429,6 +430,7 @@ button { cursor: pointer; }
 .cs-diagram-grid article > span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .08em; }
 .cs-diagram-grid h3 { min-height: 42px; margin: 9px 0 8px; color: var(--ink); font-size: 16px; line-height: 1.05; }
 .cs-diagram-grid article > p { margin: 10px 0 0; color: var(--muted); font-size: 8px; line-height: 1.55; }
+.cs-diagram-grid article > .cs-math-display { min-width: 0; margin-top: 14px; padding: 14px 8px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); }
 .cs-diagram-grid svg { display: block; width: 100%; height: auto; border: 1px solid #d7cbe2; border-radius: 4px; background: #1b1234; }
 .cs-diagram-grid svg > path:first-of-type { fill: rgba(114,73,167,.14); stroke: #8b75a3; stroke-width: 2; }
 .cs-diagram-grid svg circle { fill: var(--orange); stroke: #ffd9bd; stroke-width: 2; }
@@ -507,6 +509,8 @@ button { cursor: pointer; }
 .cs-course-handoff > a span { color: #62334c; font: 700 7px var(--mono); letter-spacing: .08em; }
 .cs-course-handoff > a strong { margin-top: 9px; font-size: 17px; line-height: 1.08; }
 .cs-course-handoff > a:hover, .cs-course-handoff > a:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
+.cs-reference-handoff { padding-block: 42px 64px; }
+.cs-reference-handoff .cs-course-handoff { margin-top: 0; }
 
 @media (max-width: 1180px) {
   .cs-lab { grid-template-columns: 225px minmax(480px, 1fr); }

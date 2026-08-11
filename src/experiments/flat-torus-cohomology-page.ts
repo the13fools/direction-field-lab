@@ -10,6 +10,7 @@ import {
 } from "./flat-torus-cohomology-model";
 
 type ArrowView = "raw" | "reduced" | "coexact" | "none";
+type MaterialView = "both" | "raw" | "reduced" | "none";
 type TrailPoint = { x: number; y: number };
 
 function byId<T extends HTMLElement>(id: string): T {
@@ -62,6 +63,7 @@ const outputs = {
 
 let model = new FlatTorusCohomologyModel();
 let arrowView: ArrowView = "reduced";
+let materialView: MaterialView = "both";
 let playing = false;
 let previousFrame = 0;
 let rawTrails: TrailPoint[][] = [];
@@ -120,8 +122,8 @@ function updateInterface(): void {
   const nearest = model.nearestQuantizedField();
   const isNearest = nearest.x === model.parameters.subtractX && nearest.y === model.parameters.subtractY;
   byId("ft-live-copy").textContent = residualMagnitude < 1e-10
-    ? "The selected lattice field removes all global drift. The cyan cloud follows only the local vortex cells."
-    : `${isNearest ? "This is the nearest lattice representative." : "This is not the nearest lattice representative."} The remaining harmonic speed is ${format(residualMagnitude, 3)}; local vorticity is unchanged.`;
+    ? "The selected lattice field removes all global drift. The cyan material grid deforms only inside the shared local vortex cells."
+    : `${isNearest ? "This is the nearest lattice representative." : "This is not the nearest lattice representative."} The remaining harmonic speed is ${format(residualMagnitude, 3)}. Both grids have the same local bending; their relative slide is harmonic transport.`;
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-ft-lattice]")) {
     const [x, y] = button.dataset.ftLattice!.split(",").map(Number);
     const active = x === model.parameters.subtractX && y === model.parameters.subtractY;
@@ -244,6 +246,52 @@ function drawTrails(trails: TrailPoint[][], color: string, left: number, top: nu
   }
 }
 
+function drawMaterialLine(
+  line: readonly FlatTorusParticlePair[],
+  key: "raw" | "reduced",
+  color: string,
+  left: number,
+  top: number,
+  side: number,
+): void {
+  context.beginPath();
+  for (let index = 0; index <= line.length; index += 1) {
+    const current = line[index % line.length]![key];
+    const previous = index > 0 ? line[(index - 1) % line.length]![key] : undefined;
+    const point = canvasPoint(current, left, top, side);
+    const crossedPeriodicSeam = previous
+      ? Math.abs(current.x - previous.x) > 0.5 || Math.abs(current.y - previous.y) > 0.5
+      : true;
+    const unresolvedStretch = previous
+      ? Math.hypot(current.x - previous.x, current.y - previous.y) > 0.085
+      : false;
+    if (crossedPeriodicSeam || unresolvedStretch) context.moveTo(point.x, point.y);
+    else context.lineTo(point.x, point.y);
+  }
+  context.strokeStyle = color;
+  context.lineWidth = 1.35;
+  context.lineJoin = "round";
+  context.lineCap = "round";
+  context.stroke();
+}
+
+function drawMaterialGrid(left: number, top: number, side: number): void {
+  if (materialView === "none") return;
+  context.save();
+  context.beginPath();
+  context.rect(left, top, side, side);
+  context.clip();
+  for (const line of model.materialLines) {
+    if (materialView === "both" || materialView === "raw") {
+      drawMaterialLine(line, "raw", "rgba(255,190,107,.7)", left, top, side);
+    }
+    if (materialView === "both" || materialView === "reduced") {
+      drawMaterialLine(line, "reduced", "rgba(105,239,242,.74)", left, top, side);
+    }
+  }
+  context.restore();
+}
+
 function drawParticles(particles: FlatTorusParticlePair[], left: number, top: number, side: number): void {
   context.fillStyle = "#ff9a58";
   for (const pair of particles) {
@@ -287,6 +335,7 @@ function draw(): void {
   context.fillRect(0, 0, width, height);
   drawBackground(left, top, side);
   drawArrows(left, top, side);
+  drawMaterialGrid(left, top, side);
   drawTrails(rawTrails, "rgba(255,154,88,.26)", left, top, side);
   drawTrails(reducedTrails, "rgba(105,239,242,.32)", left, top, side);
   drawParticles(model.particles, left, top, side);
@@ -334,6 +383,17 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-ft-arro
     arrowView = button.dataset.ftArrows as ArrowView;
     for (const peer of document.querySelectorAll<HTMLButtonElement>("[data-ft-arrows]")) {
       peer.classList.toggle("active", peer === button);
+    }
+  });
+}
+
+for (const button of document.querySelectorAll<HTMLButtonElement>("[data-ft-material]")) {
+  button.addEventListener("click", () => {
+    materialView = button.dataset.ftMaterial as MaterialView;
+    for (const peer of document.querySelectorAll<HTMLButtonElement>("[data-ft-material]")) {
+      const active = peer === button;
+      peer.classList.toggle("active", active);
+      peer.setAttribute("aria-pressed", String(active));
     }
   });
 }

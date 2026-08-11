@@ -10,8 +10,8 @@
   <body>
     <header class="cs-header">
       <a href="./clebsch-surfaces.html">← Part I · The problem</a>
-      <div><span>CLEBSCH · TUTORIAL 02 OF 02</span><strong>Fields, charts, and topology</strong></div>
-      <nav><a href="./flat-torus-cohomology.html">Torus cohomology</a><a href="./random-fluids.html">Random flows</a><a href="./clebsch-shallow-water.html">Clebsch water</a></nav>
+      <div><span>CLEBSCH · TUTORIAL 02 OF 03</span><strong>Fields, charts, and topology</strong></div>
+      <nav><a href="./clebsch-surfaces-reference.html">Part III · Reference</a><a href="./flat-torus-cohomology.html">Torus cohomology</a><a href="./clebsch-shallow-water.html">Clebsch water</a></nav>
     </header>
 
     <main>
@@ -158,7 +158,7 @@
               <div><small>EXACT POTENTIAL</small><b id="cs-material-phi">φ —</b><em id="cs-material-phi-change">Δφ —</em></div>
               <div><small>INCOMPRESSIBILITY AUDIT</small><b id="cs-material-area">area ratio —</b><em id="cs-material-vorticity-error">Δω —</em></div>
             </div>
-            <p class="cs-material-caveat">The translucent quadrilateral is a small material patch; its area should remain one times its initial area. Its vorticity color describes local circulation density—not a torus period. This controlled steady-flow test isolates the Clebsch transport laws; it is not yet a free-running nonlinear solver.</p>
+            <p class="cs-material-caveat">The translucent quadrilateral is a small material patch; its area should remain one times its initial area. Its vorticity color describes local circulation density—not a torus period. This controlled steady-flow test isolates the Clebsch transport laws; it is not yet a free-running nonlinear solver. When stretching outruns the contour sampling, the renderer leaves a small gap instead of inventing a straight crossing.</p>
           </aside>
         </div>
       </section>
@@ -251,8 +251,8 @@
 
         <nav class="cs-roadmap-links" aria-label="Choose the next explanation">
           <a href="#cs-pairing-title"><span>01</span><b>Inspect a covector</b><small>See what a one-form measures.</small></a>
-          <a href="#cs-derivation"><span>02</span><b>Derive the construction</b><small>From scalar labels to vorticity.</small></a>
-          <a href="#cs-dec-diagrams"><span>03</span><b>Put it on a mesh</b><small>Vertices, edges, and faces.</small></a>
+          <a href="./clebsch-surfaces-reference.html#cs-reference-derivation"><span>02</span><b>Derive the construction</b><small>Open the compact exterior-calculus reference.</small></a>
+          <a href="./clebsch-surfaces-reference.html#cs-reference-dec"><span>03</span><b>Put it on a mesh</b><small>Vertices, edges, faces, and Hodge stars.</small></a>
           <a href="./clebsch-surfaces.html"><span>←</span><b>Return to Part I</b><small>Review the motivating problem.</small></a>
         </nav>
       </section>
@@ -290,6 +290,14 @@
         </div>
       </section>
 
+      <section class="cs-tutorial cs-reference-handoff">
+        <section class="cs-course-handoff">
+          <div><p class="cs-eyebrow">Optional Part III</p><h2>Move the implementation details off the experiment page.</h2><p>The vector/covector types, Stokes derivation, DEC storage map, gauge freedom, and solver checklist now live on a compact reference page.</p></div>
+          <a href="./clebsch-surfaces-reference.html"><span>OPEN THE REFERENCE</span><strong>Forms, DEC, and the solver checklist →</strong></a>
+        </section>
+      </section>
+
+      <template id="cs-reference-content-moved">
       <section class="cs-foundations" id="cs-derivation">
         <header>
           <div><p class="cs-eyebrow">Notes-guided path · Chapters 1, 2, and 5</p><h2>From arrows to circulation.</h2></div>
@@ -384,6 +392,7 @@
           <p class="cs-source-note">The velocity-versus-vorticity tradeoff and the circulation-preserving covector alternative are discussed in <a href="https://cseweb.ucsd.edu/~viscomp/projects/SIG22CovectorFluids/">Covector Fluids</a>. The differential-form conventions follow <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a>.</p>
         </section>
       </section>
+      </template>
     </main>
 
     <script type="module" src="/src/experiments/clebsch-surface-page.ts"></script>

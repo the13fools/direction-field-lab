@@ -98,6 +98,7 @@ function advanceParticle(
 export class FlatTorusCohomologyModel {
   parameters: FlatTorusCohomologyParameters;
   particles: FlatTorusParticlePair[] = [];
+  materialLines: FlatTorusParticlePair[][] = [];
   time = 0;
 
   constructor(parameters: Partial<FlatTorusCohomologyParameters> = {}) {
@@ -165,7 +166,31 @@ export class FlatTorusCohomologyModel {
       const particle = { x: random(), y: random(), windingX: 0, windingY: 0 };
       return { raw: copyParticle(particle), reduced: copyParticle(particle) };
     });
+    this.resetMaterialGrid();
     this.time = 0;
+  }
+
+  resetMaterialGrid(lineCount = 7, samplesPerLine = 144): void {
+    if (!Number.isInteger(lineCount) || lineCount < 2) throw new Error("lineCount must be an integer of at least two");
+    if (!Number.isInteger(samplesPerLine) || samplesPerLine < 16) {
+      throw new Error("samplesPerLine must be an integer of at least sixteen");
+    }
+    const makePair = (x: number, y: number): FlatTorusParticlePair => {
+      const particle = { x, y, windingX: 0, windingY: 0 };
+      return { raw: copyParticle(particle), reduced: copyParticle(particle) };
+    };
+    this.materialLines = [];
+    for (let line = 0; line < lineCount; line += 1) {
+      const coordinate = (line + 0.5) / lineCount;
+      this.materialLines.push(Array.from(
+        { length: samplesPerLine },
+        (_, sample) => makePair(coordinate, sample / samplesPerLine),
+      ));
+      this.materialLines.push(Array.from(
+        { length: samplesPerLine },
+        (_, sample) => makePair(sample / samplesPerLine, coordinate),
+      ));
+    }
   }
 
   step(timeStep: number): void {
@@ -173,6 +198,12 @@ export class FlatTorusCohomologyModel {
     for (const pair of this.particles) {
       advanceParticle(pair.raw, timeStep, (x, y) => this.sample(x, y).rawVelocity);
       advanceParticle(pair.reduced, timeStep, (x, y) => this.sample(x, y).reducedVelocity);
+    }
+    for (const line of this.materialLines) {
+      for (const pair of line) {
+        advanceParticle(pair.raw, timeStep, (x, y) => this.sample(x, y).rawVelocity);
+        advanceParticle(pair.reduced, timeStep, (x, y) => this.sample(x, y).reducedVelocity);
+      }
     }
     this.time += timeStep;
   }
