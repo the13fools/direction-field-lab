@@ -94,6 +94,47 @@
         </aside>
       </section>
 
+      <section class="cs-roadmap" aria-labelledby="cs-roadmap-title">
+        <header>
+          <p class="cs-eyebrow">Orient yourself before the details</p>
+          <h2 id="cs-roadmap-title">One fluid. Several ways to store it.</h2>
+          <p>The physical problem comes first: find an incompressible velocity that moves particles and carries the desired rotation. Velocity, vorticity, and Clebsch variables are competing descriptions of that state—not different kinds of fluid.</p>
+        </header>
+
+        <div class="cs-roadmap-task">
+          <strong>THE SOLVER MUST EVENTUALLY PRODUCE</strong>
+          <div class="cs-math-display" data-latex="\dot x=u(x),\qquad \operatorname{div}u=0">move particles with a divergence-free velocity</div>
+          <p>Whatever the solver stores internally, particle advection ultimately needs the vector <span class="cs-math-inline" data-latex="u">u</span>. The other representations reorganize information that helps construct or evolve it.</p>
+        </div>
+
+        <section class="cs-same-flow" aria-labelledby="cs-same-flow-title">
+          <header><span>A CONCRETE LOCAL EXAMPLE</span><h3 id="cs-same-flow-title">Solid rotation in a planar patch</h3><p>Every row below describes the same counterclockwise motion. Read downward as translations, not as a sequence of simulation steps.</p></header>
+          <ol>
+            <li><b>Velocity vector</b><div><div class="cs-math-display" data-latex="u=-y\,\partial_x+x\,\partial_y">solid-body rotation</div><p>This is the object that moves particles.</p></div></li>
+            <li><b>Velocity covector</b><div><div class="cs-math-display" data-latex="\eta=u^\flat=-y\,dx+x\,dy">lower the index with the Euclidean metric</div><p>This is the same velocity viewed as a circulation-measuring one-form.</p></div></li>
+            <li><b>Vorticity two-form</b><div><div class="cs-math-display" data-latex="\omega=d\eta=2\,dx\wedge dy">differentiate the velocity covector</div><p>This retains the local rotation but no longer tells a particle which way to move.</p></div></li>
+            <li><b>One Clebsch encoding</b><div><div class="cs-math-display" data-latex="\alpha=2x,\quad\beta=y,\quad\phi=-xy,\qquad d\phi+\alpha d\beta=\eta">three potentials encode the same velocity covector</div><p>The crossing of the α- and β-label grids gives <span class="cs-math-inline" data-latex="d\alpha\wedge d\beta=2\,dx\wedge dy">the same vorticity</span>. This encoding is not unique.</p></div></li>
+          </ol>
+        </section>
+
+        <section class="cs-exact-ambiguity" aria-labelledby="cs-exact-title">
+          <div><span>WHY PROJECTION APPEARS</span><h3 id="cs-exact-title">Vorticity cannot see an exact velocity component.</h3><p>Add the gradient of any scalar q to the velocity covector. The local arrows and divergence may change, but the vorticity does not, because <span class="cs-math-inline" data-latex="d^2q=0">d squared q is zero</span>.</p></div>
+          <div class="cs-exact-calculation">
+            <div class="cs-math-display" data-latex="\eta_C=\eta+dq">a different Clebsch candidate</div>
+            <div class="cs-math-display" data-latex="d\eta_C=d\eta">the same vorticity</div>
+            <div class="cs-math-display" data-latex="\eta_\perp=\eta_C-dp,\qquad \delta\eta_\perp=0">projection chooses the incompressible representative</div>
+          </div>
+          <aside><strong>The key distinction</strong><p>Vorticity determines the rotational part of velocity, but not the exact or harmonic parts. Clebsch supplies a candidate velocity; Hodge projection fixes its exact part. Starting from vorticity alone requires the same kind of global reconstruction before particles can move.</p></aside>
+        </section>
+
+        <nav class="cs-roadmap-links" aria-label="Choose the next explanation">
+          <a href="#cs-pairing-title"><span>01</span><b>Vectors versus covectors</b><small>Why use the velocity one-form?</small></a>
+          <a href="#cs-derivation"><span>02</span><b>Derive the formula</b><small>From scalar labels to vorticity.</small></a>
+          <a href="#cs-dec-diagrams"><span>03</span><b>Put it on a mesh</b><small>Vertices, edges, and faces.</small></a>
+          <a href="#cs-representations"><span>04</span><b>Choose a solver state</b><small>Velocity, vorticity, or Clebsch?</small></a>
+        </nav>
+      </section>
+
       <section class="cs-pairing" aria-labelledby="cs-pairing-title">
         <header>
           <div><p class="cs-eyebrow">Chapter 1 picture · dual pairing</p><h2 id="cs-pairing-title">Make the covector visible.</h2></div>
@@ -127,7 +168,7 @@
         </div>
       </section>
 
-      <section class="cs-foundations">
+      <section class="cs-foundations" id="cs-derivation">
         <header>
           <div><p class="cs-eyebrow">Notes-guided path · Chapters 1, 2, and 5</p><h2>From arrows to circulation.</h2></div>
           <p>The course notes build exterior calculus in this order: distinguish vectors from covectors; interpret forms by what they integrate over; introduce <span class="cs-math-inline" data-latex="d">d</span>, <span class="cs-math-inline" data-latex="\wedge">wedge</span>, and Stokes; add the metric and Hodge star; then treat fluid velocity as a one-form. The Clebsch formula is our worked example in that language.</p>
@@ -192,21 +233,9 @@
       </section>
 
       <section class="cs-tutorial">
-        <header class="cs-problem-header"><p class="cs-eyebrow">Start with the problem, not the representation</p><h2>What must a surface-fluid solver know?</h2><p>Particles need a velocity. Incompressibility forbids sources and sinks. Vortices should survive numerical transport. The three common state choices—velocity, vorticity, and Clebsch labels—package this same fluid information differently.</p></header>
+        <header class="cs-problem-header" id="cs-representations"><p class="cs-eyebrow">Now compare the implementation choices</p><h2>What does each representation buy?</h2><p>The worked rotation above showed that these encodings can describe the same fluid. Here is the practical reason a simulator might choose one over another.</p></header>
 
-        <section class="cs-problem" aria-labelledby="cs-problem-title">
-          <span>THE FLUID TASK</span>
-          <h3 id="cs-problem-title">Move particles without changing area or erasing rotation.</h3>
-          <div class="cs-problem-equations">
-            <article><b>Move particles</b><div class="cs-math-display" data-latex="\dot x=u(x)=\eta^{\sharp_g}(x)">particle velocity</div></article>
-            <article><b>Preserve area</b><div class="cs-math-display" data-latex="\delta\eta=0,\qquad \eta=u^\flat">incompressibility</div></article>
-            <article><b>Preserve vortices</b><div class="cs-math-display" data-latex="\omega=d\eta">vorticity two-form</div></article>
-          </div>
-          <p>The solver ultimately needs <span class="cs-math-inline" data-latex="u">u</span> to move particles. It may store <span class="cs-math-inline" data-latex="u">u</span>, its covector <span class="cs-math-inline" data-latex="\eta=u^\flat">eta</span>, the vorticity <span class="cs-math-inline" data-latex="\omega">omega</span>, or potentials from which these can be reconstructed.</p>
-        </section>
-
-        <section class="cs-state-choices" aria-labelledby="cs-state-title">
-          <header><p class="cs-eyebrow">Three representations of the state</p><h2 id="cs-state-title">What does each choice buy?</h2></header>
+        <section class="cs-state-choices" aria-label="Three representations of the fluid state">
 
           <article>
             <div class="cs-state-number">1</div>

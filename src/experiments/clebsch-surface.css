@@ -147,6 +147,44 @@ button { cursor: pointer; }
 .cs-probe b { margin-top: 4px; color: var(--gold); font: 8px var(--mono); }
 .cs-probe > p { margin: 11px 0 0; color: #c5b8d0; font-size: 8px; line-height: 1.5; }
 
+.cs-roadmap { padding: 76px max(24px, calc((100vw - 1180px) / 2)); border-bottom: 1px solid var(--line); background: #fffdf8; }
+.cs-roadmap > header { max-width: 940px; }
+.cs-roadmap > header h2 { margin: 10px 0 0; color: var(--ink); font-size: clamp(2.8rem, 5vw, 5.8rem); line-height: .9; letter-spacing: -.06em; }
+.cs-roadmap > header > p:last-child { max-width: 790px; margin: 23px 0 0; color: var(--muted); font-size: 12px; line-height: 1.75; }
+.cs-roadmap-task { margin-top: 32px; padding: 25px 28px; color: white; border-top: 6px solid var(--orange); border-radius: 6px; background: linear-gradient(145deg, #19102f, #31204e 60%, #135363); }
+.cs-roadmap-task > strong { color: var(--gold); font: 700 8px var(--mono); letter-spacing: .09em; }
+.cs-roadmap-task .cs-math-display { margin: 16px 0 12px; color: var(--cyan); font-size: 13px; }
+.cs-roadmap-task p { margin: 0; color: #d2c6dc; font-size: 10px; line-height: 1.7; }
+.cs-roadmap-task .cs-math-inline { color: var(--gold); }
+.cs-same-flow { margin-top: 52px; }
+.cs-same-flow > header { max-width: 840px; }
+.cs-same-flow > header > span, .cs-exact-ambiguity > div:first-child > span { color: var(--orange); font: 700 8px var(--mono); letter-spacing: .09em; }
+.cs-same-flow h3, .cs-exact-ambiguity h3 { margin: 9px 0; color: var(--ink); font-size: clamp(26px, 3.3vw, 43px); line-height: .98; letter-spacing: -.035em; }
+.cs-same-flow > header p, .cs-exact-ambiguity > div:first-child > p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.7; }
+.cs-same-flow ol { margin: 25px 0 0; padding: 0; border-top: 1px solid #cdbddd; list-style: none; counter-reset: same-flow; }
+.cs-same-flow li { counter-increment: same-flow; display: flex; gap: 28px; align-items: center; min-width: 0; padding: 18px 8px; border-bottom: 1px solid #cdbddd; }
+.cs-same-flow li::before { content: counter(same-flow); display: grid; flex: 0 0 38px; place-items: center; width: 38px; height: 38px; color: white; border-radius: 50%; background: var(--violet); font: 700 11px var(--mono); }
+.cs-same-flow li:nth-child(2)::before { color: var(--ink); background: var(--cyan); }
+.cs-same-flow li:nth-child(3)::before { color: var(--ink); background: var(--gold); }
+.cs-same-flow li:nth-child(4)::before { color: var(--ink); background: var(--orange); }
+.cs-same-flow li > b { flex: 0 0 180px; color: var(--ink); font-size: 15px; }
+.cs-same-flow li > div { display: flex; flex: 1 1 auto; gap: 22px; align-items: center; min-width: 0; }
+.cs-same-flow li .cs-math-display { flex: 1 1 53%; min-width: 0; padding: 14px 10px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 10px; }
+.cs-same-flow li p { flex: 1 1 47%; margin: 0; color: var(--muted); font-size: 9px; line-height: 1.62; }
+.cs-exact-ambiguity { margin-top: 52px; padding-top: 46px; border-top: 1px solid #cdbddd; }
+.cs-exact-ambiguity > div:first-child { max-width: 860px; }
+.cs-exact-calculation { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 22px; }
+.cs-exact-calculation .cs-math-display { flex: 1 1 280px; min-width: 0; padding: 16px 10px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 10px; }
+.cs-exact-ambiguity aside { display: flex; gap: 28px; align-items: center; margin-top: 8px; padding: 22px 26px; color: white; border-left: 7px solid var(--gold); border-radius: 5px; background: linear-gradient(135deg, #21143f, #35245a 55%, #135363); }
+.cs-exact-ambiguity aside strong { flex: 0 0 180px; color: var(--gold); font-size: 17px; }
+.cs-exact-ambiguity aside p { margin: 0; color: #d2c6dc; font-size: 10px; line-height: 1.7; }
+.cs-roadmap-links { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 48px; }
+.cs-roadmap-links a { display: grid; flex: 1 1 240px; grid-template-columns: 34px 1fr; gap: 3px 10px; min-width: 0; padding: 15px; color: var(--ink); border: 1px solid #cdbddd; border-radius: 5px; background: #f7f1ff; text-decoration: none; }
+.cs-roadmap-links span { grid-row: 1 / span 2; align-self: center; color: var(--orange); font: 700 11px var(--mono); }
+.cs-roadmap-links b { font-size: 11px; }
+.cs-roadmap-links small { color: var(--muted); font-size: 8px; }
+.cs-roadmap-links a:hover, .cs-roadmap-links a:focus-visible { border-color: var(--orange); outline: 0; background: white; }
+
 .cs-pairing { padding: 76px max(24px, calc((100vw - 1320px) / 2)); color: white; background: linear-gradient(145deg, #120a2a, #172541 58%, #351746); }
 .cs-pairing > header { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(390px, .95fr); gap: clamp(35px, 7vw, 90px); align-items: end; margin-bottom: 30px; }
 .cs-pairing .cs-eyebrow { color: var(--cyan); }
@@ -243,15 +281,7 @@ button { cursor: pointer; }
 .cs-tutorial { padding: 70px max(24px, calc((100vw - 1260px) / 2)) 90px; background: #f7f1ff; }
 .cs-problem-header { max-width: 1050px; }
 .cs-problem-header > p:last-child { max-width: 820px; margin: 22px 0 0; color: var(--muted); font-size: 12px; line-height: 1.75; }
-.cs-problem { margin-top: 34px; padding: 30px; color: white; border: 1px solid #594771; border-top: 7px solid var(--orange); border-radius: 7px; background: linear-gradient(145deg, #19102f, #31204e 58%, #135363); }
-.cs-problem > span, .cs-state-choices article > div:nth-child(2) > span, .cs-projection-steps span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .09em; }
-.cs-problem h3 { max-width: 850px; margin: 10px 0 23px; font-size: clamp(25px, 3.4vw, 44px); line-height: .98; letter-spacing: -.035em; }
-.cs-problem-equations { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
-.cs-problem-equations article { min-width: 0; padding: 17px; border: 1px solid rgba(255,255,255,.12); border-radius: 4px; background: rgba(8,6,27,.32); }
-.cs-problem-equations b { display: block; color: var(--gold); font-size: 10px; }
-.cs-problem-equations .cs-math-display { margin-top: 12px; color: var(--cyan); font-size: 11px; }
-.cs-problem > p { margin: 22px 0 0; color: #d0c5db; font-size: 10px; line-height: 1.7; }
-.cs-problem .cs-math-inline { color: var(--gold); }
+.cs-state-choices article > div:nth-child(2) > span, .cs-projection-steps span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .09em; }
 
 .cs-state-choices, .cs-projection-answer, .cs-decision, .cs-technical { margin-top: 72px; padding-top: 60px; border-top: 1px solid #cdbddd; }
 .cs-state-choices > header, .cs-projection-answer > header, .cs-decision > header, .cs-technical > header { margin-bottom: 28px; }
@@ -333,7 +363,10 @@ button { cursor: pointer; }
   .cs-foundation-equation { grid-column: 1 / -1; }
   .cs-foundation-summary { grid-template-columns: 1fr; }
   .cs-diagram-grid { grid-template-columns: repeat(2, 1fr); }
-  .cs-problem-equations { grid-template-columns: 1fr; }
+  .cs-same-flow li > b { flex-basis: 135px; }
+  .cs-same-flow li > div { flex-direction: column; align-items: stretch; gap: 8px; }
+  .cs-exact-ambiguity aside { flex-direction: column; align-items: flex-start; gap: 9px; }
+  .cs-exact-ambiguity aside strong { flex-basis: auto; }
   .cs-state-choices > article { grid-template-columns: 45px 1fr; }
   .cs-state-tradeoff { grid-column: 1 / -1; }
   .cs-projection-steps li { grid-template-columns: 1fr; padding-left: 72px; }
@@ -343,7 +376,7 @@ button { cursor: pointer; }
 
 @media (max-width: 530px) {
   .cs-header nav { gap: 8px; }
-  .cs-intro, .cs-pairing, .cs-foundations, .cs-dec, .cs-tutorial { padding-inline: 15px; }
+  .cs-intro, .cs-roadmap, .cs-pairing, .cs-foundations, .cs-dec, .cs-tutorial { padding-inline: 15px; }
   .cs-intro-copy { padding: 20px; }
   .cs-surfaces, .cs-steps, .cs-diagram-grid { grid-template-columns: 1fr; }
   .cs-stage { padding: 10px; }
@@ -352,7 +385,12 @@ button { cursor: pointer; }
   .cs-stage-actions { grid-template-columns: 1fr; }
   .cs-glyph-list { grid-template-columns: 1fr 1fr; }
   #cs-pairing-canvas { height: 330px; }
-  .cs-problem { padding: 22px 18px; }
+  .cs-roadmap-task { padding: 22px 18px; }
+  .cs-same-flow li { flex-wrap: wrap; gap: 12px; padding-inline: 0; }
+  .cs-same-flow li > b { flex: 1 1 calc(100% - 52px); }
+  .cs-same-flow li > div { flex-basis: 100%; margin-left: 50px; }
+  .cs-exact-calculation { display: grid; grid-template-columns: 1fr; }
+  .cs-exact-ambiguity aside { padding: 20px 18px; }
   .cs-state-choices > article { grid-template-columns: 40px 1fr; gap: 12px; padding: 8px; }
   .cs-state-number { min-height: 80px; }
   .cs-state-tradeoff { grid-column: 1 / -1; }
