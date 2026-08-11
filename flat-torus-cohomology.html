@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101d2d" />
+    <meta name="description" content="An interactive flat-torus lab for harmonic velocity fields, periods, integer cohomology lattices, and fluid reconstruction." />
+    <title>Flat torus harmonic lattice · Direction Field Lab</title>
+  </head>
+  <body>
+    <header class="ft-header">
+      <a href="./clebsch-surfaces-action.html">← Clebsch surfaces</a>
+      <div><span>FLUID COHOMOLOGY · FLAT TORUS</span><strong>Harmonic lattice lab</strong></div>
+      <nav><a href="./random-fluids.html">Random flows</a><a href="./clebsch-shallow-water.html">Clebsch water</a></nav>
+    </header>
+
+    <main>
+      <section class="ft-hero">
+        <div>
+          <p class="ft-eyebrow">Same local curl · different global transport</p>
+          <h1>What did<br />vorticity <em>forget?</em></h1>
+          <p>On a periodic square, two constant flows are both curl-free and divergence-free. Vorticity cannot distinguish them. Choose an integer harmonic field, subtract it, and watch how the local vortices stay fixed while the particles acquire a different global winding.</p>
+        </div>
+        <aside>
+          <span>VELOCITY RECONSTRUCTION ON THE FLAT TORUS</span>
+          <div class="ft-math-display" data-latex="\eta=d^+\omega+c_x\,dx+c_y\,dy">velocity equals coexact plus harmonic</div>
+          <div class="ft-math-display accent" data-latex="\eta_{m,n}=\eta-q(m\,dx+n\,dy),\qquad(m,n)\in\mathbb Z^2">subtract an integral harmonic lattice element</div>
+          <p>The coefficients in physical fluid cohomology are real-valued. The lattice <b>qℤ² is an extra experiment</b>: it lets us compare representatives, but subtraction changes physical cross-sectional flux.</p>
+        </aside>
+      </section>
+
+      <section class="ft-lab" aria-label="Interactive harmonic fields on a flat torus">
+        <aside class="ft-guide">
+          <p class="ft-eyebrow">Read the experiment</p>
+          <ol>
+            <li><span>01</span><div><strong>Start from vorticity</strong><p>The Taylor-Green cells determine the coexact velocity <span class="ft-math-inline" data-latex="d^+\omega">d plus omega</span>.</p></div></li>
+            <li><span>02</span><div><strong>Add two missing numbers</strong><p>The periods <span class="ft-math-inline" data-latex="c_x,c_y">c x and c y</span> are constant harmonic flows around the two torus cycles.</p></div></li>
+            <li><span>03</span><div><strong>Choose a lattice point</strong><p>Click <span class="ft-math-inline" data-latex="(m,n)\in\mathbb Z^2">an integer pair</span> to subtract the quantized field <span class="ft-math-inline" data-latex="q(m\,dx+n\,dy)">q times m dx plus n dy</span>.</p></div></li>
+            <li><span>04</span><div><strong>Compare identical particles</strong><p>Orange uses the raw periods. Cyan uses the residual periods. Both clouds see exactly the same vorticity.</p></div></li>
+          </ol>
+          <section class="ft-warning">
+            <span>DO NOT CALL THIS A GAUGE TRANSFORMATION</span>
+            <strong>Subtracting a harmonic field changes the fluid.</strong>
+            <p>It preserves curl and divergence, but changes flux through a cross-section and particle winding around the torus.</p>
+          </section>
+        </aside>
+
+        <section class="ft-stage">
+          <header>
+            <div><span>PERIODIC FUNDAMENTAL DOMAIN</span><strong>opposite edges are identified</strong></div>
+            <div class="ft-legend"><i></i> raw cloud <i></i> after subtraction</div>
+          </header>
+          <canvas id="ft-canvas" role="img" aria-label="Particles moving through a Taylor-Green vortex field on a periodic square"></canvas>
+          <div class="ft-view-controls" role="group" aria-label="Vector field display">
+            <span>ARROWS</span>
+            <button data-ft-arrows="raw">raw field</button>
+            <button class="active" data-ft-arrows="reduced">after subtraction</button>
+            <button data-ft-arrows="coexact">vorticity-only</button>
+            <button data-ft-arrows="none">none</button>
+          </div>
+          <div class="ft-actions">
+            <button id="ft-reset">Reset identical clouds</button>
+            <button id="ft-step">One step</button>
+            <button id="ft-play" class="primary">Play</button>
+          </div>
+          <section class="ft-period-equation">
+            <span>SELECTED RECONSTRUCTION</span>
+            <div id="ft-live-equation" class="ft-math-display" data-latex="(c_x,c_y)-q(m,n)=(-0.15,-0.05)">residual periods</div>
+            <p id="ft-live-copy">The cyan cloud has a small residual southwest drift; the orange cloud retains the original northeast/southward global transport.</p>
+          </section>
+          <div class="ft-metrics">
+            <div><span>raw periods</span><strong id="ft-raw-period">—</strong></div>
+            <div><span>removed field</span><strong id="ft-removed-period">—</strong></div>
+            <div><span>residual periods</span><strong id="ft-residual-period">—</strong></div>
+            <div><span>residual harmonic energy</span><strong id="ft-energy">—</strong></div>
+            <div><span>raw mean winding</span><strong id="ft-raw-winding">—</strong></div>
+            <div><span>cyan mean winding</span><strong id="ft-reduced-winding">—</strong></div>
+          </div>
+        </section>
+
+        <aside class="ft-controls">
+          <p class="ft-eyebrow">The real harmonic state</p>
+          <label><span><strong>Horizontal period cₓ</strong><small>mean flow through the vertical cross-section</small></span><output id="ft-period-x-output">0.85</output><input id="ft-period-x" type="range" min="-1.25" max="1.25" step="0.05" value="0.85" /></label>
+          <label><span><strong>Vertical period cᵧ</strong><small>mean flow through the horizontal cross-section</small></span><output id="ft-period-y-output">−0.55</output><input id="ft-period-y" type="range" min="-1.25" max="1.25" step="0.05" value="-0.55" /></label>
+          <label><span><strong>Vortex strength A</strong><small>changes local curl, not either period</small></span><output id="ft-vortex-output">0.72</output><input id="ft-vortex" type="range" min="0" max="1.2" step="0.02" value="0.72" /></label>
+          <label><span><strong>Circulation quantum q</strong><small>spacing of the imposed harmonic lattice</small></span><output id="ft-quantum-output">0.50</output><input id="ft-quantum" type="range" min="0.4" max="1" step="0.05" value="0.5" /></label>
+
+          <div class="ft-lattice-head">
+            <div><span>INTEGER HARMONIC FIELD</span><strong id="ft-lattice-selection">(m,n) = (2,−1)</strong></div>
+            <button id="ft-nearest">Nearest lattice point</button>
+          </div>
+          <div id="ft-lattice" class="ft-lattice" role="group" aria-label="Choose integer harmonic field coordinates"></div>
+          <button id="ft-zero" class="ft-zero">Subtract nothing · (0,0)</button>
+
+          <section class="ft-cycle-card">
+            <span>TWO GENERATORS OF H¹(T²)</span>
+            <div><i class="horizontal"></i><p><b>dx</b><small>unit horizontal period</small></p></div>
+            <div><i class="vertical"></i><p><b>dy</b><small>unit vertical period</small></p></div>
+            <p>A harmonic field on the flat torus is constant. The integer lattice consists of the fields whose two periods are integer multiples of q.</p>
+          </section>
+        </aside>
+      </section>
+
+      <section class="ft-theory">
+        <header>
+          <p class="ft-eyebrow">What the subtraction means</p>
+          <h2>Three operations that look similar—but are not.</h2>
+          <p>All three manipulate one-forms. Only one is a pressure projection, and only one changes the cohomology class.</p>
+        </header>
+        <div class="ft-operation-grid">
+          <article><span>01 · PRESSURE</span><h3>Remove an exact field</h3><div class="ft-math-display" data-latex="\eta\mapsto\eta-dp">eta minus d p</div><p>Enforces zero divergence. Closed-loop periods and vorticity are unchanged because an exact form integrates to zero around every closed loop.</p></article>
+          <article><span>02 · STREAMFUNCTION</span><h3>Recover the coexact field</h3><div class="ft-math-display" data-latex="\omega\mapsto d^+\omega">vorticity maps to curl pseudoinverse</div><p>Recovers the least-norm velocity seen by vorticity. On a torus it necessarily forgets the two harmonic periods.</p></article>
+          <article class="accent"><span>03 · THIS LAB</span><h3>Change the harmonic representative</h3><div class="ft-math-display" data-latex="(c_x,c_y)\mapsto(c_x-qm,c_y-qn)">subtract a lattice vector</div><p>Preserves divergence and vorticity, but changes cross-sectional flux. The nearest lattice point minimizes residual harmonic energy only among the imposed lattice choices.</p></article>
+        </div>
+        <aside class="ft-paper-bridge">
+          <div><span>FLUID COHOMOLOGY, YIN ET AL. 2023</span><h3>The physical coefficients are continuous—and they evolve.</h3><p>The paper reconstructs velocity as a vorticity-determined part plus real harmonic coefficients. Those coefficients encode cross-sectional flux and obey their own Euler dynamics. This lab freezes one instant and adds an integer lattice solely to make the reconstruction ambiguity explorable.</p></div>
+          <div class="ft-math-display" data-latex="\eta=d^+\omega+\sum_i c_i\zeta_i,\qquad \dot c_i=\int_M\lambda\wedge\xi_i">fluid cohomology reconstruction and dynamics</div>
+        </aside>
+        <p class="ft-source-note">Primary source: Hang Yin, Mohammad Sina Nabizadeh, Baichuan Wu, Stephanie Wang, and Albert Chern, <a href="https://yhesper.github.io/fc23/fc23.html">Fluid Cohomology</a>, ACM Transactions on Graphics 42(4), 2023. The integer lattice in this tutorial is an added mathematical experiment, not a claim made by the paper.</p>
+      </section>
+    </main>
+
+    <script type="module" src="/src/experiments/flat-torus-cohomology-page.ts"></script>
+  </body>
+</html>
