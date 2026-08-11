@@ -6,7 +6,10 @@ import {
   type FrogEigenbasis,
   type FrogTriangleMesh,
 } from "./frog-surface-fluid-model";
-import { ControlledClebschSurfaceModel } from "./clebsch-surface-model";
+import {
+  ControlledClebschSurfaceModel,
+  evaluateTaylorGreenClebsch,
+} from "./clebsch-surface-model";
 import type { Vec3 } from "./random-surface-fluid-model";
 
 function dot(a: Vec3, b: Vec3): number {
@@ -87,6 +90,50 @@ describe("controlled Clebsch fields on surfaces", () => {
         expect(dot(vector, sample.normal)).toBeCloseTo(0, 7);
       }
     }
+  });
+});
+
+const TAYLOR_GREEN_POINTS: ReadonlyArray<readonly [number, number]> = [
+  [0.31, 0.77],
+  [1.42, 2.13],
+  [4.81, 5.37],
+];
+
+describe("Taylor–Green periodic-plane test case", () => {
+  it("assembles the exact vortex from a globally periodic Clebsch triple", () => {
+    const amplitude = 0.83;
+    for (const [u, v] of TAYLOR_GREEN_POINTS) {
+      const fields = evaluateTaylorGreenClebsch(u, v, amplitude, 0);
+      const assembled = [
+        fields.dPhi[0] + fields.alpha * fields.dBeta[0],
+        fields.dPhi[1] + fields.alpha * fields.dBeta[1],
+      ];
+      expect(assembled[0]).toBeCloseTo(amplitude * Math.sin(u) * Math.cos(v), 12);
+      expect(assembled[1]).toBeCloseTo(-amplitude * Math.cos(u) * Math.sin(v), 12);
+      expect(fields.dAlpha[0] * fields.dBeta[1] - fields.dAlpha[1] * fields.dBeta[0])
+        .toBeCloseTo(fields.vorticityDensity, 12);
+    }
+  });
+
+  it("projects away exact contamination without changing Taylor–Green vorticity", () => {
+    const model = new ControlledClebschSurfaceModel({ labelStrength: 1, potentialStrength: 0 });
+    for (const [u, v] of TAYLOR_GREEN_POINTS) {
+      const clean = model.sampleTaylorGreenPlane(u, v);
+      model.reset({ potentialStrength: 0.37 });
+      const contaminated = model.sampleTaylorGreenPlane(u, v);
+      expect(contaminated.velocity).not.toEqual(clean.velocity);
+      expect(contaminated.vorticity).toBeCloseTo(clean.vorticity, 12);
+      expect(contaminated.projectedVelocity).toEqual(clean.projectedVelocity);
+      expect(contaminated.divergentVelocity).not.toEqual({ x: 0, y: 0, z: 0 });
+      model.reset({ potentialStrength: 0 });
+    }
+  });
+
+  it("reports the analytic raw divergence while the projected field is exact", () => {
+    const fields = evaluateTaylorGreenClebsch(0.63, 1.17, 1, 0.29);
+    expect(fields.rawDivergence).toBeCloseTo(-0.58 * Math.sin(1.8), 12);
+    expect(fields.projectedCovector[0]).toBeCloseTo(Math.sin(0.63) * Math.cos(1.17), 12);
+    expect(fields.projectedCovector[1]).toBeCloseTo(-Math.cos(0.63) * Math.sin(1.17), 12);
   });
 });
 

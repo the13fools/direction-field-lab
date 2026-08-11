@@ -82,6 +82,9 @@ button { cursor: pointer; }
 .cs-button-stack button small, .cs-glyph-list button small { margin-top: 3px; color: var(--muted); font-size: 8px; line-height: 1.35; }
 .cs-surfaces button { min-height: 57px; padding: 9px 12px; }
 .cs-surfaces button b { font-size: 11px; }
+.cs-cases { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.cs-cases button { min-height: 70px; padding: 9px; }
+.cs-cases button b { font-size: 9px; }
 .cs-button-stack button.active, .cs-glyph-list button.active { color: white; border-color: var(--orange); background: linear-gradient(135deg, var(--violet), #433068); }
 .cs-button-stack button.active small, .cs-glyph-list button.active small { color: #e5dced; }
 .cs-steps button { display: grid; grid-template-columns: 29px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 55px; padding: 8px; }
@@ -115,6 +118,18 @@ button { cursor: pointer; }
 .cs-stage-actions button small { color: #9f91b1; font-size: 8px; }
 .cs-stage-actions button.active { color: var(--ink); border-color: var(--gold); background: linear-gradient(135deg, var(--gold), var(--orange)); }
 .cs-stage-actions button.active span, .cs-stage-actions button.active small { color: #4e2f42; }
+.cs-taylor-green-case { margin: 0 0 11px; padding: 14px; border: 1px solid #5b4a75; border-left: 5px solid var(--cyan); border-radius: 5px; background: linear-gradient(135deg, rgba(25,16,47,.96), rgba(19,83,99,.74)); }
+.cs-taylor-green-case > header { display: flex; justify-content: space-between; gap: 20px; align-items: baseline; }
+.cs-taylor-green-case > header span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-taylor-green-case > header strong { color: white; font-size: 11px; }
+.cs-taylor-green-case > .cs-math-display { margin: 12px 0 9px; padding: 10px; overflow-x: auto; color: var(--cyan); border-radius: 3px; background: rgba(8,6,27,.4); font-size: 10px; }
+.cs-taylor-green-case > p { margin: 0; color: #cfc3da; font-size: 8px; line-height: 1.55; }
+.cs-taylor-green-case .cs-math-inline { color: var(--gold); }
+.cs-taylor-green-checks { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin-top: 11px; background: #58466f; }
+.cs-taylor-green-checks > span { min-width: 0; padding: 8px; background: #18102f; }
+.cs-taylor-green-checks small, .cs-taylor-green-checks b { display: block; }
+.cs-taylor-green-checks small { color: #9384a6; font: 7px var(--mono); }
+.cs-taylor-green-checks b { margin-top: 4px; color: var(--gold); font: 700 8px var(--mono); }
 .cs-stage-equation { display: grid; grid-template-columns: 104px minmax(210px, .8fr) minmax(270px, 1.2fr); gap: 15px; align-items: start; padding: 14px; border: 1px solid #51416e; border-radius: 5px; background: #18102f; }
 .cs-stage-equation > span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .07em; }
 .cs-stage-equation .cs-math-display { color: var(--cyan); font-size: 11px; }
@@ -136,6 +151,8 @@ button { cursor: pointer; }
 .cs-controls label span small { margin-top: 3px; color: var(--muted); font-size: 8px; }
 .cs-controls output { color: var(--violet); font: 700 9px var(--mono); }
 .cs-controls input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--orange); }
+.cs-controls > label.cs-control-locked { opacity: .48; }
+.cs-controls > label.cs-control-locked input { cursor: not-allowed; }
 .cs-probe { margin-top: 14px; padding: 15px; color: white; border: 1px solid #624d7a; border-top: 5px solid var(--cyan); border-radius: 5px; background: linear-gradient(145deg, #21163e, #27375a); }
 .cs-probe > span, .cs-probe > strong { display: block; }
 .cs-probe > span { color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .08em; }
@@ -400,6 +417,8 @@ button { cursor: pointer; }
   .cs-pairing-bridge { grid-template-columns: 1fr; }
   .cs-stage-equation { grid-template-columns: 1fr; }
   .cs-stage-example { padding: 13px 0 0; border-top: 1px solid #493a63; border-left: 0; }
+  .cs-taylor-green-case > header { display: block; }
+  .cs-taylor-green-case > header strong { display: block; margin-top: 5px; }
   .cs-foundation-step { grid-template-columns: 45px 1fr; }
   .cs-foundation-number { min-height: 70px; }
   .cs-foundation-equation { grid-column: 1 / -1; }
@@ -428,6 +447,7 @@ button { cursor: pointer; }
   .cs-stage > header { align-items: flex-start; }
   .cs-stage-key { display: none; }
   .cs-stage-actions { grid-template-columns: 1fr; }
+  .cs-taylor-green-checks { grid-template-columns: 1fr; }
   .cs-glyph-list { grid-template-columns: 1fr 1fr; }
   #cs-pairing-canvas { height: 330px; }
   .cs-roadmap-task { padding: 22px 18px; }

@@ -25,6 +25,18 @@ export interface ControlledClebschSample {
   vorticity: number;
 }
 
+export interface TaylorGreenClebschFields {
+  alpha: number;
+  beta: number;
+  phi: number;
+  dAlpha: readonly [number, number];
+  dBeta: readonly [number, number];
+  dPhi: readonly [number, number];
+  projectedCovector: readonly [number, number];
+  vorticityDensity: number;
+  rawDivergence: number;
+}
+
 const TAU = 2 * Math.PI;
 const PLANE_WIDTH = 2.8;
 const TORUS_MAJOR_RADIUS = 1.25;
@@ -35,6 +47,37 @@ export const DEFAULT_CONTROLLED_CLEBSCH_PARAMETERS: ControlledClebschParameters 
   potentialStrength: 0.24,
   crossing: 0.78,
 };
+
+/**
+ * Exact Taylor–Green data on the unit-metric periodic coordinate domain
+ * [0, 2π) × [0, 2π). The optional q term is deliberately exact: it
+ * changes divergence but leaves dα ∧ dβ, and therefore vorticity, untouched.
+ */
+export function evaluateTaylorGreenClebsch(
+  u: number,
+  v: number,
+  amplitude = 1,
+  exactContamination = 0,
+): TaylorGreenClebschFields {
+  if (![u, v, amplitude, exactContamination].every(Number.isFinite)) {
+    throw new Error("Taylor–Green coordinates and strengths must be finite");
+  }
+  if (amplitude < 0 || exactContamination < 0) {
+    throw new Error("Taylor–Green strengths must be nonnegative");
+  }
+  const diagonal = exactContamination * Math.cos(u + v);
+  return {
+    alpha: 2 * amplitude * Math.cos(u),
+    beta: Math.cos(v),
+    phi: -amplitude * Math.cos(u) * Math.cos(v) + exactContamination * Math.sin(u + v),
+    dAlpha: [-2 * amplitude * Math.sin(u), 0],
+    dBeta: [0, -Math.sin(v)],
+    dPhi: [amplitude * Math.sin(u) * Math.cos(v) + diagonal, amplitude * Math.cos(u) * Math.sin(v) + diagonal],
+    projectedCovector: [amplitude * Math.sin(u) * Math.cos(v), -amplitude * Math.cos(u) * Math.sin(v)],
+    vorticityDensity: 2 * amplitude * Math.sin(u) * Math.sin(v),
+    rawDivergence: -2 * exactContamination * Math.sin(u + v),
+  };
+}
 
 function add(a: Vec3, b: Vec3): Vec3 {
   return { x: a.x + b.x, y: a.y + b.y, z: a.z + b.z };
@@ -401,6 +444,27 @@ export class ControlledClebschSurfaceModel {
       dBeta,
       dPhi,
       projectedVelocity,
+    );
+  }
+
+  sampleTaylorGreenPlane(u: number, v: number): ControlledClebschSample {
+    const geometry = parameterGeometry("plane", u, v);
+    const fields = evaluateTaylorGreenClebsch(
+      u,
+      v,
+      this.parameters.labelStrength,
+      this.parameters.potentialStrength,
+    );
+    return this.finishSample(
+      geometry.position,
+      geometry.normal,
+      fields.alpha,
+      fields.beta,
+      fields.phi,
+      parameterGradient(geometry, fields.dAlpha[0], fields.dAlpha[1]),
+      parameterGradient(geometry, fields.dBeta[0], fields.dBeta[1]),
+      parameterGradient(geometry, fields.dPhi[0], fields.dPhi[1]),
+      parameterGradient(geometry, fields.projectedCovector[0], fields.projectedCovector[1]),
     );
   }
 

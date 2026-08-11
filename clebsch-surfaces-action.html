@@ -34,6 +34,12 @@
             <button data-cs-surface="frog" aria-pressed="false"><b>Tree frog</b><small>triangle-mesh Laplace–Beltrami modes</small></button>
           </div>
 
+          <p class="cs-eyebrow cs-second-label">Choose a field case</p>
+          <div class="cs-button-stack cs-cases">
+            <button class="active" data-cs-case="controlled" aria-pressed="true"><b>Crossing labels</b><small>explore how arbitrary α, β, and φ assemble</small></button>
+            <button data-cs-case="taylor-green" aria-pressed="false"><b>Taylor–Green test</b><small>exact periodic vortex + removable exact noise</small></button>
+          </div>
+
           <p class="cs-eyebrow cs-second-label">Build the one-form</p>
           <div class="cs-button-stack cs-steps">
             <button class="active" data-cs-step="labels"><i>01</i><span><b>Paint α and β</b><small>0-forms evaluate at points</small></span></button>
@@ -57,6 +63,12 @@
             <button class="active" data-cs-velocity="raw" aria-pressed="true"><span>RAW CLEBSCH</span><b>u♭ = dφ + αdβ</b><small>tangent, vortical, generally divergent</small></button>
             <button data-cs-velocity="projected" aria-pressed="false"><span>HODGE PROJECTED</span><b>u⊥♭ = u♭ − dp</b><small>same resolved curl, exact part removed</small></button>
           </div>
+          <section id="cs-taylor-green-case" class="cs-taylor-green-case" hidden>
+            <header><span>EXACT PERIODIC TEST ORACLE</span><strong>Taylor–Green vortex on [0, 2π)²</strong></header>
+            <div class="cs-math-display" data-latex="u_{TG}^{\flat}=U(\sin x\cos y\,dx-\cos x\sin y\,dy),\qquad \omega=2U\sin x\sin y\,dx\wedge dy">Taylor–Green velocity and vorticity</div>
+            <p>The lab adds the exact form <span class="cs-math-inline" data-latex="dq=C\cos(x+y)(dx+dy)">d q</span> to make a deliberately divergent raw field. Projection should recover the four closed vortex cells exactly while leaving the vorticity colors unchanged.</p>
+            <div class="cs-taylor-green-checks"><span><small>RAW DIV RMS</small><b id="cs-tg-raw-divergence">—</b></span><span><small>PROJECTED DIV RMS</small><b>0 (analytic)</b></span><span><small>PASS CONDITION</small><b>same ω, exact dq removed</b></span></div>
+          </section>
           <div class="cs-stage-equation">
             <span id="cs-step-kicker">STEP 01 · LABELS</span>
             <div class="cs-stage-math"><div id="cs-step-equation" class="cs-math-display" data-latex="\alpha,\beta\in\Omega^0(S)">alpha and beta are zero forms</div><p id="cs-step-type">SMOOTH VIEW: evaluate at a point · MESH VIEW: sample at vertices</p></div>
@@ -80,9 +92,9 @@
             <button data-cs-glyph="none"><b>none</b><small>scalar color only</small></button>
           </div>
 
-          <label><span><strong>Label crossing</strong><small>0° parallel → 90° independent</small></span><output id="cs-crossing-output">70°</output><input id="cs-crossing" type="range" min="0" max="1" step="0.01" value="0.78" /></label>
-          <label><span><strong>Label strength</strong><small>scales α and its vorticity</small></span><output id="cs-label-output">0.70</output><input id="cs-label" type="range" min="0" max="1.2" step="0.02" value="0.7" /></label>
-          <label><span><strong>Potential strength</strong><small>changes dφ, never dα∧dβ</small></span><output id="cs-potential-output">0.24</output><input id="cs-potential" type="range" min="0" max="1" step="0.02" value="0.24" /></label>
+          <label id="cs-crossing-control"><span><strong id="cs-crossing-label">Label crossing</strong><small id="cs-crossing-help">0° parallel → 90° independent</small></span><output id="cs-crossing-output">70°</output><input id="cs-crossing" type="range" min="0" max="1" step="0.01" value="0.78" /></label>
+          <label><span><strong id="cs-label-label">Label strength</strong><small id="cs-label-help">scales α and its vorticity</small></span><output id="cs-label-output">0.70</output><input id="cs-label" type="range" min="0" max="1.2" step="0.02" value="0.7" /></label>
+          <label><span><strong id="cs-potential-label">Potential strength</strong><small id="cs-potential-help">changes dφ, never dα∧dβ</small></span><output id="cs-potential-output">0.24</output><input id="cs-potential" type="range" min="0" max="1" step="0.02" value="0.24" /></label>
 
           <section class="cs-probe">
             <span>POINT PROBE</span><strong id="cs-probe-location">u = 0.19 · v = 0.31</strong>

@@ -22,6 +22,7 @@ type ConstructionStep = "labels" | "differentials" | "wedge" | "assemble" | "pro
 type ScalarLayer = "alpha" | "beta" | "phi" | "vorticity" | "none";
 type GlyphLayer = "dAlpha" | "dBeta" | "dPhi" | "alphaDBeta" | "velocity" | "none";
 type VelocityView = "raw" | "projected";
+type FieldCase = "controlled" | "taylor-green";
 type TorusChartMode = "single" | "atlas" | "pair" | "harmonic";
 
 const TAU = 2 * Math.PI;
@@ -490,8 +491,17 @@ const outputs = {
   label: byId<HTMLOutputElement>("cs-label-output"),
   potential: byId<HTMLOutputElement>("cs-potential-output"),
 };
+const controlCopy = {
+  crossingLabel: byId<HTMLElement>("cs-crossing-label"),
+  crossingHelp: byId<HTMLElement>("cs-crossing-help"),
+  labelLabel: byId<HTMLElement>("cs-label-label"),
+  labelHelp: byId<HTMLElement>("cs-label-help"),
+  potentialLabel: byId<HTMLElement>("cs-potential-label"),
+  potentialHelp: byId<HTMLElement>("cs-potential-help"),
+};
 
 let surface: ClebschSurface = "plane";
+let fieldCase: FieldCase = "controlled";
 let constructionStep: ConstructionStep = "labels";
 let scalarLayer: ScalarLayer = "alpha";
 let glyphLayer: GlyphLayer = "dAlpha";
@@ -559,6 +569,9 @@ function sampleGeometryVertex(
   const point = { x: positions.getX(index), y: positions.getY(index), z: positions.getZ(index) };
   if (surface === "frog") return model.sampleFrogVertex(index);
   if (surface === "sphere") return model.sampleSphere(point);
+  if (surface === "plane" && fieldCase === "taylor-green") {
+    return model.sampleTaylorGreenPlane(TAU * uvs!.getX(index), TAU * uvs!.getY(index));
+  }
   return model.sampleParameter(surface, TAU * uvs!.getX(index), TAU * uvs!.getY(index));
 }
 
@@ -748,9 +761,15 @@ function updateProbeCopy(): void {
   const raw = magnitude(probeSample.velocity);
   const removed = magnitude(probeSample.divergentVelocity);
   const labelAngle = Math.round(90 * Number(controls.crossing.value));
-  byId("cs-probe-reading").textContent = velocityView === "projected"
-    ? `The resolved Hodge reconstruction changes the velocity by ${format(removed)} here. Its coexact speed is ${format(magnitude(probeSample.projectedVelocity))}; resolved curl is retained while exact source/sink motion is removed.`
-    : `The label crossing control is ${labelAngle}°. Raw speed is ${format(raw)}; Clebsch form alone does not force its divergence to vanish.`;
+  if (fieldCase === "taylor-green") {
+    byId("cs-probe-reading").textContent = velocityView === "projected"
+      ? `Projection removes the exact contamination speed ${format(removed)} here and recovers Taylor–Green speed ${format(magnitude(probeSample.projectedVelocity))}. The vorticity value above is unchanged.`
+      : `Raw speed is ${format(raw)}. Of that field, ${format(removed)} is the deliberately added gradient dq; it creates sources and sinks but no vorticity.`;
+  } else {
+    byId("cs-probe-reading").textContent = velocityView === "projected"
+      ? `The resolved Hodge reconstruction changes the velocity by ${format(removed)} here. Its coexact speed is ${format(magnitude(probeSample.projectedVelocity))}; resolved curl is retained while exact source/sink motion is removed.`
+      : `The label crossing control is ${labelAngle}°. Raw speed is ${format(raw)}; Clebsch form alone does not force its divergence to vanish.`;
+  }
   updateProbeMarker();
 }
 
@@ -763,7 +782,9 @@ function resetProbe(): void {
     probeSample = model.sampleSphere({ x: 0.55, y: -0.22, z: 0.81 });
     probeDescription = "sphere point · intrinsic tangent plane";
   } else {
-    probeSample = model.sampleParameter(surface, 0.19 * TAU, 0.31 * TAU);
+    probeSample = surface === "plane" && fieldCase === "taylor-green"
+      ? model.sampleTaylorGreenPlane(0.19 * TAU, 0.31 * TAU)
+      : model.sampleParameter(surface, 0.19 * TAU, 0.31 * TAU);
     probeDescription = "u = 0.19 · v = 0.31";
   }
 }
@@ -812,6 +833,44 @@ const stepCopy: Record<ConstructionStep, {
   },
 };
 
+const taylorGreenStepCopy: typeof stepCopy = {
+  labels: {
+    kicker: "TEST 01 · EXACT LABELS",
+    equation: String.raw`\phi,\alpha,\beta\in\Omega^0(\mathbb T^2)`,
+    type: "ALL THREE SCALARS ARE SINGLE-VALUED AND 2π-PERIODIC",
+    example: String.raw`\alpha=2U\cos x,\quad\beta=\cos y,\quad\phi=-U\cos x\cos y+C\sin(x+y)`,
+    copy: "This triple is chosen so its assembled one-form is the Taylor–Green vortex plus one known exact contaminant dq.",
+  },
+  differentials: {
+    kicker: "TEST 02 · DIFFERENTIATE",
+    equation: String.raw`d\alpha=-2U\sin x\,dx,\qquad d\beta=-\sin y\,dy`,
+    type: "THE LABEL COVECTORS CROSS ORTHOGONALLY EXCEPT ON THEIR NODAL LINES",
+    example: String.raw`d\phi=U(\sin x\cos y\,dx+\cos x\sin y\,dy)+dq`,
+    copy: "The metric duals are the arrows you see. Before raising the index, these one-forms measure directional change and line circulation.",
+  },
+  wedge: {
+    kicker: "TEST 03 · VORTICITY ORACLE",
+    equation: String.raw`d\alpha\wedge d\beta=2U\sin x\sin y\,dx\wedge dy`,
+    type: "FOUR ALTERNATING VORTICITY CELLS ON THE PERIODIC SQUARE",
+    example: String.raw`d(d\phi+\alpha d\beta)=d\alpha\wedge d\beta`,
+    copy: "The exact contaminant cannot alter this checkerboard: d(dq) = 0. That gives the test a known vorticity answer before projection.",
+  },
+  assemble: {
+    kicker: "TEST 04 · ADD A KNOWN ERROR",
+    equation: String.raw`u_C^\flat=u_{TG}^\flat+dq,\qquad q=C\sin(x+y)`,
+    type: "RAW FIELD = DIVERGENCE-FREE TARGET + EXACT SOURCE/SINK MOTION",
+    example: String.raw`u_{TG}^\flat=U(\sin x\cos y\,dx-\cos x\sin y\,dy)`,
+    copy: "The diagonal dq term is not random noise: its exact formula makes the expected projection result unambiguous.",
+  },
+  project: {
+    kicker: "TEST 05 · VERIFY",
+    equation: String.raw`P_{\mathrm{div}=0}(u_{TG}^\flat+dq)=u_{TG}^\flat`,
+    type: "PASS: ZERO DIVERGENCE, SAME VORTICITY, EXACT TARGET RECOVERED",
+    example: String.raw`\operatorname{div}u_C=-2C\sin(x+y),\qquad \operatorname{div}u_{TG}=0`,
+    copy: "Switch between raw and projected arrows. The diagonal source/sink motion should disappear, while the vorticity colors remain identical.",
+  },
+};
+
 function activateStep(step: ConstructionStep): void {
   constructionStep = step;
   if (step === "labels") {
@@ -824,7 +883,7 @@ function activateStep(step: ConstructionStep): void {
     scalarLayer = "vorticity";
     glyphLayer = "dBeta";
   } else if (step === "assemble") {
-    scalarLayer = "phi";
+    scalarLayer = fieldCase === "taylor-green" ? "vorticity" : "phi";
     glyphLayer = "velocity";
     velocityView = "raw";
   } else {
@@ -832,7 +891,7 @@ function activateStep(step: ConstructionStep): void {
     glyphLayer = "velocity";
     velocityView = "projected";
   }
-  const copy = stepCopy[step];
+  const copy = (fieldCase === "taylor-green" ? taylorGreenStepCopy : stepCopy)[step];
   byId("cs-step-kicker").textContent = copy.kicker;
   renderLatex(byId("cs-step-equation"), copy.equation, true);
   byId("cs-step-type").textContent = copy.type;
@@ -848,9 +907,42 @@ function activateStep(step: ConstructionStep): void {
 }
 
 function updateControlOutputs(): void {
-  outputs.crossing.value = `${Math.round(90 * Number(controls.crossing.value))}°`;
+  outputs.crossing.value = fieldCase === "taylor-green"
+    ? "fixed"
+    : `${Math.round(90 * Number(controls.crossing.value))}°`;
   outputs.label.value = Number(controls.label.value).toFixed(2);
   outputs.potential.value = Number(controls.potential.value).toFixed(2);
+  byId("cs-tg-raw-divergence").textContent = `√2 C = ${(Math.SQRT2 * Number(controls.potential.value)).toFixed(3)}`;
+}
+
+function updateStageTitle(): void {
+  byId("cs-stage-title").textContent = surface === "plane"
+    ? fieldCase === "taylor-green"
+      ? "periodic plane · exact Taylor–Green verification case"
+      : "periodic plane · two crossing label foliations"
+    : surface === "frog"
+      ? "tree frog · scalar Laplace–Beltrami modes"
+      : `${surface} · intrinsic differentials and metric duals`;
+}
+
+function updateFieldCaseInterface(): void {
+  const taylorGreen = fieldCase === "taylor-green";
+  controls.crossing.disabled = taylorGreen;
+  byId("cs-crossing-control").classList.toggle("cs-control-locked", taylorGreen);
+  byId<HTMLElement>("cs-taylor-green-case").hidden = !taylorGreen;
+  controlCopy.crossingLabel.textContent = taylorGreen ? "Taylor–Green labels" : "Label crossing";
+  controlCopy.crossingHelp.textContent = taylorGreen ? "α = 2U cos x and β = cos y are fixed" : "0° parallel → 90° independent";
+  controlCopy.labelLabel.textContent = taylorGreen ? "Vortex amplitude U" : "Label strength";
+  controlCopy.labelHelp.textContent = taylorGreen ? "scales target velocity and vorticity" : "scales α and its vorticity";
+  controlCopy.potentialLabel.textContent = taylorGreen ? "Exact contamination C" : "Potential strength";
+  controlCopy.potentialHelp.textContent = taylorGreen ? "adds dq = C cos(x+y)(dx+dy)" : "changes dφ, never dα∧dβ";
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cs-case]")) {
+    const active = button.dataset.csCase === fieldCase;
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+  updateStageTitle();
+  updateControlOutputs();
 }
 
 function rebuildSamples(): void {
@@ -867,27 +959,51 @@ function rebuildSamples(): void {
 }
 
 function setSurface(next: ClebschSurface): void {
+  if (next !== "plane" && fieldCase === "taylor-green") {
+    fieldCase = "controlled";
+    controls.crossing.value = "0.78";
+    controls.label.value = "0.7";
+    controls.potential.value = "0.24";
+    updateFieldCaseInterface();
+  }
   surface = next;
   if (surface === "plane") camera.position.set(0.15, -0.2, 4.55);
   else if (surface === "frog") camera.position.set(0.15, -0.1, 6.7);
   else camera.position.set(2.9, 1.8, 3.4);
   orbit.target.set(0, 0, 0);
   orbit.update();
-  byId("cs-stage-title").textContent = surface === "plane"
-    ? "periodic plane · two crossing label foliations"
-    : surface === "frog"
-      ? "tree frog · scalar Laplace–Beltrami modes"
-      : `${surface} · intrinsic differentials and metric duals`;
+  updateStageTitle();
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cs-surface]")) {
     const active = button.dataset.csSurface === surface;
     button.classList.toggle("active", active);
     button.setAttribute("aria-pressed", String(active));
   }
   rebuildSurface();
+  activateStep(constructionStep);
+}
+
+function setFieldCase(next: FieldCase): void {
+  fieldCase = next;
+  if (fieldCase === "taylor-green") {
+    controls.crossing.value = "1";
+    controls.label.value = "1";
+    controls.potential.value = "0.3";
+  } else {
+    controls.crossing.value = "0.78";
+    controls.label.value = "0.7";
+    controls.potential.value = "0.24";
+  }
+  updateFieldCaseInterface();
+  if (fieldCase === "taylor-green" && surface !== "plane") setSurface("plane");
+  else rebuildSamples();
+  activateStep(fieldCase === "taylor-green" ? "assemble" : "labels");
 }
 
 for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cs-surface]")) {
   button.addEventListener("click", () => setSurface(button.dataset.csSurface as ClebschSurface));
+}
+for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cs-case]")) {
+  button.addEventListener("click", () => setFieldCase(button.dataset.csCase as FieldCase));
 }
 for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cs-step]")) {
   button.addEventListener("click", () => activateStep(button.dataset.csStep as ConstructionStep));
@@ -941,7 +1057,9 @@ renderer.domElement.addEventListener("pointerup", (event) => {
   if (surface === "plane") {
     const u = TAU * (point.x / PLANE_WIDTH + 0.5);
     const v = TAU * (point.y / PLANE_WIDTH + 0.5);
-    probeSample = model.sampleParameter("plane", u, v);
+    probeSample = fieldCase === "taylor-green"
+      ? model.sampleTaylorGreenPlane(u, v)
+      : model.sampleParameter("plane", u, v);
     probeDescription = `u = ${(u / TAU).toFixed(2)} · v = ${(v / TAU).toFixed(2)}`;
   } else if (surface === "sphere") {
     probeSample = model.sampleSphere(point);
@@ -1000,7 +1118,7 @@ new ResizeObserver(resizeRenderer).observe(viewer);
 renderStaticLatex();
 initializeDualPairingLab();
 initializeTorusChartLab();
-updateControlOutputs();
+updateFieldCaseInterface();
 rebuildSurface();
 activateStep("labels");
 animate();
