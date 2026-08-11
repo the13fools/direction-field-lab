@@ -16,11 +16,7 @@ import {
   type ClebschSurface,
   type ControlledClebschSample,
 } from "./clebsch-surface-model";
-import {
-  nearestHarmonicLoopIndex,
-  reduceHarmonicLoop,
-  sampleClebschLoop,
-} from "./clebsch-torus-loop-model";
+import { sampleClebschLoop } from "./clebsch-torus-loop-model";
 import {
   ClebschMaterialLabelModel,
   type ClebschMaterialPoint,
@@ -511,9 +507,7 @@ function initializeTorusChartLab(): void {
   const thetaOutput = byId<HTMLOutputElement>("cs-torus-theta-output");
   const coefficientInput = byId<HTMLInputElement>("cs-torus-c");
   const coefficientOutput = byId<HTMLOutputElement>("cs-torus-c-output");
-  const quantumInput = byId<HTMLInputElement>("cs-torus-q");
-  const quantumOutput = byId<HTMLOutputElement>("cs-torus-q-output");
-  const harmonicButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-cs-harmonic-k]")];
+  const harmonicPresetButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-cs-harmonic-preset]")];
 
   const atlasScene = new THREE.Scene();
   atlasScene.background = new THREE.Color(0x0d081f);
@@ -598,20 +592,15 @@ function initializeTorusChartLab(): void {
   atlasScene.add(arrowGroup);
 
   const rawHarmonicArrowGroup = new THREE.Group();
-  const residualHarmonicArrowGroup = new THREE.Group();
   const rawHarmonicArrows: THREE.ArrowHelper[] = [];
-  const residualHarmonicArrows: THREE.ArrowHelper[] = [];
   for (let index = 0; index < 12; index += 1) {
     const theta = TAU * (index + 0.25) / 12;
     const direction = new THREE.Vector3(-Math.sin(theta), Math.cos(theta), 0);
     const rawArrow = new THREE.ArrowHelper(direction, torusPoint(theta, 0.72, 0.085), 0.25, 0xffd86d, 0.08, 0.05);
-    const residualArrow = new THREE.ArrowHelper(direction, torusPoint(theta, -0.72, 0.085), 0.25, 0x59e3ef, 0.08, 0.05);
     rawHarmonicArrows.push(rawArrow);
-    residualHarmonicArrows.push(residualArrow);
     rawHarmonicArrowGroup.add(rawArrow);
-    residualHarmonicArrowGroup.add(residualArrow);
   }
-  atlasScene.add(rawHarmonicArrowGroup, residualHarmonicArrowGroup);
+  atlasScene.add(rawHarmonicArrowGroup);
 
   const loopMarker = new THREE.Mesh(
     new THREE.SphereGeometry(0.095, 18, 12),
@@ -760,26 +749,20 @@ function initializeTorusChartLab(): void {
     drawLabelSpace(theta);
   }
 
-  let harmonicIndex = 2;
-
-  function updateHarmonicReduction(): void {
+  function updateHarmonicState(): void {
     const coefficient = Number(coefficientInput.value);
-    const quantum = Number(quantumInput.value);
-    const reduction = reduceHarmonicLoop(coefficient, quantum, harmonicIndex);
     coefficientOutput.value = formatLoopValue(coefficient);
-    quantumOutput.value = formatLoopValue(quantum);
     renderLatex(
       byId("cs-torus-harmonic-equation"),
-      String.raw`${latexLoopValue(coefficient)}\,d\theta-${latexLoopValue(quantum)}(${harmonicIndex})\,d\theta=${latexLoopValue(reduction.residualCoefficient)}\,d\theta`,
+      String.raw`\eta_h=${latexLoopValue(coefficient)}\,d\theta,\qquad d\eta_h=0,\qquad \Gamma_\theta=2\pi(${latexLoopValue(coefficient)})`,
       true,
     );
-    byId("cs-torus-raw-period").textContent = formatLoopValue(reduction.originalPeriod, 3);
-    byId("cs-torus-removed-period").textContent = formatLoopValue(reduction.removedPeriod, 3);
-    byId("cs-torus-residual-period").textContent = formatLoopValue(reduction.residualPeriod, 3);
+    byId("cs-torus-local-vorticity").textContent = "0";
+    byId("cs-torus-cycle-period").textContent = formatLoopValue(TAU * coefficient, 3);
     updateArrowSet(rawHarmonicArrows, coefficient);
-    updateArrowSet(residualHarmonicArrows, reduction.residualCoefficient);
-    for (const button of harmonicButtons) {
-      const active = Number(button.dataset.csHarmonicK) === harmonicIndex;
+    for (const button of harmonicPresetButtons) {
+      const target = button.dataset.csHarmonicPreset === "zero" ? 0 : 0.85;
+      const active = Math.abs(coefficient - target) < 0.001;
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", String(active));
     }
@@ -819,11 +802,11 @@ function initializeTorusChartLab(): void {
     },
     harmonic: {
       kicker: "GLOBAL COHOMOLOGY COEFFICIENT",
-      title: "Subtract a quantized harmonic representative.",
-      equation: String.raw`\eta_h=c\,d\theta\ \mapsto\ \eta_h-qk\,d\theta,\qquad k\in\mathbb Z`,
-      copy: "The real coefficient c records the physical period around this torus cycle. Choosing an integer k subtracts one imposed lattice representative. Curl stays zero, but the closed-loop circulation and particle winding would change.",
-      caption: "gold arrows: raw c dθ · cyan arrows: residual (c−qk)dθ",
-      aria: "A dark green torus comparing raw gold harmonic arrows with cyan arrows after quantized subtraction.",
+      title: "Vorticity does not determine this circulation.",
+      equation: String.raw`\eta_h=c\,d\theta,\qquad d\eta_h=0,\qquad \oint_{\gamma_\theta}\eta_h=2\pi c`,
+      copy: "The real number c is physical velocity state. It may vary continuously: c=0 has no winding around this cycle, while c≠0 adds a uniform circulation without adding any local vorticity.",
+      caption: "gold arrows: the harmonic circulation c dθ · no local vorticity anywhere",
+      aria: "A dark green torus with gold arrows showing a continuously adjustable harmonic circulation.",
     },
   };
 
@@ -850,7 +833,6 @@ function initializeTorusChartLab(): void {
     thetaCycle.visible = mode === "pair" || mode === "harmonic";
     arrowGroup.visible = mode !== "harmonic";
     rawHarmonicArrowGroup.visible = mode === "harmonic";
-    residualHarmonicArrowGroup.visible = mode === "harmonic";
     loopMarker.visible = mode === "pair";
     pairAnatomy.hidden = mode !== "pair";
     harmonicReduction.hidden = mode !== "harmonic";
@@ -866,7 +848,7 @@ function initializeTorusChartLab(): void {
       button.setAttribute("aria-pressed", String(active));
     }
     if (mode === "pair") updateClebschAnatomy();
-    if (mode === "harmonic") updateHarmonicReduction();
+    if (mode === "harmonic") updateHarmonicState();
     resizeAndRender();
   }
 
@@ -877,24 +859,17 @@ function initializeTorusChartLab(): void {
     updateClebschAnatomy();
     resizeAndRender();
   });
-  for (const input of [coefficientInput, quantumInput]) {
-    input.addEventListener("input", () => {
-      updateHarmonicReduction();
-      resizeAndRender();
-    });
-  }
-  for (const button of harmonicButtons) {
-    button.addEventListener("click", () => {
-      harmonicIndex = Number(button.dataset.csHarmonicK);
-      updateHarmonicReduction();
-      resizeAndRender();
-    });
-  }
-  byId<HTMLButtonElement>("cs-torus-nearest-k").addEventListener("click", () => {
-    harmonicIndex = nearestHarmonicLoopIndex(Number(coefficientInput.value), Number(quantumInput.value));
-    updateHarmonicReduction();
+  coefficientInput.addEventListener("input", () => {
+    updateHarmonicState();
     resizeAndRender();
   });
+  for (const button of harmonicPresetButtons) {
+    button.addEventListener("click", () => {
+      coefficientInput.value = button.dataset.csHarmonicPreset === "zero" ? "0" : "0.85";
+      updateHarmonicState();
+      resizeAndRender();
+    });
+  }
   atlasOrbit.addEventListener("change", resizeAndRender);
   new ResizeObserver(resizeAndRender).observe(canvas);
   new ResizeObserver(() => {

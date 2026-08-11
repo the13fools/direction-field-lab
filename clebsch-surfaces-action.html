@@ -24,6 +24,13 @@
         </div>
       </section>
 
+      <nav class="cs-experiment-map" aria-label="Four experiments on this page">
+        <a href="#cs-material-title"><span>01</span><b>Carry the labels</b><small>What evolves in a Clebsch state?</small></a>
+        <a href="#cs-pairing-title"><span>02</span><b>Measure with a covector</b><small>What does the velocity one-form do?</small></a>
+        <a href="#cs-field-lab"><span>03</span><b>Assemble the field</b><small>Which ingredient changes which quantity?</small></a>
+        <a href="#cs-roadmap-title"><span>04</span><b>Test the topology</b><small>What can vorticity not determine?</small></a>
+      </nav>
+
       <section class="cs-material" aria-labelledby="cs-material-title">
         <header>
           <div><p class="cs-eyebrow">First experiment · Clebsch variables as evolving state</p><h2 id="cs-material-title">Carry the labels.<br /><em>Let φ change.</em></h2></div>
@@ -58,6 +65,45 @@
             <p class="cs-material-caveat">This Taylor–Green comparison has zero harmonic periods: there is local vortex motion but no uniform drift around either torus cycle. The translucent quadrilateral is a small material patch; its area should remain one times its initial area. This controlled steady-flow test isolates the Clebsch transport laws; it is not yet a free-running nonlinear solver. When stretching outruns the contour sampling, the renderer leaves a small gap instead of inventing a straight crossing.</p>
           </aside>
         </div>
+
+        <a class="cs-material-torus-link" href="./flat-torus-cohomology.html">
+          <span>NEXT QUESTION · WHAT DID THIS ZERO-PERIOD TEST LEAVE OUT?</span>
+          <strong>Add the two harmonic circulations on the flat torus →</strong>
+          <small>Keep the local vortex pattern while changing global particle winding around the x and y cycles.</small>
+        </a>
+      </section>
+
+      <section class="cs-pairing" aria-labelledby="cs-pairing-title">
+        <header>
+          <div><p class="cs-eyebrow">Second experiment · Chapter 1 picture · dual pairing</p><h2 id="cs-pairing-title">Make the covector visible.</h2></div>
+          <p>Before assembling a velocity one-form, see what a one-form actually does. Fix <span class="cs-math-inline" data-latex="\eta=s\,dx">eta equals s d x</span>, rotate the orange tangent vector, and watch the pairing count signed crossings. The cyan arrow is <span class="cs-math-inline" data-latex="\eta^\sharp">eta sharp</span>; it appears only after choosing the Euclidean metric.</p>
+        </header>
+
+        <div class="cs-pairing-grid">
+          <div class="cs-pairing-visual">
+            <canvas id="cs-pairing-canvas" role="img" aria-label="A tangent vector crossing the parallel level lines that represent a covector"></canvas>
+            <div class="cs-pairing-legend"><span><i></i>covector level lines</span><span><i></i>metric-dual η♯</span><span><i></i>test vector v</span></div>
+          </div>
+
+          <div class="cs-pairing-controls">
+            <section class="cs-pairing-reading" aria-live="polite">
+              <span>THE NUMBER RETURNED BY THE COVECTOR</span>
+              <div id="cs-pairing-equation" class="cs-math-display" data-latex="\eta(v)=1.2\cdot1.0\cos 55^\circ">eta of v</div>
+              <strong id="cs-pairing-value">η(v) = 0.688</strong>
+              <p id="cs-pairing-copy">The vector crosses the level lines in the positive direction.</p>
+            </section>
+
+            <label><span><strong>Angle of the tangent vector v</strong><small>90° follows a level line; 180° reverses direction</small></span><output id="cs-vector-angle-output">55°</output><input id="cs-vector-angle" type="range" min="-180" max="180" step="1" value="55" /></label>
+            <label><span><strong>Length of v</strong><small>a longer displacement can cross more level lines</small></span><output id="cs-vector-length-output">1.00</output><input id="cs-vector-length" type="range" min="0.25" max="1.6" step="0.05" value="1" /></label>
+            <label><span><strong>Covector strength s</strong><small>larger s packs the level lines more densely</small></span><output id="cs-covector-strength-output">1.20</output><input id="cs-covector-strength" type="range" min="0.35" max="2.2" step="0.05" value="1.2" /></label>
+          </div>
+        </div>
+
+        <div class="cs-pairing-bridge">
+          <article><span>WITHOUT A METRIC</span><strong>The pairing already exists.</strong><p><span class="cs-math-inline" data-latex="\eta_p(v)">eta at p acting on v</span> only needs a vector and a covector at the same point.</p></article>
+          <article><span>WITH A METRIC</span><strong>We may draw η as an arrow.</strong><p>The metric defines <span class="cs-math-inline" data-latex="\eta^\sharp">eta sharp</span>, so in this Euclidean picture <span class="cs-math-inline" data-latex="\eta(v)=g(\eta^\sharp,v)">eta of v is the metric pairing</span>.</p></article>
+          <article><span>ALONG A FLUID PATH</span><strong>Add the local readings.</strong><p>Set <span class="cs-math-inline" data-latex="v=\dot\gamma(t)">v equal to gamma dot</span> and integrate: <span class="cs-math-inline" data-latex="\int_\gamma u^\flat">integral of u flat along gamma</span> is circulation.</p></article>
+        </div>
       </section>
 
       <section class="cs-choice-principle" aria-labelledby="cs-choice-principle-title">
@@ -69,7 +115,15 @@
         </ol>
       </section>
 
-      <section class="cs-lab" aria-label="Interactive Clebsch variables on surfaces lab">
+      <section id="cs-field-lab" class="cs-lab" aria-labelledby="cs-field-lab-title">
+        <header class="cs-lab-intro">
+          <div><p class="cs-eyebrow">Third experiment · local field construction</p><h2 id="cs-field-lab-title">Change one ingredient at a time.</h2></div>
+          <ol aria-label="Questions answered by the field construction lab">
+            <li><span>01</span><p><b>Cross α and β.</b> Where does vorticity appear?</p></li>
+            <li><span>02</span><p><b>Add dφ.</b> What changes while curl stays fixed?</p></li>
+            <li><span>03</span><p><b>Project.</b> Which exact component is removed?</p></li>
+          </ol>
+        </header>
         <aside class="cs-guide">
           <p class="cs-eyebrow">Choose a surface</p>
           <div class="cs-button-stack cs-surfaces">
@@ -166,10 +220,16 @@
 
       <section class="cs-roadmap" aria-labelledby="cs-roadmap-title">
         <header>
-          <p class="cs-eyebrow">The global test</p>
-          <h2 id="cs-roadmap-title">Now carry a potential around the torus.</h2>
-          <p>The live construction above is local. The next experiment follows a circulation around a noncontractible loop and asks whether one real-valued angle potential can survive the trip.</p>
+          <p class="cs-eyebrow">Fourth experiment · the global test</p>
+          <h2 id="cs-roadmap-title">Hold vorticity at zero.<br />Change the circulation.</h2>
+          <p>The construction lab controls local curl. This final experiment deliberately sets that local signal to zero, then asks whether the velocity can still carry something around a noncontractible loop.</p>
         </header>
+
+        <aside class="cs-roadmap-task">
+          <strong>THE APPARENT CONTRADICTION</strong>
+          <div class="cs-math-display" data-latex="d\eta_h=0\qquad\text{but}\qquad\oint_{\gamma_\theta}\eta_h\ne0">zero vorticity but nonzero circulation</div>
+          <p>There is no contradiction: the loop around the torus hole is not the boundary of a patch on the surface. Stokes determines circulation around boundaries; topology supplies the remaining loop data.</p>
+        </aside>
 
         <section class="cs-torus-atlas" aria-labelledby="cs-torus-atlas-title">
           <header>
@@ -201,7 +261,7 @@
                 <button class="active" data-cs-torus-mode="single" aria-pressed="true"><span>01</span><b>One angle field</b></button>
                 <button data-cs-torus-mode="atlas" aria-pressed="false"><span>02</span><b>Two-chart atlas</b></button>
                 <button data-cs-torus-mode="pair" aria-pressed="false"><span>03</span><b>Global Clebsch pair</b></button>
-                <button data-cs-torus-mode="harmonic" aria-pressed="false"><span>04</span><b>Harmonic mode</b></button>
+                <button data-cs-torus-mode="harmonic" aria-pressed="false"><span>04</span><b>Harmonic period</b></button>
               </div>
               <section aria-live="polite">
                 <span id="cs-torus-mode-kicker">ONE REAL-VALUED POTENTIAL</span>
@@ -225,17 +285,16 @@
               </section>
 
               <section id="cs-torus-harmonic-reduction" class="cs-torus-harmonic-reduction" hidden>
-                <header><span>ONE GENERATOR OF THE HARMONIC LATTICE</span><strong>Subtract qk dθ and compare periods.</strong></header>
-                <label><span><b>Real coefficient c</b><small>the physical harmonic state</small></span><output id="cs-torus-c-output">0.85</output><input id="cs-torus-c" type="range" min="-1.5" max="1.5" step="0.05" value="0.85" /></label>
-                <label><span><b>Lattice spacing q</b><small>the imposed circulation quantum</small></span><output id="cs-torus-q-output">0.50</output><input id="cs-torus-q" type="range" min="0.5" max="1" step="0.05" value="0.5" /></label>
-                <div class="cs-torus-k-head"><span>CHOOSE INTEGER k</span><button id="cs-torus-nearest-k">nearest</button></div>
-                <div class="cs-torus-k-buttons" role="group" aria-label="Choose the integer harmonic coefficient">
-                  <button data-cs-harmonic-k="-3">−3</button><button data-cs-harmonic-k="-2">−2</button><button data-cs-harmonic-k="-1">−1</button><button data-cs-harmonic-k="0">0</button><button data-cs-harmonic-k="1">1</button><button class="active" data-cs-harmonic-k="2">2</button><button data-cs-harmonic-k="3">3</button>
+                <header><span>ONE REAL HARMONIC DEGREE OF FREEDOM</span><strong>Change the circulation without creating vorticity.</strong></header>
+                <div class="cs-torus-harmonic-presets" role="group" aria-label="Compare zero and nonzero harmonic circulation">
+                  <button data-cs-harmonic-preset="zero" aria-pressed="false">Set c = 0</button>
+                  <button class="active" data-cs-harmonic-preset="nonzero" aria-pressed="true">Set c = 0.85</button>
                 </div>
-                <div id="cs-torus-harmonic-equation" class="cs-math-display" data-latex="0.85\,d\theta-0.50(2)d\theta=-0.15\,d\theta">harmonic subtraction</div>
-                <div class="cs-torus-period-values"><p><small>raw period</small><b id="cs-torus-raw-period">—</b></p><p><small>removed period</small><b id="cs-torus-removed-period">—</b></p><p><small>residual period</small><b id="cs-torus-residual-period">—</b></p></div>
-                <p>Gold arrows show <span class="cs-math-inline" data-latex="c\,d\theta">c d theta</span>; cyan arrows show the residual. The curl remains zero, but the circulation changes—so this is not a gauge transformation.</p>
-                <a href="./flat-torus-cohomology.html">Continue to both torus cycles and advected particles →</a>
+                <label><span><b>Real coefficient c</b><small>continuous physical state—not an integer and not a gauge choice</small></span><output id="cs-torus-c-output">0.85</output><input id="cs-torus-c" type="range" min="-1.5" max="1.5" step="0.05" value="0.85" /></label>
+                <div id="cs-torus-harmonic-equation" class="cs-math-display" data-latex="\eta_h=0.85\,d\theta,\qquad d\eta_h=0,\qquad\Gamma_\theta=2\pi(0.85)">harmonic state and period</div>
+                <div class="cs-torus-period-values"><p><small>local vorticity</small><b id="cs-torus-local-vorticity">0</b></p><p><small>θ-cycle circulation</small><b id="cs-torus-cycle-period">—</b></p></div>
+                <p>Gold arrows show <span class="cs-math-inline" data-latex="c\,d\theta">c d theta</span>. Setting c to zero erases the global drift; changing c restores it. The local vorticity remains zero in every case, so it cannot tell you which state you chose.</p>
+                <a href="./flat-torus-cohomology.html"><span>CONTINUE WITH BOTH TORUS CYCLES</span><strong>Open the flat-torus circulation lab →</strong><small>Track the two real harmonic coefficients and the resulting particle windings.</small></a>
               </section>
             </div>
           </div>
@@ -247,48 +306,15 @@
             <article><span>WHAT A SOLVER USUALLY STORES</span><h4>Keep topology as two state variables.</h4><div class="cs-math-display" data-latex="\eta=d\chi+\star_g d\psi+c_1h_1+c_2h_2,\qquad \dim\mathcal H^1(T^2)=2">Hodge decomposition on the torus</div><p>Rather than manage multivalued potentials, a mesh solver can store two harmonic basis one-forms and two circulation coefficients. Vorticity determines the coexact part, not c₁ and c₂; pressure projection subtracts an exact form and therefore cannot remove them.</p></article>
           </div>
 
-          <p class="cs-source-note">The distinction between closed and exact forms is the de Rham-cohomology obstruction. The torus has two independent degree-one classes, corresponding to its two noncontractible cycles; see the <a href="https://math.mit.edu/~tristanc/Math18.966/HW3.pdf">MIT notes on de Rham cohomology and the Hodge Laplacian</a>. The form and metric conventions follow <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a>. The real harmonic coefficients and their role in fluid reconstruction follow <a href="https://yhesper.github.io/fc23/fc23.html">Fluid Cohomology</a>; the integer qk lattice is an added tutorial experiment.</p>
+          <p class="cs-source-note">The distinction between closed and exact forms is the de Rham-cohomology obstruction. The torus has two independent degree-one classes, corresponding to its two noncontractible cycles; see the <a href="https://math.mit.edu/~tristanc/Math18.966/HW3.pdf">MIT notes on de Rham cohomology and the Hodge Laplacian</a>. The form and metric conventions follow <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a>. The real harmonic coefficients and their role in fluid reconstruction follow <a href="https://yhesper.github.io/fc23/fc23.html">Fluid Cohomology</a>. The linked flat-torus lab treats both real coefficients first and keeps quantized subtraction clearly separate as an optional experiment.</p>
         </section>
 
         <nav class="cs-roadmap-links" aria-label="Choose the next explanation">
-          <a href="#cs-pairing-title"><span>01</span><b>Inspect a covector</b><small>See what a one-form measures.</small></a>
-          <a href="./clebsch-surfaces-reference.html#cs-reference-derivation"><span>02</span><b>Derive the construction</b><small>Open the compact exterior-calculus reference.</small></a>
-          <a href="./clebsch-surfaces-reference.html#cs-reference-dec"><span>03</span><b>Put it on a mesh</b><small>Vertices, edges, faces, and Hodge stars.</small></a>
+          <a href="./flat-torus-cohomology.html"><span>→</span><b>Continue with both torus cycles</b><small>Compare real harmonic states and particle winding.</small></a>
+          <a href="./clebsch-surfaces-reference.html#cs-reference-derivation"><span>01</span><b>Derive the construction</b><small>Open the compact exterior-calculus reference.</small></a>
+          <a href="./clebsch-surfaces-reference.html#cs-reference-dec"><span>02</span><b>Put it on a mesh</b><small>Vertices, edges, faces, and Hodge stars.</small></a>
           <a href="./clebsch-surfaces.html"><span>←</span><b>Return to Part I</b><small>Review the motivating problem.</small></a>
         </nav>
-      </section>
-
-      <section class="cs-pairing" aria-labelledby="cs-pairing-title">
-        <header>
-          <div><p class="cs-eyebrow">Chapter 1 picture · dual pairing</p><h2 id="cs-pairing-title">Make the covector visible.</h2></div>
-          <p>For this planar microscope, fix <span class="cs-math-inline" data-latex="\eta=s\,dx">eta equals s d x</span>. Its level lines are vertical. Rotate the orange tangent vector and watch the pairing count signed crossings. The cyan arrow is <span class="cs-math-inline" data-latex="\eta^\sharp">eta sharp</span>, which can be drawn only after choosing the Euclidean metric.</p>
-        </header>
-
-        <div class="cs-pairing-grid">
-          <div class="cs-pairing-visual">
-            <canvas id="cs-pairing-canvas" role="img" aria-label="A tangent vector crossing the parallel level lines that represent a covector"></canvas>
-            <div class="cs-pairing-legend"><span><i></i>covector level lines</span><span><i></i>metric-dual η♯</span><span><i></i>test vector v</span></div>
-          </div>
-
-          <div class="cs-pairing-controls">
-            <section class="cs-pairing-reading" aria-live="polite">
-              <span>THE NUMBER RETURNED BY THE COVECTOR</span>
-              <div id="cs-pairing-equation" class="cs-math-display" data-latex="\eta(v)=1.2\cdot1.0\cos 55^\circ">eta of v</div>
-              <strong id="cs-pairing-value">η(v) = 0.688</strong>
-              <p id="cs-pairing-copy">The vector crosses the level lines in the positive direction.</p>
-            </section>
-
-            <label><span><strong>Angle of the tangent vector v</strong><small>90° follows a level line; 180° reverses direction</small></span><output id="cs-vector-angle-output">55°</output><input id="cs-vector-angle" type="range" min="-180" max="180" step="1" value="55" /></label>
-            <label><span><strong>Length of v</strong><small>a longer displacement can cross more level lines</small></span><output id="cs-vector-length-output">1.00</output><input id="cs-vector-length" type="range" min="0.25" max="1.6" step="0.05" value="1" /></label>
-            <label><span><strong>Covector strength s</strong><small>larger s packs the level lines more densely</small></span><output id="cs-covector-strength-output">1.20</output><input id="cs-covector-strength" type="range" min="0.35" max="2.2" step="0.05" value="1.2" /></label>
-          </div>
-        </div>
-
-        <div class="cs-pairing-bridge">
-          <article><span>WITHOUT A METRIC</span><strong>The pairing already exists.</strong><p><span class="cs-math-inline" data-latex="\eta_p(v)">eta at p acting on v</span> only needs a vector and a covector at the same point.</p></article>
-          <article><span>WITH A METRIC</span><strong>We may draw η as an arrow.</strong><p>The metric defines <span class="cs-math-inline" data-latex="\eta^\sharp">eta sharp</span>, so in this Euclidean picture <span class="cs-math-inline" data-latex="\eta(v)=g(\eta^\sharp,v)">eta of v is the metric pairing</span>.</p></article>
-          <article><span>ALONG A FLUID PATH</span><strong>Add the local readings.</strong><p>Set <span class="cs-math-inline" data-latex="v=\dot\gamma(t)">v equal to gamma dot</span> and integrate: <span class="cs-math-inline" data-latex="\int_\gamma u^\flat">integral of u flat along gamma</span> is circulation.</p></article>
-        </div>
       </section>
 
       <section class="cs-tutorial cs-reference-handoff">

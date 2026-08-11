@@ -68,6 +68,13 @@ button { cursor: pointer; }
 .cs-intro-copy .cs-math-inline { color: var(--cyan); }
 .cs-intro-copy .cs-math-display { margin: 17px 0; padding: 14px; color: var(--cyan); border: 1px solid rgba(255,255,255,.15); border-radius: 4px; background: rgba(8, 6, 27, .36); font-size: 13px; }
 
+.cs-experiment-map { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; padding: 1px max(24px, calc((100vw - 1320px) / 2)); background: #46365f; }
+.cs-experiment-map a { display: grid; grid-template-columns: 36px 1fr; gap: 3px 10px; min-width: 0; padding: 17px 15px; color: white; background: #21163d; text-decoration: none; }
+.cs-experiment-map a:hover, .cs-experiment-map a:focus-visible { z-index: 1; outline: 2px solid var(--orange); outline-offset: -2px; background: #32214f; }
+.cs-experiment-map span { grid-row: 1 / span 2; align-self: center; color: var(--orange); font: 700 11px var(--mono); }
+.cs-experiment-map b { font-size: 10px; }
+.cs-experiment-map small { color: #bcaeca; font-size: 8px; line-height: 1.35; }
+
 .cs-choice-principle { padding: 42px max(24px, calc((100vw - 1320px) / 2)) 50px; border-top: 1px solid var(--line); background: #f8f3eb; }
 .cs-choice-principle > header { display: grid; grid-template-columns: minmax(390px, 1fr) minmax(330px, .8fr); gap: 52px; align-items: end; }
 .cs-choice-principle > header .cs-eyebrow { grid-column: 1 / -1; }
@@ -89,6 +96,15 @@ button { cursor: pointer; }
   border-block: 4px solid var(--orange);
   background: var(--paper);
 }
+.cs-lab-intro { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(380px, .8fr) minmax(560px, 1.2fr); gap: 50px; align-items: end; padding: 32px max(24px, calc((100vw - 1320px) / 2)); border-bottom: 1px solid var(--line); background: #fffaf2; }
+.cs-lab-intro h2 { margin: 9px 0 0; color: var(--ink); font-size: clamp(2.3rem, 4vw, 4.7rem); line-height: .9; letter-spacing: -.055em; }
+.cs-lab-intro ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; margin: 0; padding: 0; list-style: none; }
+.cs-lab-intro li { display: grid; grid-template-columns: 28px 1fr; gap: 8px; align-items: center; min-width: 0; padding: 12px; border: 1px solid #cdbddd; border-top: 4px solid var(--violet); border-radius: 4px; background: white; }
+.cs-lab-intro li:nth-child(2) { border-top-color: var(--orange); }
+.cs-lab-intro li:nth-child(3) { border-top-color: var(--cyan); }
+.cs-lab-intro li > span { color: var(--orange); font: 700 8px var(--mono); }
+.cs-lab-intro li p { margin: 0; color: var(--muted); font-size: 8px; line-height: 1.45; }
+.cs-lab-intro li b { display: block; color: var(--ink); font-size: 9px; }
 .cs-guide, .cs-controls { padding: 19px; background: linear-gradient(180deg, #fffdf8, #f6eeff); }
 .cs-guide { border-right: 1px solid var(--line); }
 .cs-controls { border-left: 1px solid var(--line); }
@@ -239,6 +255,11 @@ button { cursor: pointer; }
 .cs-material-metrics b { margin-top: 8px; overflow: hidden; color: var(--gold); font: 700 9px var(--mono); text-overflow: ellipsis; white-space: nowrap; }
 .cs-material-metrics em { margin-top: 5px; color: var(--cyan); font: 700 7px var(--mono); font-style: normal; }
 .cs-material-caveat { margin: 17px 0 0; padding: 14px; color: var(--muted); border-left: 5px solid var(--gold); background: #f4ecfd; font-size: 8px; line-height: 1.58; }
+.cs-material-torus-link { display: grid; grid-template-columns: minmax(0, .72fr) minmax(360px, 1.28fr); gap: 7px 30px; align-items: center; margin-top: 10px; padding: 22px 26px; color: white; border: 1px solid #594771; border-left: 9px solid var(--cyan); border-radius: 6px; background: linear-gradient(135deg, #19102f, #35235b 58%, #135363); box-shadow: 8px 8px 0 rgba(89,227,239,.14); text-decoration: none; }
+.cs-material-torus-link:hover, .cs-material-torus-link:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; }
+.cs-material-torus-link span { grid-row: 1 / span 2; color: var(--cyan); font: 700 8px var(--mono); letter-spacing: .08em; line-height: 1.5; }
+.cs-material-torus-link strong { color: var(--gold); font-size: clamp(18px, 2vw, 28px); line-height: 1.05; }
+.cs-material-torus-link small { color: #d0c4dc; font-size: 9px; line-height: 1.5; }
 
 .cs-roadmap { padding: 76px max(24px, calc((100vw - 1180px) / 2)); border-bottom: 1px solid var(--line); background: #fffdf8; }
 .cs-roadmap > header { max-width: 940px; }
@@ -329,20 +350,19 @@ button { cursor: pointer; }
 .cs-torus-pair-anatomy input[type="range"], .cs-torus-harmonic-reduction input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--orange); }
 .cs-torus-clebsch-values, .cs-torus-period-values { display: grid; gap: 1px; margin-top: 10px; border: 1px solid #574471; background: #574471; }
 .cs-torus-clebsch-values { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-.cs-torus-period-values { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cs-torus-period-values { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 .cs-torus-clebsch-values p, .cs-torus-period-values p { min-width: 0; margin: 0; padding: 8px 6px; background: #130c2b; }
 .cs-torus-clebsch-values small, .cs-torus-clebsch-values b, .cs-torus-period-values small, .cs-torus-period-values b { display: block; }
 .cs-torus-clebsch-values small, .cs-torus-period-values small { color: #9f91b2; font: 650 6px var(--mono); text-transform: uppercase; }
 .cs-torus-clebsch-values b, .cs-torus-period-values b { margin-top: 4px; overflow-wrap: anywhere; color: var(--cyan); font: 700 8px var(--mono); }
 .cs-torus-pair-anatomy > .cs-math-display, .cs-torus-harmonic-reduction > .cs-math-display { margin-top: 10px; font-size: 9px; }
-.cs-torus-k-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-top: 12px; }
-.cs-torus-k-head span { color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .08em; }
-.cs-torus-k-head button, .cs-torus-k-buttons button { color: #d9cce3; border: 1px solid #64517d; border-radius: 3px; background: #21163d; font: 700 7px var(--mono); }
-.cs-torus-k-head button { padding: 5px 8px; }
-.cs-torus-k-buttons { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; margin-top: 6px; }
-.cs-torus-k-buttons button { min-width: 0; min-height: 29px; padding: 2px; }
-.cs-torus-k-buttons button.active { color: var(--ink); border-color: var(--gold); background: var(--gold); }
-.cs-torus-harmonic-reduction > a { display: block; margin-top: 11px; padding-top: 10px; color: var(--cyan); border-top: 1px solid #574471; font-size: 8px; font-weight: 800; text-decoration: none; }
+.cs-torus-harmonic-presets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; margin-top: 12px; }
+.cs-torus-harmonic-presets button { min-height: 38px; color: #d9cce3; border: 1px solid #64517d; border-radius: 3px; background: #21163d; font-size: 8px; font-weight: 800; }
+.cs-torus-harmonic-presets button.active { color: var(--ink); border-color: var(--gold); background: var(--gold); }
+.cs-torus-harmonic-reduction > a { display: grid; gap: 5px; margin-top: 13px; padding: 13px; color: white; border: 1px solid #574471; border-left: 5px solid var(--cyan); border-radius: 4px; background: rgba(8,6,27,.35); text-decoration: none; }
+.cs-torus-harmonic-reduction > a span { color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-torus-harmonic-reduction > a strong { color: var(--gold); font-size: 11px; }
+.cs-torus-harmonic-reduction > a small { color: #b8a9c5; font-size: 7px; line-height: 1.45; }
 .cs-torus-atlas-proof { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; margin-top: 8px; }
 .cs-torus-atlas-proof article { min-width: 0; padding: 22px; border: 1px solid #cdbddd; border-top: 6px solid var(--orange); border-radius: 6px; background: white; }
 .cs-torus-atlas-proof article:nth-child(2) { border-top-color: var(--cyan); }
@@ -534,15 +554,18 @@ button { cursor: pointer; }
   .cs-header { grid-template-columns: 1fr auto; }
   .cs-header > div { display: none; }
   .cs-header nav a:not(:first-child) { display: none; }
+  .cs-experiment-map { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .cs-intro, .cs-choice-principle > header, .cs-pairing > header, .cs-foundations > header, .cs-dec > header { grid-template-columns: 1fr; gap: 25px; }
   .cs-choice-principle > header .cs-eyebrow { grid-column: auto; }
   .cs-choice-principle ol { grid-template-columns: 1fr; }
   .cs-intro h1 { font-size: clamp(3.1rem, 15vw, 5.5rem); }
   .cs-lab { grid-template-columns: 1fr; }
+  .cs-lab-intro { grid-row: 1; grid-template-columns: 1fr; gap: 20px; }
+  .cs-guide { grid-row: 2; }
   .cs-guide { border-right: 0; border-bottom: 1px solid var(--line); }
   .cs-surfaces, .cs-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .cs-stage { grid-row: 2; }
-  .cs-controls { display: block; grid-row: 3; }
+  .cs-stage { grid-row: 3; }
+  .cs-controls { display: block; grid-row: 4; }
   .cs-controls > .cs-second-label { margin-top: 22px; }
   #cs-viewer { height: 62vh; min-height: 430px; }
   .cs-pairing-grid { grid-template-columns: 1fr; }
@@ -562,6 +585,8 @@ button { cursor: pointer; }
   .cs-exact-ambiguity aside { flex-direction: column; align-items: flex-start; gap: 9px; }
   .cs-exact-ambiguity aside strong { flex-basis: auto; }
   .cs-material > header, .cs-material-lab { grid-template-columns: 1fr; }
+  .cs-material-torus-link { grid-template-columns: 1fr; }
+  .cs-material-torus-link span { grid-row: auto; }
   .cs-material-stage > header { align-items: flex-start; }
   .cs-material-legend { white-space: normal; text-align: right; }
   #cs-material-canvas { height: min(78vw, 610px); min-height: 420px; }
@@ -579,8 +604,11 @@ button { cursor: pointer; }
 @media (max-width: 530px) {
   .cs-header nav { gap: 8px; }
   .cs-intro, .cs-choice-principle, .cs-material, .cs-roadmap, .cs-pairing, .cs-foundations, .cs-dec, .cs-tutorial { padding-inline: 15px; }
+  .cs-experiment-map { grid-template-columns: 1fr; padding-inline: 0; }
   .cs-intro-copy { padding: 20px; }
   .cs-surfaces, .cs-steps, .cs-diagram-grid { grid-template-columns: 1fr; }
+  .cs-lab-intro { padding-inline: 15px; }
+  .cs-lab-intro ol { grid-template-columns: 1fr; }
   .cs-stage { padding: 10px; }
   .cs-stage > header { align-items: flex-start; }
   .cs-stage-key { display: none; }

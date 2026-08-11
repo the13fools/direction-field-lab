@@ -32,9 +32,23 @@ describe("Clebsch surface lesson math", () => {
     expect(actionPageSource).toContain("\\dim\\mathcal H^1(T^2)=2");
     expect(actionPageSource).toContain("They become local coordinates only where");
     expect(actionPageSource).toContain('id="cs-torus-pair-anatomy"');
-    expect(actionPageSource).toContain('data-cs-harmonic-k="2"');
+    expect(actionPageSource).toContain('data-cs-harmonic-preset="zero"');
+    expect(actionPageSource).toContain('data-cs-harmonic-preset="nonzero"');
     expect(actionPageSource).toContain('href="./flat-torus-cohomology.html"');
     expect(actionPageSource).toContain("d(d\\phi)=0");
+  });
+
+  it("orders the action tutorial from transport to pairing to construction to topology", () => {
+    const material = actionPageSource.indexOf('id="cs-material-title"');
+    const pairing = actionPageSource.indexOf('id="cs-pairing-title"');
+    const construction = actionPageSource.indexOf('id="cs-field-lab"');
+    const topology = actionPageSource.indexOf('id="cs-roadmap-title"');
+
+    expect(material).toBeGreaterThan(-1);
+    expect(material).toBeLessThan(pairing);
+    expect(pairing).toBeLessThan(construction);
+    expect(construction).toBeLessThan(topology);
+    expect(actionPageSource).toContain('class="cs-material-torus-link" href="./flat-torus-cohomology.html"');
   });
 
   it("links the gentle introduction to the action tutorial and back", () => {
@@ -63,7 +77,7 @@ describe("Clebsch surface lesson math", () => {
     expect(actionPageSource).toContain("pressure changes it along the trajectory");
     expect(actionPageSource).toContain("not yet a free-running nonlinear solver");
     expect(actionPageSource.indexOf('id="cs-material-canvas"')).toBeLessThan(
-      actionPageSource.indexOf('aria-label="Interactive Clebsch variables on surfaces lab"'),
+      actionPageSource.indexOf('id="cs-field-lab"'),
     );
   });
 
