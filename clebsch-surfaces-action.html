@@ -115,8 +115,13 @@
           <header>
             <span>THE TOPOLOGICAL OBSTRUCTION, MADE VISIBLE</span>
             <h3 id="cs-torus-atlas-title">Follow one circulation all the way around a torus.</h3>
-            <p>The smooth one-form <span class="cs-math-inline" data-latex="\eta_h=c\,d\theta">eta h equals c d theta</span> circulates around the torus hole. Locally it looks like the differential of an angle. Globally that angle must jump somewhere.</p>
+            <p>The smooth one-form <span class="cs-math-inline" data-latex="\eta_h=c\,d\theta">eta h equals c d theta</span> circulates around the torus hole. Locally it looks like the differential of an angle. Globally that angle must jump somewhere. The four views below separate the roles of charts, Clebsch labels, the exact term <span class="cs-math-inline" data-latex="d\phi">d phi</span>, and harmonic circulation.</p>
           </header>
+
+          <aside class="cs-torus-coordinate-answer">
+            <strong>Are α and β coordinates?</strong>
+            <p>Together they define a <em>label map</em> <span class="cs-math-inline" data-latex="F=(\alpha,\beta):M\to\mathbb R^2">F equals alpha beta</span>. They become local coordinates only where <span class="cs-math-inline" data-latex="d\alpha\wedge d\beta\ne0">d alpha wedge d beta is nonzero</span>. In the loop example both depend only on θ, so the whole torus maps to one ellipse: useful labels, but not a two-dimensional chart.</p>
+          </aside>
 
           <div class="cs-torus-atlas-lab">
             <div class="cs-torus-atlas-visual">
@@ -138,17 +143,45 @@
                 <div id="cs-torus-mode-equation" class="cs-math-display" data-latex="\phi_A=\theta_A\in(0,2\pi),\qquad \eta_h=c\,d\phi_A">one local angle potential</div>
                 <p id="cs-torus-mode-copy">Approaching the seam from opposite sides gives values near 2π and 0. The physical one-form is smooth, but a naïve difference of the scalar samples sees a false jump of 2π.</p>
               </section>
+
+              <section id="cs-torus-pair-anatomy" class="cs-torus-pair-anatomy" hidden>
+                <header><span>CLEBSCH LABEL SPACE</span><strong>The torus point becomes one point on an ellipse.</strong></header>
+                <canvas id="cs-torus-label-canvas" role="img" aria-label="The selected torus angle mapped to an alpha beta label ellipse"></canvas>
+                <label><span><b>Walk around θ</b><small>the marker follows one noncontractible loop</small></span><output id="cs-torus-theta-output">55°</output><input id="cs-torus-theta" type="range" min="0" max="360" step="1" value="55" /></label>
+                <div class="cs-torus-clebsch-values">
+                  <p><small>label α</small><b id="cs-torus-alpha-value">—</b></p>
+                  <p><small>label β</small><b id="cs-torus-beta-value">—</b></p>
+                  <p><small>α dβ coefficient</small><b id="cs-torus-alphadbeta-value">—</b></p>
+                  <p><small>dφ coefficient</small><b id="cs-torus-dphi-value">—</b></p>
+                </div>
+                <div id="cs-torus-pair-equation" class="cs-math-display" data-latex="\underbrace{(1-\cos2\theta)d\theta}_{\alpha d\beta}+\underbrace{\cos2\theta\,d\theta}_{d\phi}=d\theta">Clebsch pieces sum to d theta</div>
+                <p><b>dφ is the exact correction.</b> It adds no vorticity because <span class="cs-math-inline" data-latex="d(d\phi)=0">d squared phi is zero</span>, and no closed-loop period when φ is single-valued. Here it cancels the oscillation in αdβ so their sum is the uniform circulation dθ.</p>
+              </section>
+
+              <section id="cs-torus-harmonic-reduction" class="cs-torus-harmonic-reduction" hidden>
+                <header><span>ONE GENERATOR OF THE HARMONIC LATTICE</span><strong>Subtract qk dθ and compare periods.</strong></header>
+                <label><span><b>Real coefficient c</b><small>the physical harmonic state</small></span><output id="cs-torus-c-output">0.85</output><input id="cs-torus-c" type="range" min="-1.5" max="1.5" step="0.05" value="0.85" /></label>
+                <label><span><b>Lattice spacing q</b><small>the imposed circulation quantum</small></span><output id="cs-torus-q-output">0.50</output><input id="cs-torus-q" type="range" min="0.5" max="1" step="0.05" value="0.5" /></label>
+                <div class="cs-torus-k-head"><span>CHOOSE INTEGER k</span><button id="cs-torus-nearest-k">nearest</button></div>
+                <div class="cs-torus-k-buttons" role="group" aria-label="Choose the integer harmonic coefficient">
+                  <button data-cs-harmonic-k="-3">−3</button><button data-cs-harmonic-k="-2">−2</button><button data-cs-harmonic-k="-1">−1</button><button data-cs-harmonic-k="0">0</button><button data-cs-harmonic-k="1">1</button><button class="active" data-cs-harmonic-k="2">2</button><button data-cs-harmonic-k="3">3</button>
+                </div>
+                <div id="cs-torus-harmonic-equation" class="cs-math-display" data-latex="0.85\,d\theta-0.50(2)d\theta=-0.15\,d\theta">harmonic subtraction</div>
+                <div class="cs-torus-period-values"><p><small>raw period</small><b id="cs-torus-raw-period">—</b></p><p><small>removed period</small><b id="cs-torus-removed-period">—</b></p><p><small>residual period</small><b id="cs-torus-residual-period">—</b></p></div>
+                <p>Gold arrows show <span class="cs-math-inline" data-latex="c\,d\theta">c d theta</span>; cyan arrows show the residual. The curl remains zero, but the circulation changes—so this is not a gauge transformation.</p>
+                <a href="./flat-torus-cohomology.html">Continue to both torus cycles and advected particles →</a>
+              </section>
             </div>
           </div>
 
           <div class="cs-torus-atlas-proof">
             <article><span>WHY ONE GLOBAL φ IS IMPOSSIBLE</span><h4>Exact forms have zero period.</h4><div class="cs-math-display" data-latex="\oint_{\gamma_\theta}d\phi=0\quad\text{but}\quad\oint_{\gamma_\theta}c\,d\theta=2\pi c">closed-loop contradiction</div><p>A single-valued scalar returns to its starting value after a closed loop. The toroidal circulation does not. Therefore <span class="cs-math-inline" data-latex="c\,d\theta">c d theta</span> is closed but not globally exact.</p></article>
             <article><span>HOW THE EXTRA CHART FIXES IT</span><h4>Move the cuts and glue derivatives.</h4><div class="cs-math-display" data-latex="\phi_B=\phi_A+2\pi k\quad\Longrightarrow\quad d\phi_B=d\phi_A=d\theta">transition on each overlap component</div><p>Chart A fails only at one meridian; chart B puts its cut at another. On overlaps their angle values differ by a constant, so their differentials—and hence the velocity—agree exactly.</p></article>
-            <article><span>A CLEBSCH WORKAROUND</span><h4>Two periodic labels can hide the cut.</h4><div class="cs-math-display" data-latex="\alpha=-2\sin\theta,\quad\beta=\cos\theta,\quad\phi=\tfrac12\sin2\theta\quad\Longrightarrow\quad d\phi+\alpha d\beta=d\theta">a global Clebsch triple for this example</div><p>This triple is globally single-valued even though θ is not. It proves that an extra chart is not mandatory for this particular flow; it does not guarantee that one Clebsch pair can encode every global velocity field.</p></article>
+            <article><span>A CLEBSCH WORKAROUND</span><h4>Two periodic labels can hide the cut.</h4><div class="cs-math-display" data-latex="\alpha=-2\sin\theta,\quad\beta=\cos\theta,\quad\phi=\tfrac12\sin2\theta\quad\Longrightarrow\quad d\phi+\alpha d\beta=d\theta">a global Clebsch triple for this example</div><p>The pair (α,β) traces an ellipse in label space; it is not a coordinate chart on the torus. Its weighted differential αdβ carries the desired period plus an oscillation, and the exact term dφ cancels that oscillation. The sum is smooth and uniform.</p></article>
             <article><span>WHAT A SOLVER USUALLY STORES</span><h4>Keep topology as a harmonic coefficient.</h4><div class="cs-math-display" data-latex="\eta=d\chi+\star_g d\psi+c_1h_1+c_2h_2,\qquad \dim\mathcal H^1(T^2)=2">Hodge decomposition on the torus</div><p>Rather than manage multivalued potentials, a mesh solver can store two global harmonic basis one-forms and their circulation coefficients. Charts explain the geometry; harmonic modes are often the cleaner numerical representation.</p></article>
           </div>
 
-          <p class="cs-source-note">The distinction between closed and exact forms is the de Rham-cohomology obstruction. The torus has two independent degree-one classes, corresponding to its two noncontractible cycles; see the <a href="https://math.mit.edu/~tristanc/Math18.966/HW3.pdf">MIT notes on de Rham cohomology and the Hodge Laplacian</a>. The form and metric conventions follow <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a>.</p>
+          <p class="cs-source-note">The distinction between closed and exact forms is the de Rham-cohomology obstruction. The torus has two independent degree-one classes, corresponding to its two noncontractible cycles; see the <a href="https://math.mit.edu/~tristanc/Math18.966/HW3.pdf">MIT notes on de Rham cohomology and the Hodge Laplacian</a>. The form and metric conventions follow <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a>. The real harmonic coefficients and their role in fluid reconstruction follow <a href="https://yhesper.github.io/fc23/fc23.html">Fluid Cohomology</a>; the integer qk lattice is an added tutorial experiment.</p>
         </section>
 
         <nav class="cs-roadmap-links" aria-label="Choose the next explanation">

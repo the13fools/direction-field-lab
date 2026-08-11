@@ -16,6 +16,11 @@ import {
   type ClebschSurface,
   type ControlledClebschSample,
 } from "./clebsch-surface-model";
+import {
+  nearestHarmonicLoopIndex,
+  reduceHarmonicLoop,
+  sampleClebschLoop,
+} from "./clebsch-torus-loop-model";
 import type { Vec3 } from "./random-surface-fluid-model";
 
 type ConstructionStep = "labels" | "differentials" | "wedge" | "assemble" | "project";
@@ -243,6 +248,19 @@ function initializeTorusChartLab(): void {
   const equation = byId<HTMLElement>("cs-torus-mode-equation");
   const copy = byId<HTMLElement>("cs-torus-mode-copy");
   const buttons = [...document.querySelectorAll<HTMLButtonElement>("[data-cs-torus-mode]")];
+  const pairAnatomy = byId<HTMLElement>("cs-torus-pair-anatomy");
+  const harmonicReduction = byId<HTMLElement>("cs-torus-harmonic-reduction");
+  const labelCanvas = byId<HTMLCanvasElement>("cs-torus-label-canvas");
+  const labelCanvasContext = labelCanvas.getContext("2d");
+  if (!labelCanvasContext) throw new Error("Unable to create the Clebsch label-space canvas.");
+  const labelContext: CanvasRenderingContext2D = labelCanvasContext;
+  const thetaInput = byId<HTMLInputElement>("cs-torus-theta");
+  const thetaOutput = byId<HTMLOutputElement>("cs-torus-theta-output");
+  const coefficientInput = byId<HTMLInputElement>("cs-torus-c");
+  const coefficientOutput = byId<HTMLOutputElement>("cs-torus-c-output");
+  const quantumInput = byId<HTMLInputElement>("cs-torus-q");
+  const quantumOutput = byId<HTMLOutputElement>("cs-torus-q-output");
+  const harmonicButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-cs-harmonic-k]")];
 
   const atlasScene = new THREE.Scene();
   atlasScene.background = new THREE.Color(0x0d081f);
@@ -326,6 +344,29 @@ function initializeTorusChartLab(): void {
   }
   atlasScene.add(arrowGroup);
 
+  const rawHarmonicArrowGroup = new THREE.Group();
+  const residualHarmonicArrowGroup = new THREE.Group();
+  const rawHarmonicArrows: THREE.ArrowHelper[] = [];
+  const residualHarmonicArrows: THREE.ArrowHelper[] = [];
+  for (let index = 0; index < 12; index += 1) {
+    const theta = TAU * (index + 0.25) / 12;
+    const direction = new THREE.Vector3(-Math.sin(theta), Math.cos(theta), 0);
+    const rawArrow = new THREE.ArrowHelper(direction, torusPoint(theta, 0.72, 0.085), 0.25, 0xffd86d, 0.08, 0.05);
+    const residualArrow = new THREE.ArrowHelper(direction, torusPoint(theta, -0.72, 0.085), 0.25, 0x59e3ef, 0.08, 0.05);
+    rawHarmonicArrows.push(rawArrow);
+    residualHarmonicArrows.push(residualArrow);
+    rawHarmonicArrowGroup.add(rawArrow);
+    residualHarmonicArrowGroup.add(residualArrow);
+  }
+  atlasScene.add(rawHarmonicArrowGroup, residualHarmonicArrowGroup);
+
+  const loopMarker = new THREE.Mesh(
+    new THREE.SphereGeometry(0.095, 18, 12),
+    new THREE.MeshBasicMaterial({ color: 0xff7a3d, depthTest: false }),
+  );
+  loopMarker.renderOrder = 9;
+  atlasScene.add(loopMarker);
+
   const colors = new Float32Array(torusGeometry.getAttribute("position").count * 3);
   torusGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
   const colorAttribute = torusGeometry.getAttribute("color") as THREE.BufferAttribute;
@@ -366,6 +407,131 @@ function initializeTorusChartLab(): void {
     colorAttribute.needsUpdate = true;
   }
 
+  function formatLoopValue(value: number, digits = 2): string {
+    const rounded = Math.abs(value) < 0.5 * 10 ** -digits ? 0 : value;
+    return rounded.toFixed(digits).replaceAll("-", "−");
+  }
+
+  function latexLoopValue(value: number, digits = 2): string {
+    const rounded = Math.abs(value) < 0.5 * 10 ** -digits ? 0 : value;
+    return rounded.toFixed(digits);
+  }
+
+  function updateArrowSet(arrows: THREE.ArrowHelper[], coefficient: number): void {
+    const magnitude = Math.abs(coefficient);
+    const length = 0.13 + 0.17 * Math.min(2, magnitude);
+    for (let index = 0; index < arrows.length; index += 1) {
+      const theta = TAU * (index + 0.25) / arrows.length;
+      const directionSign = coefficient < 0 ? -1 : 1;
+      arrows[index]!.visible = magnitude > 0.012;
+      arrows[index]!.setDirection(new THREE.Vector3(
+        -directionSign * Math.sin(theta),
+        directionSign * Math.cos(theta),
+        0,
+      ));
+      arrows[index]!.setLength(length, Math.min(0.085, 0.45 * length), Math.min(0.055, 0.3 * length));
+    }
+  }
+
+  function drawLabelSpace(theta: number): void {
+    const bounds = labelCanvas.getBoundingClientRect();
+    const width = Math.max(1, bounds.width);
+    const height = Math.max(1, bounds.height);
+    const pixelRatio = Math.min(2, window.devicePixelRatio || 1);
+    const pixelWidth = Math.round(width * pixelRatio);
+    const pixelHeight = Math.round(height * pixelRatio);
+    if (labelCanvas.width !== pixelWidth || labelCanvas.height !== pixelHeight) {
+      labelCanvas.width = pixelWidth;
+      labelCanvas.height = pixelHeight;
+    }
+    labelContext.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    labelContext.clearRect(0, 0, width, height);
+    labelContext.fillStyle = "#0f0925";
+    labelContext.fillRect(0, 0, width, height);
+    const paddingX = 32;
+    const paddingY = 23;
+    const centerX = width / 2;
+    const centerY = height / 2;
+    const radiusX = Math.max(12, (width - 2 * paddingX) / 2);
+    const radiusY = Math.max(12, (height - 2 * paddingY) / 2);
+    labelContext.strokeStyle = "rgba(220,208,235,.25)";
+    labelContext.lineWidth = 1;
+    labelContext.beginPath();
+    labelContext.moveTo(paddingX, centerY);
+    labelContext.lineTo(width - paddingX, centerY);
+    labelContext.moveTo(centerX, paddingY);
+    labelContext.lineTo(centerX, height - paddingY);
+    labelContext.stroke();
+    labelContext.strokeStyle = "#59e3ef";
+    labelContext.lineWidth = 2;
+    labelContext.beginPath();
+    labelContext.ellipse(centerX, centerY, radiusX, radiusY, 0, 0, TAU);
+    labelContext.stroke();
+    const sample = sampleClebschLoop(theta);
+    const pointX = centerX + radiusX * sample.alpha / 2;
+    const pointY = centerY - radiusY * sample.beta;
+    labelContext.beginPath();
+    labelContext.arc(pointX, pointY, 6, 0, TAU);
+    labelContext.fillStyle = "#ff7a3d";
+    labelContext.fill();
+    labelContext.strokeStyle = "#ffd86d";
+    labelContext.lineWidth = 2;
+    labelContext.stroke();
+    labelContext.fillStyle = "#cfc3d9";
+    labelContext.font = "700 9px SFMono-Regular, Consolas, monospace";
+    labelContext.textAlign = "right";
+    labelContext.fillText("α", width - 9, centerY - 6);
+    labelContext.textAlign = "left";
+    labelContext.fillText("β", centerX + 7, 12);
+    labelCanvas.setAttribute(
+      "aria-label",
+      `At theta ${Math.round(theta * 180 / Math.PI)} degrees, the labels are alpha ${sample.alpha.toFixed(2)} and beta ${sample.beta.toFixed(2)} on a closed ellipse.`,
+    );
+  }
+
+  function updateClebschAnatomy(): void {
+    const thetaDegrees = Number(thetaInput.value);
+    const theta = thetaDegrees * Math.PI / 180;
+    const sample = sampleClebschLoop(theta);
+    thetaOutput.value = `${thetaDegrees}°`;
+    byId("cs-torus-alpha-value").textContent = formatLoopValue(sample.alpha, 3);
+    byId("cs-torus-beta-value").textContent = formatLoopValue(sample.beta, 3);
+    byId("cs-torus-alphadbeta-value").textContent = formatLoopValue(sample.alphaDBetaCoefficient, 3);
+    byId("cs-torus-dphi-value").textContent = formatLoopValue(sample.dPhiCoefficient, 3);
+    renderLatex(
+      byId("cs-torus-pair-equation"),
+      String.raw`\underbrace{${latexLoopValue(sample.alphaDBetaCoefficient, 3)}\,d\theta}_{\alpha d\beta}+\underbrace{${latexLoopValue(sample.dPhiCoefficient, 3)}\,d\theta}_{d\phi}=${latexLoopValue(sample.velocityCoefficient, 3)}\,d\theta`,
+      true,
+    );
+    loopMarker.position.copy(torusPoint(theta, 0.22, 0.12));
+    drawLabelSpace(theta);
+  }
+
+  let harmonicIndex = 2;
+
+  function updateHarmonicReduction(): void {
+    const coefficient = Number(coefficientInput.value);
+    const quantum = Number(quantumInput.value);
+    const reduction = reduceHarmonicLoop(coefficient, quantum, harmonicIndex);
+    coefficientOutput.value = formatLoopValue(coefficient);
+    quantumOutput.value = formatLoopValue(quantum);
+    renderLatex(
+      byId("cs-torus-harmonic-equation"),
+      String.raw`${latexLoopValue(coefficient)}\,d\theta-${latexLoopValue(quantum)}(${harmonicIndex})\,d\theta=${latexLoopValue(reduction.residualCoefficient)}\,d\theta`,
+      true,
+    );
+    byId("cs-torus-raw-period").textContent = formatLoopValue(reduction.originalPeriod, 3);
+    byId("cs-torus-removed-period").textContent = formatLoopValue(reduction.removedPeriod, 3);
+    byId("cs-torus-residual-period").textContent = formatLoopValue(reduction.residualPeriod, 3);
+    updateArrowSet(rawHarmonicArrows, coefficient);
+    updateArrowSet(residualHarmonicArrows, reduction.residualCoefficient);
+    for (const button of harmonicButtons) {
+      const active = Number(button.dataset.csHarmonicK) === harmonicIndex;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    }
+  }
+
   const content: Record<TorusChartMode, {
     kicker: string;
     title: string;
@@ -391,20 +557,20 @@ function initializeTorusChartLab(): void {
       aria: "A torus covered by two overlapping angle charts with separate orange and cyan seams.",
     },
     pair: {
-      kicker: "ONE GLOBAL CLEBSCH TRIPLE",
-      title: "Two periodic labels can encode the angle smoothly.",
+      kicker: "LABELS, NOT AUTOMATICALLY COORDINATES",
+      title: "Watch αdβ and dφ divide the work.",
       equation: String.raw`\alpha=-2\sin\theta,\quad\beta=\cos\theta,\quad\phi=\tfrac12\sin2\theta`,
-      copy: "Although θ itself needs a branch cut, sin θ and cos θ are globally smooth. For this flow, dφ + α dβ = dθ exactly. The color now wraps continuously through the former seam.",
-      caption: "teal–orange color is periodic: no scalar jump at the former seam",
-      aria: "A torus smoothly colored by a periodic Clebsch pair with no visible branch cut.",
+      copy: "The pair (α,β) maps each torus point into a label plane. Here it collapses the second torus direction and traces only an ellipse, so it is not a surface chart. Even so, αdβ can carry circulation, while dφ corrects its local variation.",
+      caption: "orange marker: selected θ · label-space point moves on a closed ellipse",
+      aria: "A torus smoothly colored by periodic Clebsch labels with a selected point on one noncontractible loop.",
     },
     harmonic: {
       kicker: "GLOBAL COHOMOLOGY COEFFICIENT",
-      title: "The solver can store the circulation directly.",
-      equation: String.raw`\eta_h=c\,h_\theta,\qquad \oint_{\gamma_\theta}\eta_h=2\pi c`,
-      copy: "The gold loop is a noncontractible cycle. A global harmonic basis one-form hθ carries unit circulation around it, so the scalar coefficient c records the part no single-valued potential can represent.",
-      caption: "gold loop: noncontractible cycle · pale arrows: smooth harmonic circulation",
-      aria: "A dark green torus with a gold noncontractible cycle and a smooth harmonic circulation field.",
+      title: "Subtract a quantized harmonic representative.",
+      equation: String.raw`\eta_h=c\,d\theta\ \mapsto\ \eta_h-qk\,d\theta,\qquad k\in\mathbb Z`,
+      copy: "The real coefficient c records the physical period around this torus cycle. Choosing an integer k subtracts one imposed lattice representative. Curl stays zero, but the closed-loop circulation and particle winding would change.",
+      caption: "gold arrows: raw c dθ · cyan arrows: residual (c−qk)dθ",
+      aria: "A dark green torus comparing raw gold harmonic arrows with cyan arrows after quantized subtraction.",
     },
   };
 
@@ -428,7 +594,13 @@ function initializeTorusChartLab(): void {
     updateTorusColors(mode);
     chartASeam.visible = mode === "single" || mode === "atlas";
     chartBSeam.visible = mode === "atlas";
-    thetaCycle.visible = mode === "harmonic";
+    thetaCycle.visible = mode === "pair" || mode === "harmonic";
+    arrowGroup.visible = mode !== "harmonic";
+    rawHarmonicArrowGroup.visible = mode === "harmonic";
+    residualHarmonicArrowGroup.visible = mode === "harmonic";
+    loopMarker.visible = mode === "pair";
+    pairAnatomy.hidden = mode !== "pair";
+    harmonicReduction.hidden = mode !== "harmonic";
     kicker.textContent = next.kicker;
     title.textContent = next.title;
     renderLatex(equation, next.equation, true);
@@ -440,14 +612,41 @@ function initializeTorusChartLab(): void {
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", String(active));
     }
+    if (mode === "pair") updateClebschAnatomy();
+    if (mode === "harmonic") updateHarmonicReduction();
     resizeAndRender();
   }
 
   for (const button of buttons) {
     button.addEventListener("click", () => setMode(button.dataset.csTorusMode as TorusChartMode));
   }
+  thetaInput.addEventListener("input", () => {
+    updateClebschAnatomy();
+    resizeAndRender();
+  });
+  for (const input of [coefficientInput, quantumInput]) {
+    input.addEventListener("input", () => {
+      updateHarmonicReduction();
+      resizeAndRender();
+    });
+  }
+  for (const button of harmonicButtons) {
+    button.addEventListener("click", () => {
+      harmonicIndex = Number(button.dataset.csHarmonicK);
+      updateHarmonicReduction();
+      resizeAndRender();
+    });
+  }
+  byId<HTMLButtonElement>("cs-torus-nearest-k").addEventListener("click", () => {
+    harmonicIndex = nearestHarmonicLoopIndex(Number(coefficientInput.value), Number(quantumInput.value));
+    updateHarmonicReduction();
+    resizeAndRender();
+  });
   atlasOrbit.addEventListener("change", resizeAndRender);
   new ResizeObserver(resizeAndRender).observe(canvas);
+  new ResizeObserver(() => {
+    if (!pairAnatomy.hidden) updateClebschAnatomy();
+  }).observe(labelCanvas);
   setMode(mode);
 }
 

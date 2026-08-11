@@ -26,6 +26,11 @@ describe("Clebsch surface lesson math", () => {
     expect(actionPageSource).toContain("HOW THE EXTRA CHART FIXES IT");
     expect(actionPageSource).toContain("A CLEBSCH WORKAROUND");
     expect(actionPageSource).toContain("\\dim\\mathcal H^1(T^2)=2");
+    expect(actionPageSource).toContain("They become local coordinates only where");
+    expect(actionPageSource).toContain('id="cs-torus-pair-anatomy"');
+    expect(actionPageSource).toContain('data-cs-harmonic-k="2"');
+    expect(actionPageSource).toContain('href="./flat-torus-cohomology.html"');
+    expect(actionPageSource).toContain("d(d\\phi)=0");
   });
 
   it("links the gentle introduction to the action tutorial and back", () => {

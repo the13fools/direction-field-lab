@@ -200,15 +200,19 @@ button { cursor: pointer; }
 .cs-torus-atlas > header > span { color: var(--orange); font: 700 8px var(--mono); letter-spacing: .09em; }
 .cs-torus-atlas > header h3 { margin: 9px 0; color: var(--ink); font-size: clamp(28px, 4vw, 51px); line-height: .94; letter-spacing: -.045em; }
 .cs-torus-atlas > header p { max-width: 780px; margin: 0; color: var(--muted); font-size: 10px; line-height: 1.72; }
+.cs-torus-coordinate-answer { display: grid; grid-template-columns: 190px 1fr; gap: 25px; align-items: center; max-width: 1010px; margin-top: 21px; padding: 17px 20px; border: 1px solid #cdbddd; border-left: 7px solid var(--orange); border-radius: 5px; background: #fffdf8; }
+.cs-torus-coordinate-answer strong { color: var(--ink); font-size: 15px; line-height: 1.05; }
+.cs-torus-coordinate-answer p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.68; }
+.cs-torus-coordinate-answer em { color: var(--violet); font-style: normal; font-weight: 800; }
 .cs-torus-atlas-lab { display: grid; grid-template-columns: minmax(470px, 1.2fr) minmax(320px, .8fr); gap: 8px; margin-top: 27px; }
-.cs-torus-atlas-visual { position: relative; min-width: 0; height: 430px; overflow: hidden; border: 1px solid #594771; border-radius: 7px; background: radial-gradient(circle at 50% 45%, #263e58, #0d081f 74%); }
+.cs-torus-atlas-visual { position: sticky; top: 84px; align-self: start; min-width: 0; height: min(68vh, 620px); min-height: 480px; overflow: hidden; border: 1px solid #594771; border-radius: 7px; background: radial-gradient(circle at 50% 45%, #263e58, #0d081f 74%); }
 #cs-torus-chart-canvas { display: block; width: 100%; height: 100%; touch-action: none; }
 .cs-torus-atlas-note, #cs-torus-chart-caption { position: absolute; z-index: 2; padding: 7px 9px; color: #b9adca; border: 1px solid rgba(255,255,255,.12); border-radius: 3px; background: rgba(13,8,31,.8); font: 700 7px var(--mono); pointer-events: none; }
 .cs-torus-atlas-note { top: 11px; left: 11px; }
 .cs-torus-atlas-note .cs-math-inline { color: var(--cyan); }
 #cs-torus-chart-caption { right: 11px; bottom: 11px; color: #eee6f5; }
 .cs-torus-atlas-panel { padding: 16px; color: white; border: 1px solid #594771; border-radius: 7px; background: linear-gradient(145deg, #19102f, #31204e); }
-.cs-torus-mode-buttons { display: grid; gap: 5px; }
+.cs-torus-mode-buttons { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; }
 .cs-torus-mode-buttons button { display: grid; grid-template-columns: 30px 1fr; gap: 9px; align-items: center; min-height: 51px; padding: 8px; color: #d7ccdf; border: 1px solid #5e4c79; border-radius: 4px; background: #21163d; text-align: left; }
 .cs-torus-mode-buttons button span { display: grid; place-items: center; width: 29px; height: 29px; color: var(--orange); border-radius: 50%; background: #130c2b; font: 700 8px var(--mono); }
 .cs-torus-mode-buttons button b { font-size: 10px; }
@@ -219,6 +223,33 @@ button { cursor: pointer; }
 .cs-torus-atlas-panel h4 { margin: 9px 0 12px; font-size: 20px; line-height: 1.02; }
 .cs-torus-atlas-panel .cs-math-display { padding: 13px 8px; overflow-x: auto; color: var(--gold); border-radius: 4px; background: #130c2b; font-size: 10px; }
 .cs-torus-atlas-panel p { margin: 13px 0 0; color: #cfc3d9; font-size: 9px; line-height: 1.68; }
+.cs-torus-pair-anatomy[hidden], .cs-torus-harmonic-reduction[hidden] { display: none; }
+.cs-torus-atlas-panel > .cs-torus-pair-anatomy, .cs-torus-atlas-panel > .cs-torus-harmonic-reduction { border-top-color: var(--orange); }
+.cs-torus-pair-anatomy > header span, .cs-torus-harmonic-reduction > header span { display: block; color: var(--orange); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-torus-pair-anatomy > header strong, .cs-torus-harmonic-reduction > header strong { display: block; margin-top: 5px; font-size: 11px; }
+#cs-torus-label-canvas { display: block; width: 100%; height: 145px; margin-top: 12px; border: 1px solid #5b4878; border-radius: 4px; }
+.cs-torus-pair-anatomy label, .cs-torus-harmonic-reduction label { display: grid; grid-template-columns: 1fr auto; gap: 5px 10px; margin-top: 11px; }
+.cs-torus-pair-anatomy label span b, .cs-torus-pair-anatomy label span small, .cs-torus-harmonic-reduction label span b, .cs-torus-harmonic-reduction label span small { display: block; }
+.cs-torus-pair-anatomy label span b, .cs-torus-harmonic-reduction label span b { font-size: 8px; }
+.cs-torus-pair-anatomy label span small, .cs-torus-harmonic-reduction label span small { margin-top: 2px; color: #a99bb9; font-size: 7px; }
+.cs-torus-pair-anatomy output, .cs-torus-harmonic-reduction output { color: var(--gold); font: 700 8px var(--mono); }
+.cs-torus-pair-anatomy input[type="range"], .cs-torus-harmonic-reduction input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--orange); }
+.cs-torus-clebsch-values, .cs-torus-period-values { display: grid; gap: 1px; margin-top: 10px; border: 1px solid #574471; background: #574471; }
+.cs-torus-clebsch-values { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.cs-torus-period-values { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.cs-torus-clebsch-values p, .cs-torus-period-values p { min-width: 0; margin: 0; padding: 8px 6px; background: #130c2b; }
+.cs-torus-clebsch-values small, .cs-torus-clebsch-values b, .cs-torus-period-values small, .cs-torus-period-values b { display: block; }
+.cs-torus-clebsch-values small, .cs-torus-period-values small { color: #9f91b2; font: 650 6px var(--mono); text-transform: uppercase; }
+.cs-torus-clebsch-values b, .cs-torus-period-values b { margin-top: 4px; overflow-wrap: anywhere; color: var(--cyan); font: 700 8px var(--mono); }
+.cs-torus-pair-anatomy > .cs-math-display, .cs-torus-harmonic-reduction > .cs-math-display { margin-top: 10px; font-size: 9px; }
+.cs-torus-k-head { display: flex; justify-content: space-between; gap: 10px; align-items: center; margin-top: 12px; }
+.cs-torus-k-head span { color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-torus-k-head button, .cs-torus-k-buttons button { color: #d9cce3; border: 1px solid #64517d; border-radius: 3px; background: #21163d; font: 700 7px var(--mono); }
+.cs-torus-k-head button { padding: 5px 8px; }
+.cs-torus-k-buttons { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; margin-top: 6px; }
+.cs-torus-k-buttons button { min-width: 0; min-height: 29px; padding: 2px; }
+.cs-torus-k-buttons button.active { color: var(--ink); border-color: var(--gold); background: var(--gold); }
+.cs-torus-harmonic-reduction > a { display: block; margin-top: 11px; padding-top: 10px; color: var(--cyan); border-top: 1px solid #574471; font-size: 8px; font-weight: 800; text-decoration: none; }
 .cs-torus-atlas-proof { display: grid; grid-template-columns: repeat(2, 1fr); gap: 7px; margin-top: 8px; }
 .cs-torus-atlas-proof article { min-width: 0; padding: 22px; border: 1px solid #cdbddd; border-top: 6px solid var(--orange); border-radius: 6px; background: white; }
 .cs-torus-atlas-proof article:nth-child(2) { border-top-color: var(--cyan); }
@@ -428,8 +459,9 @@ button { cursor: pointer; }
   .cs-same-flow li > div { flex-direction: column; align-items: stretch; gap: 8px; }
   .cs-exact-ambiguity aside { flex-direction: column; align-items: flex-start; gap: 9px; }
   .cs-exact-ambiguity aside strong { flex-basis: auto; }
-  .cs-torus-atlas-lab, .cs-torus-atlas-proof { grid-template-columns: 1fr; }
-  .cs-torus-atlas-visual { height: 400px; }
+  .cs-torus-atlas-lab, .cs-torus-atlas-proof, .cs-torus-coordinate-answer { grid-template-columns: 1fr; }
+  .cs-torus-coordinate-answer { gap: 8px; }
+  .cs-torus-atlas-visual { position: relative; top: auto; height: 400px; min-height: 0; }
   .cs-state-choices > article { grid-template-columns: 45px 1fr; }
   .cs-state-tradeoff { grid-column: 1 / -1; }
   .cs-projection-steps li { grid-template-columns: 1fr; padding-left: 72px; }
@@ -456,8 +488,10 @@ button { cursor: pointer; }
   .cs-same-flow li > div { flex-basis: 100%; margin-left: 50px; }
   .cs-exact-calculation { display: grid; grid-template-columns: 1fr; }
   .cs-exact-ambiguity aside { padding: 20px 18px; }
-  .cs-torus-atlas-visual { height: 340px; }
+  .cs-torus-atlas-visual { height: 340px; min-height: 0; }
   .cs-torus-atlas-panel { padding: 10px; }
+  .cs-torus-mode-buttons { grid-template-columns: 1fr; }
+  .cs-torus-clebsch-values { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   #cs-torus-chart-caption { right: 8px; bottom: 8px; left: 8px; }
   .cs-state-choices > article { grid-template-columns: 40px 1fr; gap: 12px; padding: 8px; }
   .cs-state-number { min-height: 80px; }
