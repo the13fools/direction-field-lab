@@ -22,6 +22,7 @@ type ConstructionStep = "labels" | "differentials" | "wedge" | "assemble" | "pro
 type ScalarLayer = "alpha" | "beta" | "phi" | "vorticity" | "none";
 type GlyphLayer = "dAlpha" | "dBeta" | "dPhi" | "alphaDBeta" | "velocity" | "none";
 type VelocityView = "raw" | "projected";
+type TorusChartMode = "single" | "atlas" | "pair" | "harmonic";
 
 const TAU = 2 * Math.PI;
 const PLANE_WIDTH = 2.8;
@@ -231,6 +232,222 @@ function initializeDualPairingLab(): void {
   }
   new ResizeObserver(draw).observe(canvas);
   draw();
+}
+
+function initializeTorusChartLab(): void {
+  const canvas = byId<HTMLCanvasElement>("cs-torus-chart-canvas");
+  const caption = byId<HTMLElement>("cs-torus-chart-caption");
+  const kicker = byId<HTMLElement>("cs-torus-mode-kicker");
+  const title = byId<HTMLElement>("cs-torus-mode-title");
+  const equation = byId<HTMLElement>("cs-torus-mode-equation");
+  const copy = byId<HTMLElement>("cs-torus-mode-copy");
+  const buttons = [...document.querySelectorAll<HTMLButtonElement>("[data-cs-torus-mode]")];
+
+  const atlasScene = new THREE.Scene();
+  atlasScene.background = new THREE.Color(0x0d081f);
+  atlasScene.fog = new THREE.FogExp2(0x0d081f, 0.075);
+
+  const atlasCamera = new THREE.PerspectiveCamera(36, 1, 0.05, 50);
+  atlasCamera.position.set(3.5, -3.4, 2.55);
+
+  const atlasRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  atlasRenderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+  atlasRenderer.outputColorSpace = THREE.SRGBColorSpace;
+  atlasRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+  atlasRenderer.toneMappingExposure = 1.12;
+
+  const atlasOrbit = new OrbitControls(atlasCamera, canvas);
+  atlasOrbit.enablePan = false;
+  atlasOrbit.enableDamping = false;
+  atlasOrbit.minDistance = 3.1;
+  atlasOrbit.maxDistance = 7;
+
+  atlasScene.add(new THREE.HemisphereLight(0xc4f7ff, 0x24133d, 1.75));
+  const atlasKey = new THREE.DirectionalLight(0xffd5b9, 3.1);
+  atlasKey.position.set(3, -2, 5);
+  atlasScene.add(atlasKey);
+  const atlasRim = new THREE.DirectionalLight(0x59e3ef, 2.1);
+  atlasRim.position.set(-4, 2, -2);
+  atlasScene.add(atlasRim);
+
+  const majorRadius = 1.4;
+  const minorRadius = 0.55;
+  const torusGeometry = new THREE.TorusGeometry(majorRadius, minorRadius, 48, 112);
+  const torusMaterial = new THREE.MeshStandardMaterial({
+    color: 0xffffff,
+    metalness: 0.08,
+    roughness: 0.72,
+    side: THREE.DoubleSide,
+    vertexColors: true,
+  });
+  const torus = new THREE.Mesh(torusGeometry, torusMaterial);
+  atlasScene.add(torus);
+
+  function torusPoint(theta: number, phi: number, offset = 0): THREE.Vector3 {
+    const tube = minorRadius + offset;
+    return new THREE.Vector3(
+      (majorRadius + tube * Math.cos(phi)) * Math.cos(theta),
+      (majorRadius + tube * Math.cos(phi)) * Math.sin(theta),
+      tube * Math.sin(phi),
+    );
+  }
+
+  function makeThetaLoop(theta: number, color: number): THREE.LineLoop {
+    const points = Array.from({ length: 96 }, (_, index) => torusPoint(theta, TAU * index / 96, 0.025));
+    return new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints(points),
+      new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.98 }),
+    );
+  }
+
+  function makePhiLoop(phi: number, color: number): THREE.LineLoop {
+    const points = Array.from({ length: 144 }, (_, index) => torusPoint(TAU * index / 144, phi, 0.035));
+    return new THREE.LineLoop(
+      new THREE.BufferGeometry().setFromPoints(points),
+      new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.95 }),
+    );
+  }
+
+  const chartASeam = makeThetaLoop(0, 0xff7a3d);
+  const chartBSeam = makeThetaLoop(Math.PI, 0x59e3ef);
+  const thetaCycle = makePhiLoop(0.22, 0xffd86d);
+  atlasScene.add(chartASeam, chartBSeam, thetaCycle);
+
+  const arrowGroup = new THREE.Group();
+  for (const phi of [-1.05, -0.1, 0.95]) {
+    for (let index = 0; index < 9; index += 1) {
+      const theta = TAU * (index + 0.25) / 9;
+      const origin = torusPoint(theta, phi, 0.07);
+      const direction = new THREE.Vector3(-Math.sin(theta), Math.cos(theta), 0);
+      const metricDualLength = 0.28 * majorRadius / (majorRadius + minorRadius * Math.cos(phi));
+      arrowGroup.add(new THREE.ArrowHelper(direction, origin, metricDualLength, 0xfff0a7, 0.085, 0.055));
+    }
+  }
+  atlasScene.add(arrowGroup);
+
+  const colors = new Float32Array(torusGeometry.getAttribute("position").count * 3);
+  torusGeometry.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  const colorAttribute = torusGeometry.getAttribute("color") as THREE.BufferAttribute;
+  const uvAttribute = torusGeometry.getAttribute("uv");
+  const violet = new THREE.Color(0x7249a7);
+  const orange = new THREE.Color(0xff7a3d);
+  const cyan = new THREE.Color(0x59e3ef);
+  const overlap = new THREE.Color(0x8c62bd);
+  const harmonicDark = new THREE.Color(0x0c564c);
+  const harmonicLight = new THREE.Color(0x18a58d);
+  const workingColor = new THREE.Color();
+
+  function angularDistance(left: number, right: number): number {
+    const difference = Math.abs(left - right) % TAU;
+    return Math.min(difference, TAU - difference);
+  }
+
+  function updateTorusColors(mode: TorusChartMode): void {
+    for (let index = 0; index < colorAttribute.count; index += 1) {
+      const angleFraction = uvAttribute.getX(index);
+      const theta = TAU * angleFraction;
+      if (mode === "single") {
+        workingColor.lerpColors(violet, orange, angleFraction);
+      } else if (mode === "atlas") {
+        const distanceToASeam = angularDistance(theta, 0);
+        const distanceToBSeam = angularDistance(theta, Math.PI);
+        if (distanceToASeam < 0.5) workingColor.copy(orange);
+        else if (distanceToBSeam < 0.5) workingColor.copy(cyan);
+        else workingColor.copy(overlap);
+      } else if (mode === "pair") {
+        workingColor.lerpColors(cyan, orange, 0.5 + 0.5 * Math.sin(theta));
+      } else {
+        const phiFraction = uvAttribute.getY(index);
+        workingColor.lerpColors(harmonicDark, harmonicLight, 0.25 + 0.65 * Math.sin(Math.PI * phiFraction) ** 2);
+      }
+      colorAttribute.setXYZ(index, workingColor.r, workingColor.g, workingColor.b);
+    }
+    colorAttribute.needsUpdate = true;
+  }
+
+  const content: Record<TorusChartMode, {
+    kicker: string;
+    title: string;
+    equation: string;
+    copy: string;
+    caption: string;
+    aria: string;
+  }> = {
+    single: {
+      kicker: "ONE REAL-VALUED POTENTIAL",
+      title: "The angle tears at the orange seam.",
+      equation: String.raw`\phi_A=\theta_A\in(0,2\pi),\qquad \eta_h=c\,d\phi_A`,
+      copy: "Approaching the seam from opposite sides gives values near 2π and 0. The physical one-form is smooth, but a naïve difference of scalar samples sees a false jump of 2π.",
+      caption: "orange ring: the unavoidable branch cut of one angle field",
+      aria: "A torus colored by one angle potential with a discontinuity at an orange meridian.",
+    },
+    atlas: {
+      kicker: "TWO OVERLAPPING LOCAL POTENTIALS",
+      title: "Each chart covers the other chart’s cut.",
+      equation: String.raw`\phi_B=\phi_A+2\pi k\quad\Longrightarrow\quad d\phi_B=d\phi_A=d\theta`,
+      copy: "Orange marks where chart A hands off to chart B; cyan marks the reverse handoff. The potentials disagree only by a constant on each overlap component, so their derivatives glue into one smooth global velocity one-form.",
+      caption: "orange: chart B covers A’s cut · cyan: chart A covers B’s cut · violet: overlap",
+      aria: "A torus covered by two overlapping angle charts with separate orange and cyan seams.",
+    },
+    pair: {
+      kicker: "ONE GLOBAL CLEBSCH TRIPLE",
+      title: "Two periodic labels can encode the angle smoothly.",
+      equation: String.raw`\alpha=-2\sin\theta,\quad\beta=\cos\theta,\quad\phi=\tfrac12\sin2\theta`,
+      copy: "Although θ itself needs a branch cut, sin θ and cos θ are globally smooth. For this flow, dφ + α dβ = dθ exactly. The color now wraps continuously through the former seam.",
+      caption: "teal–orange color is periodic: no scalar jump at the former seam",
+      aria: "A torus smoothly colored by a periodic Clebsch pair with no visible branch cut.",
+    },
+    harmonic: {
+      kicker: "GLOBAL COHOMOLOGY COEFFICIENT",
+      title: "The solver can store the circulation directly.",
+      equation: String.raw`\eta_h=c\,h_\theta,\qquad \oint_{\gamma_\theta}\eta_h=2\pi c`,
+      copy: "The gold loop is a noncontractible cycle. A global harmonic basis one-form hθ carries unit circulation around it, so the scalar coefficient c records the part no single-valued potential can represent.",
+      caption: "gold loop: noncontractible cycle · pale arrows: smooth harmonic circulation",
+      aria: "A dark green torus with a gold noncontractible cycle and a smooth harmonic circulation field.",
+    },
+  };
+
+  let mode: TorusChartMode = "single";
+
+  function resizeAndRender(): void {
+    const width = Math.max(1, canvas.clientWidth);
+    const height = Math.max(1, canvas.clientHeight);
+    const pixelRatio = atlasRenderer.getPixelRatio();
+    if (canvas.width !== Math.round(width * pixelRatio) || canvas.height !== Math.round(height * pixelRatio)) {
+      atlasRenderer.setSize(width, height, false);
+      atlasCamera.aspect = width / height;
+      atlasCamera.updateProjectionMatrix();
+    }
+    atlasRenderer.render(atlasScene, atlasCamera);
+  }
+
+  function setMode(nextMode: TorusChartMode): void {
+    mode = nextMode;
+    const next = content[mode];
+    updateTorusColors(mode);
+    chartASeam.visible = mode === "single" || mode === "atlas";
+    chartBSeam.visible = mode === "atlas";
+    thetaCycle.visible = mode === "harmonic";
+    kicker.textContent = next.kicker;
+    title.textContent = next.title;
+    renderLatex(equation, next.equation, true);
+    copy.textContent = next.copy;
+    caption.textContent = next.caption;
+    canvas.setAttribute("aria-label", next.aria);
+    for (const button of buttons) {
+      const active = button.dataset.csTorusMode === mode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    }
+    resizeAndRender();
+  }
+
+  for (const button of buttons) {
+    button.addEventListener("click", () => setMode(button.dataset.csTorusMode as TorusChartMode));
+  }
+  atlasOrbit.addEventListener("change", resizeAndRender);
+  new ResizeObserver(resizeAndRender).observe(canvas);
+  setMode(mode);
 }
 
 function magnitude(vector: Vec3): number {
@@ -782,6 +999,7 @@ function animate(): void {
 new ResizeObserver(resizeRenderer).observe(viewer);
 renderStaticLatex();
 initializeDualPairingLab();
+initializeTorusChartLab();
 updateControlOutputs();
 rebuildSurface();
 activateStep("labels");

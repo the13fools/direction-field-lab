@@ -127,6 +127,46 @@
           <aside><strong>The key distinction</strong><p>Vorticity determines the rotational part of velocity, but not the exact or harmonic parts. Clebsch supplies a candidate velocity; Hodge projection fixes its exact part. Starting from vorticity alone requires the same kind of global reconstruction before particles can move.</p></aside>
         </section>
 
+        <section class="cs-torus-atlas" aria-labelledby="cs-torus-atlas-title">
+          <header>
+            <span>THE TOPOLOGICAL OBSTRUCTION, MADE VISIBLE</span>
+            <h3 id="cs-torus-atlas-title">Follow one circulation all the way around a torus.</h3>
+            <p>The smooth one-form <span class="cs-math-inline" data-latex="\eta_h=c\,d\theta">eta h equals c d theta</span> circulates around the torus hole. Locally it looks like the differential of an angle. Globally that angle must jump somewhere.</p>
+          </header>
+
+          <div class="cs-torus-atlas-lab">
+            <div class="cs-torus-atlas-visual">
+              <canvas id="cs-torus-chart-canvas" role="img" aria-label="A torus showing an angle-chart seam and a smooth circulation field"></canvas>
+              <div class="cs-torus-atlas-note">drag to orbit · arrows show <span class="cs-math-inline" data-latex="(d\theta)^{\sharp_g}">the metric dual of d theta</span></div>
+              <div id="cs-torus-chart-caption">orange ring: the unavoidable branch cut of one angle field</div>
+            </div>
+
+            <div class="cs-torus-atlas-panel">
+              <div class="cs-torus-mode-buttons" role="group" aria-label="Torus chart representation">
+                <button class="active" data-cs-torus-mode="single" aria-pressed="true"><span>01</span><b>One angle field</b></button>
+                <button data-cs-torus-mode="atlas" aria-pressed="false"><span>02</span><b>Two-chart atlas</b></button>
+                <button data-cs-torus-mode="pair" aria-pressed="false"><span>03</span><b>Global Clebsch pair</b></button>
+                <button data-cs-torus-mode="harmonic" aria-pressed="false"><span>04</span><b>Harmonic mode</b></button>
+              </div>
+              <section aria-live="polite">
+                <span id="cs-torus-mode-kicker">ONE REAL-VALUED POTENTIAL</span>
+                <h4 id="cs-torus-mode-title">The angle tears at the orange seam.</h4>
+                <div id="cs-torus-mode-equation" class="cs-math-display" data-latex="\phi_A=\theta_A\in(0,2\pi),\qquad \eta_h=c\,d\phi_A">one local angle potential</div>
+                <p id="cs-torus-mode-copy">Approaching the seam from opposite sides gives values near 2π and 0. The physical one-form is smooth, but a naïve difference of the scalar samples sees a false jump of 2π.</p>
+              </section>
+            </div>
+          </div>
+
+          <div class="cs-torus-atlas-proof">
+            <article><span>WHY ONE GLOBAL φ IS IMPOSSIBLE</span><h4>Exact forms have zero period.</h4><div class="cs-math-display" data-latex="\oint_{\gamma_\theta}d\phi=0\quad\text{but}\quad\oint_{\gamma_\theta}c\,d\theta=2\pi c">closed-loop contradiction</div><p>A single-valued scalar returns to its starting value after a closed loop. The toroidal circulation does not. Therefore <span class="cs-math-inline" data-latex="c\,d\theta">c d theta</span> is closed but not globally exact.</p></article>
+            <article><span>HOW THE EXTRA CHART FIXES IT</span><h4>Move the cuts and glue derivatives.</h4><div class="cs-math-display" data-latex="\phi_B=\phi_A+2\pi k\quad\Longrightarrow\quad d\phi_B=d\phi_A=d\theta">transition on each overlap component</div><p>Chart A fails only at one meridian; chart B puts its cut at another. On overlaps their angle values differ by a constant, so their differentials—and hence the velocity—agree exactly.</p></article>
+            <article><span>A CLEBSCH WORKAROUND</span><h4>Two periodic labels can hide the cut.</h4><div class="cs-math-display" data-latex="\alpha=-2\sin\theta,\quad\beta=\cos\theta,\quad\phi=\tfrac12\sin2\theta\quad\Longrightarrow\quad d\phi+\alpha d\beta=d\theta">a global Clebsch triple for this example</div><p>This triple is globally single-valued even though θ is not. It proves that an extra chart is not mandatory for this particular flow; it does not guarantee that one Clebsch pair can encode every global velocity field.</p></article>
+            <article><span>WHAT A SOLVER USUALLY STORES</span><h4>Keep topology as a harmonic coefficient.</h4><div class="cs-math-display" data-latex="\eta=d\chi+\star_g d\psi+c_1h_1+c_2h_2,\qquad \dim\mathcal H^1(T^2)=2">Hodge decomposition on the torus</div><p>Rather than manage multivalued potentials, a mesh solver can store two global harmonic basis one-forms and their circulation coefficients. Charts explain the geometry; harmonic modes are often the cleaner numerical representation.</p></article>
+          </div>
+
+          <p class="cs-source-note">The distinction between closed and exact forms is the de Rham-cohomology obstruction. The torus has two independent degree-one classes, corresponding to its two noncontractible cycles; see the <a href="https://math.mit.edu/~tristanc/Math18.966/HW3.pdf">MIT notes on de Rham cohomology and the Hodge Laplacian</a>. The form and metric conventions follow <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a>.</p>
+        </section>
+
         <nav class="cs-roadmap-links" aria-label="Choose the next explanation">
           <a href="#cs-pairing-title"><span>01</span><b>Vectors versus covectors</b><small>Why use the velocity one-form?</small></a>
           <a href="#cs-derivation"><span>02</span><b>Derive the formula</b><small>From scalar labels to vorticity.</small></a>

@@ -15,4 +15,14 @@ describe("Clebsch surface lesson math", () => {
       }), formula).not.toThrow();
     }
   });
+
+  it("presents the torus obstruction, atlas repair, and global alternatives", () => {
+    for (const mode of ["single", "atlas", "pair", "harmonic"]) {
+      expect(pageSource).toContain(`data-cs-torus-mode="${mode}"`);
+    }
+    expect(pageSource).toContain("Exact forms have zero period");
+    expect(pageSource).toContain("HOW THE EXTRA CHART FIXES IT");
+    expect(pageSource).toContain("A CLEBSCH WORKAROUND");
+    expect(pageSource).toContain("\\dim\\mathcal H^1(T^2)=2");
+  });
 });
