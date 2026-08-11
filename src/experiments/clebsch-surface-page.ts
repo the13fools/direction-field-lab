@@ -29,7 +29,7 @@ import type { Vec3 } from "./random-surface-fluid-model";
 
 type ConstructionStep = "labels" | "differentials" | "wedge" | "assemble" | "project";
 type ScalarLayer = "alpha" | "beta" | "phi" | "vorticity" | "none";
-type GlyphLayer = "dAlpha" | "dBeta" | "dPhi" | "alphaDBeta" | "velocity" | "none";
+type GlyphLayer = "dAlpha" | "dBeta" | "dPhi" | "alphaDBeta" | "normalVorticity" | "velocity" | "none";
 type VelocityView = "raw" | "projected";
 type FieldCase = "controlled" | "taylor-green";
 type TorusChartMode = "single" | "atlas" | "pair" | "harmonic";
@@ -1094,6 +1094,11 @@ function glyphVector(sample: ControlledClebschSample): Vec3 {
   if (glyphLayer === "dBeta") return sample.dBeta;
   if (glyphLayer === "dPhi") return sample.dPhi;
   if (glyphLayer === "alphaDBeta") return sample.alphaDBeta;
+  if (glyphLayer === "normalVorticity") return {
+    x: sample.vorticity * sample.normal.x,
+    y: sample.vorticity * sample.normal.y,
+    z: sample.vorticity * sample.normal.z,
+  };
   if (glyphLayer === "velocity") return velocityView === "projected" ? sample.projectedVelocity : sample.velocity;
   return { x: 0, y: 0, z: 0 };
 }
@@ -1122,7 +1127,9 @@ function updateGlyphs(): void {
   const positions = new Float32Array(selected.length * 6);
   const colors = new Float32Array(selected.length * 6);
   const base = new THREE.Color(0x59e3ef);
-  const tip = new THREE.Color(glyphLayer === "velocity" ? 0xffd86d : 0xffa065);
+  const tip = new THREE.Color(
+    glyphLayer === "velocity" || glyphLayer === "normalVorticity" ? 0xffd86d : 0xffa065,
+  );
   const lift = surface === "frog" ? 0.008 : surface === "plane" ? 0.014 : 0.018;
   selected.forEach((sample, index) => {
     const vector = glyphVector(sample);
@@ -1147,6 +1154,7 @@ function updateGlyphs(): void {
     vertexColors: true,
     transparent: true,
     opacity: 0.92,
+    depthTest: glyphLayer !== "normalVorticity",
     depthWrite: false,
   }));
   lines.renderOrder = 3;
@@ -1157,7 +1165,7 @@ const scalarCaptions: Record<ScalarLayer, string> = {
   alpha: "α",
   beta: "β",
   phi: "φ",
-  vorticity: "ω = ⋆(dα ∧ dβ)",
+  vorticity: "ζ = ⋆g(dα ∧ dβ) · scalar shown by color",
   none: "mesh",
 };
 const glyphCaptions: Record<GlyphLayer, string> = {
@@ -1165,6 +1173,7 @@ const glyphCaptions: Record<GlyphLayer, string> = {
   dBeta: "(dβ)♯",
   dPhi: "(dφ)♯",
   alphaDBeta: "(αdβ)♯",
+  normalVorticity: "ζ n · extrinsic normal vector",
   velocity: "velocity",
   none: "none",
 };
@@ -1264,10 +1273,10 @@ const stepCopy: Record<ConstructionStep, {
   },
   wedge: {
     kicker: "STEP 03 · CHECK THE CHOSEN VORTICITY",
-    equation: String.raw`du^\flat=d\alpha\wedge d\beta\in\Omega^2(S)`,
-    type: "LOCAL VIEW: evaluate an oriented parallelogram · INTEGRAL VIEW: measure a patch",
-    example: String.raw`d\alpha\wedge d\beta=A\sin\theta\cos x\cos y\,dx\wedge dy`,
-    copy: "This is the constraint on the label choice: their signed crossing must equal the vorticity you intend to represent. Parallel labels produce zero; independent labels produce local circulation.",
+    equation: String.raw`\omega^{(2)}=du^\flat=d\alpha\wedge d\beta\in\Omega^2(S),\qquad \zeta=\star_g\omega^{(2)}\in\Omega^0(S)`,
+    type: "INTRINSIC OBJECT: 2-FORM ON PATCHES · DISPLAYED COLOR: HODGE-DUAL SCALAR ζ",
+    example: String.raw`\boldsymbol\omega=\zeta\,\mathbf n\quad\text{only after choosing an oriented embedding}`,
+    copy: "The wedge is intrinsically a two-form, not a tangent arrow. The surface metric and orientation turn it into the signed scalar ζ used for color. On an embedded oriented surface, ζ times the unit normal is the familiar normal vorticity vector.",
   },
   assemble: {
     kicker: "STEP 04 · CHOOSE THE EXACT COMPLETION",
@@ -1302,10 +1311,10 @@ const taylorGreenStepCopy: typeof stepCopy = {
   },
   wedge: {
     kicker: "TEST 03 · VORTICITY ORACLE",
-    equation: String.raw`d\alpha\wedge d\beta=2U\sin x\sin y\,dx\wedge dy`,
-    type: "FOUR ALTERNATING VORTICITY CELLS ON THE PERIODIC SQUARE",
-    example: String.raw`d(d\phi+\alpha d\beta)=d\alpha\wedge d\beta`,
-    copy: "The exact contaminant cannot alter this checkerboard: d(dq) = 0. That gives the test a known vorticity answer before projection.",
+    equation: String.raw`\omega^{(2)}=d\alpha\wedge d\beta=2U\sin x\sin y\,dx\wedge dy`,
+    type: "THE 2-FORM INTEGRATES ON PATCHES; ζ = ⋆gω² IS THE CHECKERBOARD COLOR",
+    example: String.raw`\zeta=2U\sin x\sin y,\qquad \boldsymbol\omega=\zeta\,\mathbf n`,
+    copy: "The exact contaminant cannot alter this checkerboard because d(dq) = 0. The intrinsic answer is the two-form; the colored scalar and normal vector are metric- and orientation-dependent representations of it.",
   },
   assemble: {
     kicker: "TEST 04 · ADD A KNOWN ERROR",
@@ -1333,7 +1342,7 @@ function activateStep(step: ConstructionStep): void {
     glyphLayer = "dAlpha";
   } else if (step === "wedge") {
     scalarLayer = "vorticity";
-    glyphLayer = "dBeta";
+    glyphLayer = "normalVorticity";
   } else if (step === "assemble") {
     scalarLayer = fieldCase === "taylor-green" ? "vorticity" : "phi";
     glyphLayer = "velocity";
@@ -1388,7 +1397,7 @@ function updateChoiceSummary(): void {
   if (fieldCase === "taylor-green") {
     kicker.textContent = "A TARGET-DRIVEN FACTORIZATION";
     renderLatex(labelEquation, String.raw`\alpha=${(2 * strength).toFixed(2)}\cos x,\qquad\beta=\cos y`, true);
-    renderLatex(vorticityEquation, String.raw`d\alpha\wedge d\beta=${(2 * strength).toFixed(2)}\sin x\sin y\,dx\wedge dy`, true);
+    renderLatex(vorticityEquation, String.raw`\omega^{(2)}=d\alpha\wedge d\beta=${(2 * strength).toFixed(2)}\sin x\sin y\,dx\wedge dy`, true);
     renderLatex(phiEquation, String.raw`\phi=-${strength.toFixed(2)}\cos x\cos y+${potential.toFixed(2)}\sin(x+y)`, true);
     reading.textContent = "Here the target is known first. α and β are selected to factor its checkerboard vorticity; φ then completes the Taylor–Green velocity and adds the controlled exact test field.";
     updateChoicePresetState();
@@ -1398,11 +1407,11 @@ function updateChoiceSummary(): void {
   kicker.textContent = "YOUR CURRENT FACTORIZATION";
   if (surface === "sphere") {
     renderLatex(labelEquation, String.raw`\alpha=${strength.toFixed(2)}z,\qquad\beta=${parallel.toFixed(2)}z+${transverse.toFixed(2)}x`, true);
-    renderLatex(vorticityEquation, String.raw`d\alpha\wedge d\beta=${(strength * transverse).toFixed(2)}\,dz\wedge dx\big|_{TS^2}`, true);
+    renderLatex(vorticityEquation, String.raw`\omega^{(2)}=d\alpha\wedge d\beta=${(strength * transverse).toFixed(2)}\,dz\wedge dx\big|_{TS^2}`, true);
     renderLatex(phiEquation, String.raw`\phi=${potential.toFixed(2)}y,\qquad d(d\phi)=0`, true);
   } else if (surface === "frog") {
     renderLatex(labelEquation, String.raw`\alpha=${strength.toFixed(2)}e_1,\qquad\beta=${parallel.toFixed(2)}e_1+${transverse.toFixed(2)}e_3`, true);
-    renderLatex(vorticityEquation, String.raw`d\alpha\wedge d\beta=${(strength * transverse).toFixed(2)}\,de_1\wedge de_3`, true);
+    renderLatex(vorticityEquation, String.raw`\omega^{(2)}=d\alpha\wedge d\beta=${(strength * transverse).toFixed(2)}\,de_1\wedge de_3`, true);
     renderLatex(phiEquation, String.raw`\phi=${potential.toFixed(2)}e_6,\qquad d(d\phi)=0`, true);
   } else {
     const firstCoordinate = surface === "torus" ? "u" : "x";
@@ -1414,7 +1423,7 @@ function updateChoiceSummary(): void {
     );
     renderLatex(
       vorticityEquation,
-      String.raw`d\alpha\wedge d\beta=${(strength * transverse).toFixed(2)}\cos ${firstCoordinate}\cos ${secondCoordinate}\,d${firstCoordinate}\wedge d${secondCoordinate}`,
+      String.raw`\omega^{(2)}=d\alpha\wedge d\beta=${(strength * transverse).toFixed(2)}\cos ${firstCoordinate}\cos ${secondCoordinate}\,d${firstCoordinate}\wedge d${secondCoordinate}`,
       true,
     );
     renderLatex(

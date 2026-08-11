@@ -62,6 +62,16 @@ describe("Clebsch surface lesson math", () => {
     expect(actionPageSource).toContain("D_t\\phi=\\tfrac12|u|^2-p");
     expect(actionPageSource).toContain("pressure changes it along the trajectory");
     expect(actionPageSource).toContain("not yet a free-running nonlinear solver");
+    expect(actionPageSource.indexOf('id="cs-material-canvas"')).toBeLessThan(
+      actionPageSource.indexOf('aria-label="Interactive Clebsch variables on surfaces lab"'),
+    );
+  });
+
+  it("distinguishes the intrinsic vorticity two-form from its scalar and normal-vector views", () => {
+    expect(actionPageSource).toContain("\\zeta=\\star_g\\omega^{(2)}");
+    expect(actionPageSource).toContain("\\boldsymbol\\omega=\\zeta\\,\\mathbf n");
+    expect(actionPageSource).toContain('data-cs-glyph="normalVorticity"');
+    expect(introPageSource).toContain("the vorticity vector is zeta times the unit normal");
   });
 
   it("distinguishes loop circulation from patch vorticity before introducing topology", () => {
@@ -79,6 +89,8 @@ describe("Clebsch surface lesson math", () => {
     expect(flatTorusPageSource).toContain("Two noncontractible periods remain");
     expect(flatTorusPageSource).toContain("\\Gamma_x=\\oint_{\\gamma_x}\\eta=c_x");
     expect(flatTorusPageSource).toContain("These two numbers are independent velocity data");
+    expect(flatTorusPageSource).toContain("TWO DIFFERENT ZEROS");
+    expect(flatTorusPageSource).toContain('id="ft-match-clebsch"');
   });
 
   it("keeps the random lab kinematic and separates it from shallow-water dynamics", () => {

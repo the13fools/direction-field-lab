@@ -41,8 +41,8 @@
           <article>
             <span>2D · PATCH DENSITY</span>
             <h3>Vorticity asks about local spinning.</h3>
-            <div class="cs-math-display" data-latex="\omega=d\eta\in\Omega^2(S)">vorticity is a two-form</div>
-            <p>Integrating <span class="cs-math-inline" data-latex="\omega">omega</span> over a small patch gives the circulation around that patch's boundary.</p>
+            <div class="cs-math-display" data-latex="\omega^{(2)}=d\eta\in\Omega^2(S),\qquad \zeta=\star_g\omega^{(2)}\in\Omega^0(S)">vorticity two-form and its scalar representative</div>
+            <p>Intrinsically, vorticity is the two-form <span class="cs-math-inline" data-latex="\omega^{(2)}">omega two</span>. Its Hodge dual ζ is the signed scalar used to color an oriented surface. For an embedded surface, <span class="cs-math-inline" data-latex="\boldsymbol\omega=\zeta\,\mathbf n">the vorticity vector is zeta times the unit normal</span>. Integrating the two-form—not the normal arrow—over a patch gives its boundary circulation.</p>
           </article>
           <article class="accent">
             <span>STOKES · AND ITS LIMIT</span>
@@ -63,7 +63,7 @@
           <ol>
             <li><b>Velocity vector</b><div><div class="cs-math-display" data-latex="u=-y\,\partial_x+x\,\partial_y">the particle-motion field</div><p>This is what the advection step needs.</p></div></li>
             <li><b>Velocity one-form</b><div><div class="cs-math-display" data-latex="\eta=u^\flat=-y\,dx+x\,dy">lower the index using the metric</div><p>The one-form measures motion along a tangent direction; integrated around a loop, it measures circulation.</p></div></li>
-            <li><b>Vorticity two-form</b><div><div class="cs-math-display" data-latex="\omega=d\eta=2\,dx\wedge dy">differentiate the velocity one-form</div><p>This records local circulation density. It no longer tells a particle which direction to move, and on a surface with handles it also misses global loop circulations.</p></div></li>
+            <li><b>Vorticity two-form</b><div><div class="cs-math-display" data-latex="\omega^{(2)}=d\eta=2\,dx\wedge dy,\qquad \zeta=\star_g\omega^{(2)}=2">differentiate, then Hodge-dualize for display</div><p>The two-form records intrinsic local circulation density. The scalar ζ is its oriented coefficient; multiplying ζ by the chosen unit normal gives the familiar extrinsic vorticity vector. None of these tells a particle which tangent direction to move.</p></div></li>
             <li><b>Clebsch variables</b><div><div class="cs-math-display" data-latex="\alpha=2x,\quad\beta=y,\quad\phi=-xy,\qquad d\phi+\alpha d\beta=\eta">one encoding of the same one-form</div><p>Three nonunique scalar fields reproduce the velocity one-form, while <span class="cs-math-inline" data-latex="d\alpha\wedge d\beta=\omega">their crossing reproduces vorticity</span>.</p></div></li>
           </ol>
         </section>

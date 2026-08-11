@@ -20,9 +20,11 @@ body { margin: 0; background: #f8f2ff; }
 button, input { font: inherit; }
 button { cursor: pointer; }
 .cs-math-inline { display: inline-block; color: var(--violet); vertical-align: -.08em; }
-.cs-math-display .katex-display { margin: 0; overflow-x: auto; overflow-y: hidden; }
-.cs-math-display .katex { font-size: clamp(14px, 1vw, 18px); }
-.cs-math-inline .katex { font-size: 1.1em; }
+.cs-math-display { min-width: 0; overflow-x: auto; overflow-y: visible; }
+.cs-math-display .katex-display { margin: 0; padding: .3em .08em .42em; overflow: visible; }
+.cs-math-display .katex { font-size: clamp(17px, 1.2vw, 22px); line-height: 1.35; }
+.cs-math-inline .katex { font-size: 1.14em; line-height: 1.25; }
+.cs-torus-atlas .cs-math-display .katex, .cs-projection-answer .cs-math-display .katex { font-size: clamp(18px, 1.35vw, 24px); }
 
 .cs-header {
   position: sticky;

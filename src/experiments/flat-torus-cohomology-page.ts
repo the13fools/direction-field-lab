@@ -119,11 +119,23 @@ function updateInterface(): void {
     true,
   );
   const residualMagnitude = Math.hypot(diagnostics.residualPeriod.x, diagnostics.residualPeriod.y);
+  const rawMagnitude = Math.hypot(diagnostics.rawPeriod.x, diagnostics.rawPeriod.y);
+  const removedMagnitude = Math.hypot(diagnostics.removedPeriod.x, diagnostics.removedPeriod.y);
   const nearest = model.nearestQuantizedField();
   const isNearest = nearest.x === model.parameters.subtractX && nearest.y === model.parameters.subtractY;
-  byId("ft-live-copy").textContent = residualMagnitude < 1e-10
-    ? "The selected lattice field removes all global drift. The cyan material grid deforms only inside the shared local vortex cells."
-    : `${isNearest ? "This is the nearest lattice representative." : "This is not the nearest lattice representative."} The remaining harmonic speed is ${format(residualMagnitude, 3)}. Both grids have the same local bending; their relative slide is harmonic transport.`;
+  byId("ft-live-copy").textContent = rawMagnitude < 1e-10 && removedMagnitude < 1e-10
+    ? "This is the same zero-harmonic Taylor–Green sector as the evolving-label demo: both grids coincide and deform locally, with no uniform torus drift."
+    : removedMagnitude < 1e-10
+      ? `(m,n) = (0,0) removes nothing; it does not set c to zero. Both coincident grids still carry the physical harmonic drift ${pair(diagnostics.rawPeriod)}.`
+      : residualMagnitude < 1e-10
+        ? "The selected lattice field exactly cancels the physical harmonic periods. The cyan grid now deforms only inside the local vortex cells."
+        : `${isNearest ? "This is the nearest lattice representative." : "This is not the nearest lattice representative."} The remaining harmonic speed is ${format(residualMagnitude, 3)}. Both grids have the same local bending; their relative slide is harmonic transport.`;
+  const matchesClebschDemo = rawMagnitude < 1e-10
+    && removedMagnitude < 1e-10
+    && Math.abs(model.parameters.vortexStrength - 0.8) < 1e-10;
+  const matchButton = byId<HTMLButtonElement>("ft-match-clebsch");
+  matchButton.classList.toggle("active", matchesClebschDemo);
+  matchButton.setAttribute("aria-pressed", String(matchesClebschDemo));
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-ft-lattice]")) {
     const [x, y] = button.dataset.ftLattice!.split(",").map(Number);
     const active = x === model.parameters.subtractX && y === model.parameters.subtractY;
@@ -403,6 +415,21 @@ byId<HTMLButtonElement>("ft-nearest").addEventListener("click", () => {
   setLatticePoint(nearest.x, nearest.y);
 });
 byId<HTMLButtonElement>("ft-zero").addEventListener("click", () => setLatticePoint(0, 0));
+byId<HTMLButtonElement>("ft-match-clebsch").addEventListener("click", () => {
+  controls.periodX.value = "0";
+  controls.periodY.value = "0";
+  controls.vortex.value = "0.8";
+  model.reset({
+    periodX: 0,
+    periodY: 0,
+    vortexStrength: 0.8,
+    subtractX: 0,
+    subtractY: 0,
+  });
+  resetTrails();
+  updateOutputs();
+  updateInterface();
+});
 byId<HTMLButtonElement>("ft-reset").addEventListener("click", () => {
   model.resetParticles();
   resetTrails();

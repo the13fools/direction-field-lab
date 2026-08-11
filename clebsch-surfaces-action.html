@@ -18,9 +18,45 @@
       <section class="cs-intro">
         <div><p class="cs-eyebrow">Part II · put the representation to work</p><h1>Build the field.<br /><em>Find the seam.</em></h1></div>
         <div class="cs-intro-copy">
-          <p>Part I separated a loop measurement from a patch density. Keep that distinction visible here: the Clebsch triple builds the whole velocity one-form, while differentiation keeps only its local vorticity.</p>
-          <div class="cs-math-display" data-latex="\eta=d\phi+\alpha d\beta,\qquad \Gamma(C)=\oint_C\eta,\qquad \omega=d\eta=d\alpha\wedge d\beta">one-form, loop circulation, and vorticity</div>
-          <p>The plane experiment controls <span class="cs-math-inline" data-latex="\omega">omega</span>. The torus then exposes what that local data cannot determine: two circulations around the two noncontractible cycles.</p>
+          <p>Begin by carrying a known Clebsch triple through a steady flow. Then freeze time and inspect how the three scalar fields assemble the velocity one-form.</p>
+          <div class="cs-math-display" data-latex="\eta=d\phi+\alpha d\beta,\qquad \omega^{(2)}=d\eta=d\alpha\wedge d\beta,\qquad \zeta=\star_g\omega^{(2)}">one-form, vorticity two-form, and displayed scalar</div>
+          <p>The torus experiment finally exposes what local vorticity cannot determine: two circulations around the two noncontractible cycles.</p>
+        </div>
+      </section>
+
+      <section class="cs-material" aria-labelledby="cs-material-title">
+        <header>
+          <div><p class="cs-eyebrow">First experiment · Clebsch variables as evolving state</p><h2 id="cs-material-title">Carry the labels.<br /><em>Let φ change.</em></h2></div>
+          <aside><span>IDEAL EULER EVOLUTION ALONG A PATHLINE</span><div class="cs-math-display" data-latex="D_t\alpha=0,\qquad D_t\beta=0,\qquad D_t\phi=\tfrac12|u|^2-p">material label and potential equations</div><p>The labels remember which material contour a particle belongs to. The exact potential is not frozen into the fluid: pressure changes it along the trajectory.</p></aside>
+        </header>
+
+        <div class="cs-material-lab">
+          <section class="cs-material-stage">
+            <header><div><span>PERIODIC TAYLOR–GREEN FLOW · ZERO HARMONIC PERIODS</span><strong>deforming material-label grid</strong></div><div class="cs-material-legend"><i></i> α contours <i></i> β contours <i></i> tracked patch</div></header>
+            <canvas id="cs-material-canvas" role="img" aria-label="Alpha and beta material contours deforming in a periodic Taylor-Green flow with zero harmonic periods"></canvas>
+            <div class="cs-material-view" role="group" aria-label="Material label lines to display">
+              <span>SHOW</span><button class="active" data-cs-material-view="both">α + β grid</button><button data-cs-material-view="alpha">α only</button><button data-cs-material-view="beta">β only</button>
+            </div>
+            <div class="cs-material-actions"><button id="cs-material-reset">Reset labels</button><button id="cs-material-step">One step</button><button id="cs-material-play" class="primary">Play</button></div>
+          </section>
+
+          <aside class="cs-material-reading">
+            <p class="cs-eyebrow">Follow the orange tracer</p>
+            <h3>The representation evolves even though the Euler velocity is steady.</h3>
+            <div class="cs-math-display" data-latex="\alpha_0=2U\cos x_0,\qquad\beta_0=\cos y_0,\qquad\phi_0=-U\cos x_0\cos y_0">initial Taylor-Green Clebsch triple</div>
+            <ol>
+              <li><span>01</span><p><b>α and β stay attached.</b> Cyan and orange curves are connected pieces of material level sets. Their shapes deform, but the tracer’s two label values remain constant. The pair labels fluid parcels; it need not be a one-to-one coordinate chart.</p></li>
+              <li><span>02</span><p><b>Their crossing carries a vorticity two-form.</b> Intrinsically, <span class="cs-math-inline" data-latex="\omega^{(2)}=d\alpha\wedge d\beta">omega two is d alpha wedge d beta</span>. The colored background is the scalar <span class="cs-math-inline" data-latex="\zeta=\star_g\omega^{(2)}=2U\sin x\sin y">zeta is the Hodge star of omega</span>. If the surface is embedded and oriented, the familiar normal vorticity vector is <span class="cs-math-inline" data-latex="\boldsymbol\omega=\zeta\,\mathbf n">zeta times the unit normal</span>.</p></li>
+              <li><span>03</span><p><b>φ absorbs the pressure contribution.</b> Its tracer value evolves by the Bernoulli equation above. This is how pressure can act while α and β remain material invariants.</p></li>
+            </ol>
+            <div class="cs-material-metrics">
+              <div><small>TIME</small><b id="cs-material-time">0.000</b></div>
+              <div><small>CARRIED LABELS</small><b id="cs-material-labels">α — · β —</b><em>Δα = Δβ = 0</em></div>
+              <div><small>EXACT POTENTIAL</small><b id="cs-material-phi">φ —</b><em id="cs-material-phi-change">Δφ —</em></div>
+              <div><small>INCOMPRESSIBILITY AUDIT</small><b id="cs-material-area">area ratio —</b><em id="cs-material-vorticity-error">Δω —</em></div>
+            </div>
+            <p class="cs-material-caveat">This Taylor–Green comparison has zero harmonic periods: there is local vortex motion but no uniform drift around either torus cycle. The translucent quadrilateral is a small material patch; its area should remain one times its initial area. This controlled steady-flow test isolates the Clebsch transport laws; it is not yet a free-running nonlinear solver. When stretching outruns the contour sampling, the renderer leaves a small gap instead of inventing a straight crossing.</p>
+          </aside>
         </div>
       </section>
 
@@ -53,7 +89,7 @@
           <div class="cs-button-stack cs-steps">
             <button class="active" data-cs-step="labels"><i>01</i><span><b>Choose α and β</b><small>two scalar label families</small></span></button>
             <button data-cs-step="differentials"><i>02</i><span><b>Take dα and dβ</b><small>1-forms measure tangent arrows</small></span></button>
-            <button data-cs-step="wedge"><i>03</i><span><b>Form dα ∧ dβ</b><small>2-forms measure oriented patches</small></span></button>
+            <button data-cs-step="wedge"><i>03</i><span><b>Form dα ∧ dβ</b><small>2-form intrinsically · scalar after ⋆</small></span></button>
             <button data-cs-step="assemble"><i>04</i><span><b>Assemble u♭</b><small>dφ + α dβ</small></span></button>
             <button data-cs-step="project"><i>05</i><span><b>Project out div</b><small>subtract an exact 1-form</small></span></button>
           </div>
@@ -99,7 +135,7 @@
           <section class="cs-current-choice" aria-live="polite">
             <span id="cs-current-choice-kicker">YOUR CURRENT FACTORIZATION</span>
             <div id="cs-choice-label-equation" class="cs-math-display" data-latex="\alpha=0.70\sin x,\quad\beta=0.34\sin x+0.94\sin y">chosen alpha and beta</div>
-            <div id="cs-choice-vorticity-equation" class="cs-math-display" data-latex="d\alpha\wedge d\beta=0.66\cos x\cos y\,dx\wedge dy">resulting vorticity</div>
+            <div id="cs-choice-vorticity-equation" class="cs-math-display" data-latex="\omega^{(2)}=d\alpha\wedge d\beta=0.66\cos x\cos y\,dx\wedge dy">resulting vorticity two-form</div>
             <div id="cs-choice-phi-equation" class="cs-math-display" data-latex="\phi=0.24\cos(x-y),\qquad d(d\phi)=0">chosen exact part</div>
             <p id="cs-choice-reading">The sine fields are only a simple periodic example. Their crossing determines vorticity; φ independently changes the curl-free part of velocity.</p>
           </section>
@@ -115,52 +151,17 @@
             <button data-cs-glyph="dBeta"><b>(dβ)♯</b><small>normal to β contours</small></button>
             <button data-cs-glyph="dPhi"><b>(dφ)♯</b><small>exact velocity piece</small></button>
             <button data-cs-glyph="alphaDBeta"><b>(αdβ)♯</b><small>vorticity-carrying piece</small></button>
+            <button data-cs-glyph="normalVorticity"><b>ζ n</b><small>positive outward · negative inward</small></button>
             <button data-cs-glyph="velocity"><b>u or u⊥</b><small>selected velocity view</small></button>
             <button data-cs-glyph="none"><b>none</b><small>scalar color only</small></button>
           </div>
 
           <section class="cs-probe">
             <span>POINT PROBE</span><strong id="cs-probe-location">u = 0.19 · v = 0.31</strong>
-            <div><p><small>α</small><b id="cs-probe-alpha">—</b></p><p><small>β</small><b id="cs-probe-beta">—</b></p><p><small>φ</small><b id="cs-probe-phi">—</b></p><p><small>ω</small><b id="cs-probe-vorticity">—</b></p></div>
-            <p id="cs-probe-reading">At this point, the two label differentials meet at an angle and contribute oriented area.</p>
+            <div><p><small>α</small><b id="cs-probe-alpha">—</b></p><p><small>β</small><b id="cs-probe-beta">—</b></p><p><small>φ</small><b id="cs-probe-phi">—</b></p><p><small>ζ = ⋆ω²</small><b id="cs-probe-vorticity">—</b></p></div>
+            <p id="cs-probe-reading">At this point, the two label differentials meet at an angle and contribute an oriented-area two-form. The number above is its Hodge-dual scalar.</p>
           </section>
         </aside>
-      </section>
-
-      <section class="cs-material" aria-labelledby="cs-material-title">
-        <header>
-          <div><p class="cs-eyebrow">Clebsch variables as evolving state</p><h2 id="cs-material-title">Carry the labels.<br /><em>Let φ change.</em></h2></div>
-          <aside><span>IDEAL EULER EVOLUTION ALONG A PATHLINE</span><div class="cs-math-display" data-latex="D_t\alpha=0,\qquad D_t\beta=0,\qquad D_t\phi=\tfrac12|u|^2-p">material label and potential equations</div><p>The labels remember which material contour a particle belongs to. The exact potential is not frozen into the fluid: pressure changes it along the trajectory.</p></aside>
-        </header>
-
-        <div class="cs-material-lab">
-          <section class="cs-material-stage">
-            <header><div><span>PERIODIC TAYLOR–GREEN FLOW</span><strong>deforming material-label grid</strong></div><div class="cs-material-legend"><i></i> α contours <i></i> β contours <i></i> tracked patch</div></header>
-            <canvas id="cs-material-canvas" role="img" aria-label="Alpha and beta material contours deforming in a periodic Taylor-Green flow"></canvas>
-            <div class="cs-material-view" role="group" aria-label="Material label lines to display">
-              <span>SHOW</span><button class="active" data-cs-material-view="both">α + β grid</button><button data-cs-material-view="alpha">α only</button><button data-cs-material-view="beta">β only</button>
-            </div>
-            <div class="cs-material-actions"><button id="cs-material-reset">Reset labels</button><button id="cs-material-step">One step</button><button id="cs-material-play" class="primary">Play</button></div>
-          </section>
-
-          <aside class="cs-material-reading">
-            <p class="cs-eyebrow">Follow the orange tracer</p>
-            <h3>The representation evolves even though the Euler velocity is steady.</h3>
-            <div class="cs-math-display" data-latex="\alpha_0=2U\cos x_0,\qquad\beta_0=\cos y_0,\qquad\phi_0=-U\cos x_0\cos y_0">initial Taylor-Green Clebsch triple</div>
-            <ol>
-              <li><span>01</span><p><b>α and β stay attached.</b> Cyan and orange curves are connected pieces of material level sets. Their shapes deform, but the tracer’s two label values remain constant. The pair labels fluid parcels; it need not be a one-to-one coordinate chart.</p></li>
-              <li><span>02</span><p><b>Their crossing carries vorticity.</b> The background shows <span class="cs-math-inline" data-latex="\omega=2U\sin x\sin y">Taylor Green vorticity</span>. Along this steady Euler trajectory, the tracer keeps its vorticity value too.</p></li>
-              <li><span>03</span><p><b>φ absorbs the pressure contribution.</b> Its tracer value evolves by the Bernoulli equation above. This is how pressure can act while α and β remain material invariants.</p></li>
-            </ol>
-            <div class="cs-material-metrics">
-              <div><small>TIME</small><b id="cs-material-time">0.000</b></div>
-              <div><small>CARRIED LABELS</small><b id="cs-material-labels">α — · β —</b><em>Δα = Δβ = 0</em></div>
-              <div><small>EXACT POTENTIAL</small><b id="cs-material-phi">φ —</b><em id="cs-material-phi-change">Δφ —</em></div>
-              <div><small>INCOMPRESSIBILITY AUDIT</small><b id="cs-material-area">area ratio —</b><em id="cs-material-vorticity-error">Δω —</em></div>
-            </div>
-            <p class="cs-material-caveat">The translucent quadrilateral is a small material patch; its area should remain one times its initial area. Its vorticity color describes local circulation density—not a torus period. This controlled steady-flow test isolates the Clebsch transport laws; it is not yet a free-running nonlinear solver. When stretching outruns the contour sampling, the renderer leaves a small gap instead of inventing a straight crossing.</p>
-          </aside>
-        </div>
       </section>
 
       <section class="cs-roadmap" aria-labelledby="cs-roadmap-title">

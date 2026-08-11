@@ -84,4 +84,19 @@ describe("flat-torus harmonic lattice", () => {
       && pair.reduced.x >= 0 && pair.reduced.x < 1
     )))).toBe(true);
   });
+
+  it("matches the evolving-label Taylor-Green sector only when the physical periods are zero", () => {
+    const model = new FlatTorusCohomologyModel({
+      vortexStrength: 0.8,
+      periodX: 0,
+      periodY: 0,
+      subtractX: 0,
+      subtractY: 0,
+    });
+    const sample = model.sample(0.23, 0.61);
+    expect(sample.rawVelocity).toEqual(sample.coexactVelocity);
+    expect(sample.reducedVelocity).toEqual(sample.coexactVelocity);
+    expect(model.diagnostics().rawPeriod).toEqual({ x: 0, y: 0 });
+    expect(model.diagnostics().residualPeriod).toEqual({ x: 0, y: 0 });
+  });
 });
