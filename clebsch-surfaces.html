@@ -200,9 +200,45 @@
         </div>
         <div class="cs-explanation-grid">
           <article><span>METRIC-FREE</span><h3>Pullback, d, and ∧ are intrinsic.</h3><div class="cs-math-display" data-latex="\phi,\alpha,\beta\xrightarrow{\ d\ }d\phi,d\alpha,d\beta\xrightarrow{\ \wedge\ }d\alpha\wedge d\beta">metric-free part of the construction</div><p>These operations do not require lengths, angles, or an embedding in three-dimensional space. The course notes emphasize that they commute naturally with pullback under a change of parameterization.</p></article>
-          <article><span>METRIC-DEPENDENT</span><h3>♯, ⋆, divergence, and projection use g.</h3><div class="cs-math-display" data-latex="u=(u^\flat)^{\sharp_g},\quad \omega_{\rm scalar}=\star_gdu^\flat,\quad \delta=-\star_g d\star_g">sharp, scalar vorticity, and the codifferential depend on the metric</div><p>On a two-dimensional surface, the Hodge star turns the vorticity two-form into the scalar color shown by the lab. The same metric converts the one-form into tangent arrows.</p></article>
+          <article><span>METRIC-DEPENDENT</span><h3>♯, ⋆, divergence, and projection use g.</h3><div class="cs-formula-stack"><div class="cs-math-display" data-latex="u=(u^\flat)^{\sharp_g}">raise the velocity covector</div><div class="cs-math-display" data-latex="\omega_{\mathrm{scalar}}=\star_g\!\left(du^\flat\right)">turn the vorticity two-form into a scalar</div><div class="cs-math-display" data-latex="\delta\eta=-\star_g d\!\left(\star_g\eta\right),\qquad \eta\in\Omega^1(S)">codifferential of a one-form on an oriented surface</div></div><p>On a two-dimensional oriented surface, the Hodge star turns the vorticity two-form into the scalar color shown by the lab. The same metric converts the velocity one-form into tangent arrows and defines its divergence.</p></article>
           <article><span>GLOBAL CAVEAT</span><h3>One Clebsch pair is not always globally complete.</h3><div class="cs-math-display" data-latex="u^\flat=d\chi+\star d\psi+h">Hodge decomposition with harmonic part h</div><p>Topology can support harmonic circulation that vorticity alone cannot recover. Clebsch potentials are also nonunique and may require multiple charts or multiple label pairs. The frog projection uses a finite Laplace–Beltrami basis, so it preserves resolved—not infinitely fine—vorticity.</p></article>
         </div>
+
+        <section class="cs-dof" aria-labelledby="cs-dof-title">
+          <header><div><p class="cs-eyebrow">Representation space versus physical state</p><h2 id="cs-dof-title">How many degrees of freedom?</h2></div><p>Once the metric is fixed, <span class="cs-math-inline" data-latex="u\leftrightarrow u^\flat">u corresponds bijectively to u flat</span>. No freedom is created by lowering the index. The redundancy appears only when the same one-form is described by three Clebsch potentials.</p></header>
+
+          <div class="cs-dof-count">
+            <article><span>PHYSICAL FIELD IN A CHART</span><h3>Two component functions</h3><div class="cs-math-display" data-latex="u^\flat=u_x\,dx+u_y\,dy">a one-form has two local components</div><p>A tangent vector field on a two-dimensional surface has two scalar components per point.</p></article>
+            <i>← same one-form →</i>
+            <article><span>CLEBSCH REPRESENTATION</span><h3>Three potentials, with gauge freedom</h3><div class="cs-math-display" data-latex="u^\flat=d\phi+\alpha\,d\beta">Clebsch representation of the same one-form</div><p>The triple <span class="cs-math-inline" data-latex="(\phi,\alpha,\beta)">(phi, alpha, beta)</span> is overcomplete. It contains no extra physical velocity degree of freedom because many triples represent exactly the same one-form.</p></article>
+          </div>
+
+          <div class="cs-gauge-grid">
+            <article><span>AN EXPLICIT GAUGE</span><h3>Change two potentials; keep the velocity fixed.</h3><p>For any smooth one-variable function <span class="cs-math-inline" data-latex="F">F</span>, make the replacement</p><div class="cs-math-display" data-latex="\phi'=\phi-F(\beta),\qquad \alpha'=\alpha+F'(\beta),\qquad \beta'=\beta">a Clebsch gauge transformation</div><div class="cs-gauge-proof cs-math-display" data-latex="d\phi'+\alpha' d\beta'=d\phi-F'(\beta)d\beta+\alpha d\beta+F'(\beta)d\beta=u^\flat">the transformed potentials give the same velocity one-form</div><p>Even after fixing this gauge, constants in φ and more general area-preserving relabelings of the <span class="cs-math-inline" data-latex="(\alpha,\beta)">(alpha, beta)</span> label plane leave the physical field unchanged after a compensating change of φ.</p></article>
+
+            <article><span>LOCAL EXISTENCE</span><h3>Factor the vorticity first.</h3><p>Given a velocity one-form, first ask for two labels whose crossing reproduces its vorticity. Then the leftover one-form is closed:</p><div class="cs-math-display" data-latex="\omega=du^\flat=d\alpha\wedge d\beta">factor the vorticity two-form</div><div class="cs-math-display" data-latex="d\!\left(u^\flat-\alpha d\beta\right)=0\quad\Longrightarrow\quad u^\flat-\alpha d\beta=d\phi\ \text{ locally}">recover phi locally</div><p>This is why Clebsch variables are naturally a <em>local factorization</em>, not a unique coordinate system for all vector fields.</p></article>
+
+            <article><span>GLOBAL ACCOUNTING</span><h3>Topology adds circulation periods.</h3><p>On a closed genus-<span class="cs-math-inline" data-latex="g">g</span> surface, the harmonic part has <span class="cs-math-inline" data-latex="2g">two g</span> independent periods:</p><div class="cs-math-display" data-latex="u^\flat=d\chi+\star_g d\psi+h,\qquad \dim\mathcal H^1(S)=2g">Hodge decomposition and harmonic dimension</div><p>A single globally single-valued Clebsch pair need not capture every harmonic circulation or every smooth vorticity pattern without singularities. Multiple charts, multiple pairs, or an explicit harmonic component may be required.</p></article>
+          </div>
+        </section>
+
+        <section class="cs-simulation" aria-labelledby="cs-simulation-title">
+          <header><div><p class="cs-eyebrow">What this buys a fluid solver</p><h2 id="cs-simulation-title">Why simulate with Clebsch variables?</h2></div><p>The main appeal is structural: vorticity becomes the crossing of two advected scalar labels. But Clebsch variables are one possible representation of the velocity covector—not the only way to obtain circulation-preserving dynamics.</p></header>
+
+          <div class="cs-route-compare">
+            <article><span>CLEBSCH ROUTE</span><h3>Advect labels, then reconstruct velocity.</h3><div class="cs-math-display" data-latex="\partial_t\alpha+u[\alpha]=0,\qquad \partial_t\beta+u[\beta]=0">materially advect the two labels</div><div class="cs-math-display" data-latex="u^\flat=d\phi+\alpha d\beta,\qquad \omega=d\alpha\wedge d\beta">reconstruct velocity and vorticity</div><p>If both labels are transported by the flow, their wedge product is transported with them. The scalar φ supplies the exact part selected by the dynamics and pressure constraint.</p></article>
+            <i>not the same algorithm</i>
+            <article><span>COURSE-NOTES COVECTOR ROUTE</span><h3>Transport the velocity one-form directly.</h3><div class="cs-math-display" data-latex="\partial_t\eta+\mathcal L_u\eta=-d\lambda,\qquad \eta=u^\flat">covector Euler equation</div><div class="cs-math-display" data-latex="\partial_t(d\eta)+\mathcal L_u(d\eta)=0">the induced vorticity equation</div><p>This route uses pullback/Lie transport of the velocity covector and does not require a Clebsch factorization. The exact pressure term changes neither vorticity nor closed-loop circulation.</p></article>
+          </div>
+
+          <div class="cs-simulation-grid">
+            <article><span>STRUCTURE</span><h3>Vorticity is built in.</h3><p>The identity <span class="cs-math-inline" data-latex="du^\flat=d\alpha\wedge d\beta">d u flat equals d alpha wedge d beta</span> makes curl compatibility automatic and turns vortex transport into label transport.</p></article>
+            <article><span>VARIATIONAL FORM</span><h3>Scalar fields expose constraints.</h3><p>Clebsch potentials arise naturally as multipliers and canonical variables in variational or Hamiltonian descriptions. They separate vortical content from exact pressure-like motion.</p></article>
+            <article><span>PROJECTION</span><h3>Exact corrections preserve vorticity.</h3><p>A Hodge projection subtracts <span class="cs-math-inline" data-latex="dp">d p</span>. Since <span class="cs-math-inline" data-latex="d^2p=0">d squared p is zero</span>, the resolved vorticity survives the incompressibility solve.</p></article>
+          </div>
+
+          <aside class="cs-simulation-warning"><strong>What Clebsch variables do not solve</strong><p>They do not enforce incompressibility by themselves. Advected labels can develop extremely fine gradients, so interpolation and numerical diffusion can still destroy their vorticity. Global topology may require harmonic modes or additional Clebsch pairs, and reconstructing a divergence-free velocity still requires a metric-dependent solve. For many solvers, transporting the velocity covector directly is simpler.</p></aside>
+        </section>
       </section>
     </main>
 
