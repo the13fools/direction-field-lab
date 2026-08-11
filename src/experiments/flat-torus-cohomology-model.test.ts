@@ -3,6 +3,12 @@ import { describe, expect, it } from "vitest";
 import { FlatTorusCohomologyModel } from "./flat-torus-cohomology-model";
 
 describe("flat-torus harmonic lattice", () => {
+  it("starts with no optional lattice subtraction", () => {
+    const diagnostics = new FlatTorusCohomologyModel().diagnostics();
+    expect(diagnostics.removedPeriod).toEqual({ x: 0, y: 0 });
+    expect(diagnostics.residualPeriod).toEqual(diagnostics.rawPeriod);
+  });
+
   it("changes periods without changing local vorticity or divergence", () => {
     const model = new FlatTorusCohomologyModel({
       periodX: 0.83,

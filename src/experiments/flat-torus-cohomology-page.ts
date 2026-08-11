@@ -129,13 +129,20 @@ function updateInterface(): void {
       ? `(m,n) = (0,0) removes nothing; it does not set c to zero. Both coincident grids still carry the physical harmonic drift ${pair(diagnostics.rawPeriod)}.`
       : residualMagnitude < 1e-10
         ? "The selected lattice field exactly cancels the physical harmonic periods. The cyan grid now deforms only inside the local vortex cells."
-        : `${isNearest ? "This is the nearest lattice representative." : "This is not the nearest lattice representative."} The remaining harmonic speed is ${format(residualMagnitude, 3)}. Both grids have the same local bending; their relative slide is harmonic transport.`;
+        : `${isNearest ? "This optional subtraction is the rounded minimum-residual lattice vector." : "This optional subtraction is not the minimum-residual lattice vector."} The remaining harmonic speed is ${format(residualMagnitude, 3)}. Both grids have the same local bending; their relative slide is harmonic transport.`;
   const matchesClebschDemo = rawMagnitude < 1e-10
     && removedMagnitude < 1e-10
     && Math.abs(model.parameters.vortexStrength - 0.8) < 1e-10;
   const matchButton = byId<HTMLButtonElement>("ft-match-clebsch");
   matchButton.classList.toggle("active", matchesClebschDemo);
   matchButton.setAttribute("aria-pressed", String(matchesClebschDemo));
+  const matchesNonzeroExample = removedMagnitude < 1e-10
+    && Math.abs(model.parameters.periodX - 0.85) < 1e-10
+    && Math.abs(model.parameters.periodY + 0.55) < 1e-10
+    && Math.abs(model.parameters.vortexStrength - 0.72) < 1e-10;
+  const restoreButton = byId<HTMLButtonElement>("ft-restore-periods");
+  restoreButton.classList.toggle("active", matchesNonzeroExample);
+  restoreButton.setAttribute("aria-pressed", String(matchesNonzeroExample));
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-ft-lattice]")) {
     const [x, y] = button.dataset.ftLattice!.split(",").map(Number);
     const active = x === model.parameters.subtractX && y === model.parameters.subtractY;
@@ -423,6 +430,21 @@ byId<HTMLButtonElement>("ft-match-clebsch").addEventListener("click", () => {
     periodX: 0,
     periodY: 0,
     vortexStrength: 0.8,
+    subtractX: 0,
+    subtractY: 0,
+  });
+  resetTrails();
+  updateOutputs();
+  updateInterface();
+});
+byId<HTMLButtonElement>("ft-restore-periods").addEventListener("click", () => {
+  controls.periodX.value = "0.85";
+  controls.periodY.value = "-0.55";
+  controls.vortex.value = "0.72";
+  model.reset({
+    periodX: 0.85,
+    periodY: -0.55,
+    vortexStrength: 0.72,
     subtractX: 0,
     subtractY: 0,
   });

@@ -4,13 +4,13 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#101d2d" />
-    <meta name="description" content="An interactive flat-torus lab for harmonic velocity fields, periods, integer cohomology lattices, and fluid reconstruction." />
-    <title>Flat torus harmonic lattice · Direction Field Lab</title>
+    <meta name="description" content="An interactive flat-torus lab for real harmonic periods, global transport, and an optional quantized-lattice comparison." />
+    <title>Flat torus harmonic state · Direction Field Lab</title>
   </head>
   <body>
     <header class="ft-header">
       <a href="./clebsch-surfaces-action.html">← Clebsch surfaces</a>
-      <div><span>FLUID COHOMOLOGY · FLAT TORUS</span><strong>Harmonic lattice lab</strong></div>
+      <div><span>FLUID COHOMOLOGY · FLAT TORUS</span><strong>Harmonic state lab</strong></div>
       <nav><a href="./random-fluids.html">Random flows</a><a href="./clebsch-shallow-water.html">Clebsch water</a></nav>
     </header>
 
@@ -24,8 +24,7 @@
         <aside>
           <span>VELOCITY RECONSTRUCTION ON THE FLAT TORUS</span>
           <div class="ft-math-display" data-latex="\eta=d^+\omega+c_x\,dx+c_y\,dy">velocity equals coexact plus harmonic</div>
-          <div class="ft-math-display accent" data-latex="\eta_{m,n}=\eta-q(m\,dx+n\,dy),\qquad(m,n)\in\mathbb Z^2">subtract an integral harmonic lattice element</div>
-          <p>The coefficients in physical fluid cohomology are real-valued. The lattice <b>qℤ² is an extra experiment</b>: it lets us compare representatives, but subtraction changes physical cross-sectional flux.</p>
+          <p><b>The physical coefficients are the real numbers cₓ and cᵧ.</b> Vorticity does not choose them, and there is no preferred “nearest lattice point” in ordinary Clebsch evolution. Quantization appears later as an optional extra experiment.</p>
         </aside>
       </section>
 
@@ -56,8 +55,8 @@
           <ol>
             <li><span>01</span><div><strong>Start from vorticity</strong><p>The intrinsic object is the Taylor–Green two-form <span class="ft-math-inline" data-latex="\omega^{(2)}=d\eta">omega two equals d eta</span>. The background color shows its Hodge-dual scalar <span class="ft-math-inline" data-latex="\zeta=\star_g\omega^{(2)}">zeta</span>; together they determine the coexact velocity.</p></div></li>
             <li><span>02</span><div><strong>Add two missing numbers</strong><p>The periods <span class="ft-math-inline" data-latex="c_x,c_y">c x and c y</span> choose the constant harmonic flow around the two torus cycles.</p></div></li>
-            <li><span>03</span><div><strong>Choose a lattice point</strong><p>Click <span class="ft-math-inline" data-latex="(m,n)\in\mathbb Z^2">an integer pair</span> to subtract the quantized field <span class="ft-math-inline" data-latex="q(m\,dx+n\,dy)">q times m dx plus n dy</span>.</p></div></li>
-            <li><span>04</span><div><strong>Compare identical material</strong><p>Orange uses the raw periods. Cyan uses the residual periods. Turn on their material grids to see the same local shearing plus different global translation.</p></div></li>
+            <li><span>03</span><div><strong>Compare c = 0 with c ≠ 0</strong><p>Both fields have identical vorticity. The nonzero harmonic state adds uniform transport around the periodic cycles.</p></div></li>
+            <li><span>04</span><div><strong>Only then try quantization</strong><p>The collapsed optional panel introduces qℤ². Its “nearest” point is a rounding rule after choosing q, a basis, and a norm—not a fluid law.</p></div></li>
           </ol>
           <section class="ft-warning">
             <span>DO NOT CALL THIS A GAUGE TRANSFORMATION</span>
@@ -93,8 +92,8 @@
           </div>
           <section class="ft-period-equation">
             <span>SELECTED RECONSTRUCTION</span>
-            <div id="ft-live-equation" class="ft-math-display" data-latex="(c_x,c_y)-q(m,n)=(-0.15,-0.05)">residual periods</div>
-            <p id="ft-live-copy">The two material grids begin identically. Their local bending comes from the shared vorticity; their relative slide records the different harmonic periods.</p>
+            <div id="ft-live-equation" class="ft-math-display" data-latex="(c_x,c_y)-q(0,0)=(0.85,-0.55)">residual periods</div>
+            <p id="ft-live-copy">No lattice field is removed. Both grids coincide and carry the same nonzero physical harmonic drift.</p>
           </section>
           <div class="ft-metrics">
             <div><span>raw periods</span><strong id="ft-raw-period">—</strong></div>
@@ -111,26 +110,41 @@
           <label><span><strong>Horizontal period cₓ</strong><small>circulation around the horizontal generator</small></span><output id="ft-period-x-output">0.85</output><input id="ft-period-x" type="range" min="-1.25" max="1.25" step="0.05" value="0.85" /></label>
           <label><span><strong>Vertical period cᵧ</strong><small>circulation around the vertical generator</small></span><output id="ft-period-y-output">−0.55</output><input id="ft-period-y" type="range" min="-1.25" max="1.25" step="0.05" value="-0.55" /></label>
           <label><span><strong>Vortex strength A</strong><small>changes local curl, not either period</small></span><output id="ft-vortex-output">0.72</output><input id="ft-vortex" type="range" min="0" max="1.2" step="0.02" value="0.72" /></label>
-          <label><span><strong>Circulation quantum q</strong><small>spacing of the imposed harmonic lattice</small></span><output id="ft-quantum-output">0.50</output><input id="ft-quantum" type="range" min="0.4" max="1" step="0.05" value="0.5" /></label>
 
-          <div class="ft-lattice-head">
-            <div><span>INTEGER FIELD TO SUBTRACT</span><strong id="ft-lattice-selection">(m,n) = (2,−1)</strong></div>
-            <button id="ft-nearest">Nearest lattice point</button>
-          </div>
-          <div id="ft-lattice" class="ft-lattice" role="group" aria-label="Choose integer harmonic field coordinates"></div>
-          <button id="ft-zero" class="ft-zero">Remove no lattice field · (m,n) = (0,0)</button>
-          <section class="ft-two-zeros">
-            <span>TWO DIFFERENT ZEROS</span>
-            <p><b>(m,n) = (0,0)</b> means the removed field is zero; the physical periods <span class="ft-math-inline" data-latex="(c_x,c_y)">c x, c y</span> can still translate the grid. <b>c = (0,0)</b> means the fluid itself has no harmonic drift.</p>
-            <button id="ft-match-clebsch" aria-pressed="false"><strong>Match the evolving-label demo</strong><small>set c = (0,0), remove nothing, and use U = 0.80</small></button>
+          <section class="ft-physical-compare">
+            <span>START WITH THE PHYSICAL STATE</span>
+            <p>The evolving-label demo has <b>c = (0,0)</b>: local Taylor–Green deformation with no uniform drift. The nonzero example changes only the two global periods.</p>
+            <div><button id="ft-match-clebsch" aria-pressed="false"><strong>Zero harmonic periods</strong><small>match the evolving-label demo</small></button><button id="ft-restore-periods" aria-pressed="true"><strong>Nonzero harmonic periods</strong><small>restore c = (0.85, −0.55)</small></button></div>
           </section>
 
           <section class="ft-cycle-card">
             <span>TWO GENERATORS OF H¹(T²)</span>
             <div><i class="horizontal"></i><p><b>dx</b><small>unit horizontal period</small></p></div>
             <div><i class="vertical"></i><p><b>dy</b><small>unit vertical period</small></p></div>
-            <p>A harmonic field on the flat torus is constant. The integer lattice consists of the fields whose two periods are integer multiples of q.</p>
+            <p>A harmonic field on this flat unit torus is constant. Its two coefficients are real-valued physical state; neither vorticity nor pressure determines them.</p>
           </section>
+
+          <details class="ft-lattice-experiment">
+            <summary><span>OPTIONAL EXTENSION</span><strong>Quantized harmonic subtraction</strong><small>Open only after cₓ and cᵧ make sense.</small></summary>
+            <div>
+              <p>Now impose an additional lattice <span class="ft-math-inline" data-latex="q\mathbb Z^2">q Z squared</span> and compare the fluid with another one whose harmonic state differs by a lattice vector:</p>
+              <div class="ft-math-display" data-latex="c'=(c_x,c_y)-q(m,n),\qquad(m,n)\in\mathbb Z^2">optional harmonic subtraction</div>
+              <p><b>This subtraction changes the physical fluid.</b> It is not a Clebsch gauge choice, pressure projection, or required step of fluid cohomology.</p>
+              <label><span><strong>Circulation quantum q</strong><small>an imposed spacing, not determined by the fluid</small></span><output id="ft-quantum-output">0.50</output><input id="ft-quantum" type="range" min="0.4" max="1" step="0.05" value="0.5" /></label>
+              <section class="ft-nearest-note">
+                <span>WHAT “NEAREST” MEANS HERE</span>
+                <div class="ft-math-display" data-latex="m_* = \operatorname{round}(c_x/q),\qquad n_* = \operatorname{round}(c_y/q)">coordinate rounding on this unit flat torus</div>
+                <p>This minimizes <span class="ft-math-inline" data-latex="\lVert c-q(m,n)\rVert^2">the squared residual norm</span> only because dx and dy form the chosen orthogonal unit basis. Change q, the harmonic basis, or its metric Gram matrix, and “nearest” can change. There is no canonical nearest point before making those choices.</p>
+              </section>
+              <div class="ft-lattice-head">
+                <div><span>INTEGER FIELD TO SUBTRACT</span><strong id="ft-lattice-selection">(m,n) = (0,0)</strong></div>
+                <button id="ft-nearest">Round to the nearest q-lattice field</button>
+              </div>
+              <div id="ft-lattice" class="ft-lattice" role="group" aria-label="Choose an optional integer harmonic field to subtract"></div>
+              <button id="ft-zero" class="ft-zero">Remove no lattice field · (m,n) = (0,0)</button>
+              <p class="ft-zero-note"><b>Two different zeros:</b> (m,n) = (0,0) means “remove nothing.” It does not set the physical state c to zero.</p>
+            </div>
+          </details>
         </aside>
       </section>
 
@@ -143,7 +157,7 @@
         <div class="ft-operation-grid">
           <article><span>01 · PRESSURE</span><h3>Remove an exact field</h3><div class="ft-math-display" data-latex="\eta\mapsto\eta-dp">eta minus d p</div><p>Enforces zero divergence. Closed-loop periods and vorticity are unchanged because an exact form integrates to zero around every closed loop.</p></article>
           <article><span>02 · STREAMFUNCTION</span><h3>Recover the coexact field</h3><div class="ft-math-display" data-latex="\omega\mapsto d^+\omega">vorticity maps to curl pseudoinverse</div><p>Recovers the least-norm velocity seen by vorticity. “Least norm” silently sets both harmonic periods to zero; it does not infer them.</p></article>
-          <article class="accent"><span>03 · THIS LAB</span><h3>Change the harmonic representative</h3><div class="ft-math-display" data-latex="(c_x,c_y)\mapsto(c_x-qm,c_y-qn)">subtract a lattice vector</div><p>Preserves divergence and vorticity, but changes cross-sectional flux. The nearest lattice point minimizes residual harmonic energy only among the imposed lattice choices.</p></article>
+          <article class="accent"><span>03 · OPTIONAL QUANTIZATION</span><h3>Change the harmonic state</h3><div class="ft-math-display" data-latex="(c_x,c_y)\mapsto(c_x-qm,c_y-qn)">subtract a lattice vector</div><p>Preserves divergence and vorticity, but changes cross-sectional flux. “Nearest” means minimum residual energy only after this lab imposes q, the basis dx,dy, and the flat metric.</p></article>
         </div>
         <aside class="ft-paper-bridge">
           <div><span>FLUID COHOMOLOGY, YIN ET AL. 2023</span><h3>The physical coefficients are continuous—and they evolve.</h3><p>The paper reconstructs velocity as a vorticity-determined part plus real harmonic coefficients. Those coefficients encode cross-sectional flux and obey their own Euler dynamics. This lab freezes one instant and adds an integer lattice solely to make the reconstruction ambiguity explorable.</p></div>

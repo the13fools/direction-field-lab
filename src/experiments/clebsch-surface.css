@@ -292,9 +292,9 @@ button { cursor: pointer; }
 .cs-torus-cycle-ledger article { min-width: 0; padding: 19px; border: 1px solid #cdbddd; border-top: 6px solid var(--violet); border-radius: 5px; background: #fffdf8; }
 .cs-torus-cycle-ledger article:nth-child(2) { border-top-color: var(--cyan); }
 .cs-torus-cycle-ledger article.accent { border-top-color: var(--orange); }
-.cs-torus-cycle-ledger span, .cs-torus-cycle-ledger strong { display: block; }
-.cs-torus-cycle-ledger span { color: var(--violet); font: 700 7px var(--mono); letter-spacing: .08em; }
-.cs-torus-cycle-ledger strong { margin-top: 7px; color: var(--ink); font-size: 15px; }
+.cs-torus-cycle-ledger article > span, .cs-torus-cycle-ledger article > strong { display: block; }
+.cs-torus-cycle-ledger article > span { color: var(--violet); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-torus-cycle-ledger article > strong { margin-top: 7px; color: var(--ink); font-size: 15px; }
 .cs-torus-cycle-ledger .cs-math-display { margin-top: 12px; padding: 12px 7px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 9px; }
 .cs-torus-cycle-ledger p { margin: 12px 0 0; color: var(--muted); font-size: 8px; line-height: 1.6; }
 .cs-torus-atlas-lab { display: grid; grid-template-columns: minmax(470px, 1.2fr) minmax(320px, .8fr); gap: 8px; margin-top: 27px; }
@@ -456,7 +456,7 @@ button { cursor: pointer; }
 .cs-tutorial { padding: 70px max(24px, calc((100vw - 1260px) / 2)) 90px; background: #f7f1ff; }
 .cs-problem-header { max-width: 1050px; }
 .cs-problem-header > p:last-child { max-width: 820px; margin: 22px 0 0; color: var(--muted); font-size: 12px; line-height: 1.75; }
-.cs-state-choices article > div:nth-child(2) > span, .cs-projection-steps span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .09em; }
+.cs-state-choices article > div:nth-child(2) > span, .cs-projection-steps li > div:first-child > span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .09em; }
 
 .cs-state-choices, .cs-projection-answer, .cs-decision, .cs-technical { margin-top: 72px; padding-top: 60px; border-top: 1px solid #cdbddd; }
 .cs-state-choices > header, .cs-projection-answer > header, .cs-decision > header, .cs-technical > header { margin-bottom: 28px; }

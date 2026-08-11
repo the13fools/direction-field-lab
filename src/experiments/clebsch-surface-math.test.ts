@@ -89,7 +89,9 @@ describe("Clebsch surface lesson math", () => {
     expect(flatTorusPageSource).toContain("Two noncontractible periods remain");
     expect(flatTorusPageSource).toContain("\\Gamma_x=\\oint_{\\gamma_x}\\eta=c_x");
     expect(flatTorusPageSource).toContain("These two numbers are independent velocity data");
-    expect(flatTorusPageSource).toContain("TWO DIFFERENT ZEROS");
+    expect(flatTorusPageSource).toContain("there is no preferred “nearest lattice point”");
+    expect(flatTorusPageSource).toContain("WHAT “NEAREST” MEANS HERE");
+    expect(flatTorusPageSource).toContain("There is no canonical nearest point before making those choices");
     expect(flatTorusPageSource).toContain('id="ft-match-clebsch"');
   });
 

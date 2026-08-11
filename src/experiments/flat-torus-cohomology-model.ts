@@ -50,8 +50,8 @@ export const DEFAULT_FLAT_TORUS_COHOMOLOGY_PARAMETERS: FlatTorusCohomologyParame
   periodX: 0.85,
   periodY: -0.55,
   quantum: 0.5,
-  subtractX: 2,
-  subtractY: -1,
+  subtractX: 0,
+  subtractY: 0,
   particleCount: 240,
 };
 
@@ -120,6 +120,11 @@ export class FlatTorusCohomologyModel {
     this.parameters = next;
   }
 
+  /**
+   * Coordinate rounding for the lab's optional q Z^2 experiment.
+   * This is nearest only in the chosen orthogonal unit basis and Euclidean energy;
+   * it is not an intrinsic operation of Clebsch variables or fluid cohomology.
+   */
   nearestQuantizedField(): { x: number; y: number } {
     return {
       x: Math.round(this.parameters.periodX / this.parameters.quantum),
