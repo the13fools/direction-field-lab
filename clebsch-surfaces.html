@@ -192,52 +192,87 @@
       </section>
 
       <section class="cs-tutorial">
-        <header><p class="cs-eyebrow">The course notes' dividing line</p><h2>Which operations need the metric?</h2></header>
-        <div class="cs-type-flow">
-          <article><span>0-FORMS</span><h3>α, β, φ</h3><p>Evaluate at points. Their level sets visualize scalar change.</p></article><i>d</i>
-          <article><span>1-FORMS</span><h3>dα, dβ, u♭</h3><p>Evaluate tangent arrows locally and integrate along curves globally.</p></article><i>♯<sub>g</sub></i>
-          <article><span>VECTORS</span><h3>(dα)♯, u</h3><p>Metric-dependent tangent arrows that transport particles.</p></article>
-        </div>
-        <div class="cs-explanation-grid">
-          <article><span>METRIC-FREE</span><h3>Pullback, d, and ∧ are intrinsic.</h3><div class="cs-math-display" data-latex="\phi,\alpha,\beta\xrightarrow{\ d\ }d\phi,d\alpha,d\beta\xrightarrow{\ \wedge\ }d\alpha\wedge d\beta">metric-free part of the construction</div><p>These operations do not require lengths, angles, or an embedding in three-dimensional space. The course notes emphasize that they commute naturally with pullback under a change of parameterization.</p></article>
-          <article><span>METRIC-DEPENDENT</span><h3>♯, ⋆, divergence, and projection use g.</h3><div class="cs-formula-stack"><div class="cs-math-display" data-latex="u=(u^\flat)^{\sharp_g}">raise the velocity covector</div><div class="cs-math-display" data-latex="\omega_{\mathrm{scalar}}=\star_g\!\left(du^\flat\right)">turn the vorticity two-form into a scalar</div><div class="cs-math-display" data-latex="\delta\eta=-\star_g d\!\left(\star_g\eta\right),\qquad \eta\in\Omega^1(S)">codifferential of a one-form on an oriented surface</div></div><p>On a two-dimensional oriented surface, the Hodge star turns the vorticity two-form into the scalar color shown by the lab. The same metric converts the velocity one-form into tangent arrows and defines its divergence.</p></article>
-          <article><span>GLOBAL CAVEAT</span><h3>One Clebsch pair is not always globally complete.</h3><div class="cs-math-display" data-latex="u^\flat=d\chi+\star d\psi+h">Hodge decomposition with harmonic part h</div><p>Topology can support harmonic circulation that vorticity alone cannot recover. Clebsch potentials are also nonunique and may require multiple charts or multiple label pairs. The frog projection uses a finite Laplace–Beltrami basis, so it preserves resolved—not infinitely fine—vorticity.</p></article>
-        </div>
+        <header class="cs-problem-header"><p class="cs-eyebrow">Start with the problem, not the representation</p><h2>What must a surface-fluid solver know?</h2><p>Particles need a velocity. Incompressibility forbids sources and sinks. Vortices should survive numerical transport. The three common state choices—velocity, vorticity, and Clebsch labels—package this same fluid information differently.</p></header>
 
-        <section class="cs-dof" aria-labelledby="cs-dof-title">
-          <header><div><p class="cs-eyebrow">Representation space versus physical state</p><h2 id="cs-dof-title">How many degrees of freedom?</h2></div><p>Once the metric is fixed, <span class="cs-math-inline" data-latex="u\leftrightarrow u^\flat">u corresponds bijectively to u flat</span>. No freedom is created by lowering the index. The redundancy appears only when the same one-form is described by three Clebsch potentials.</p></header>
-
-          <div class="cs-dof-count">
-            <article><span>PHYSICAL FIELD IN A CHART</span><h3>Two component functions</h3><div class="cs-math-display" data-latex="u^\flat=u_x\,dx+u_y\,dy">a one-form has two local components</div><p>A tangent vector field on a two-dimensional surface has two scalar components per point.</p></article>
-            <i>← same one-form →</i>
-            <article><span>CLEBSCH REPRESENTATION</span><h3>Three potentials, with gauge freedom</h3><div class="cs-math-display" data-latex="u^\flat=d\phi+\alpha\,d\beta">Clebsch representation of the same one-form</div><p>The triple <span class="cs-math-inline" data-latex="(\phi,\alpha,\beta)">(phi, alpha, beta)</span> is overcomplete. It contains no extra physical velocity degree of freedom because many triples represent exactly the same one-form.</p></article>
+        <section class="cs-problem" aria-labelledby="cs-problem-title">
+          <span>THE FLUID TASK</span>
+          <h3 id="cs-problem-title">Move particles without changing area or erasing rotation.</h3>
+          <div class="cs-problem-equations">
+            <article><b>Move particles</b><div class="cs-math-display" data-latex="\dot x=u(x)=\eta^{\sharp_g}(x)">particle velocity</div></article>
+            <article><b>Preserve area</b><div class="cs-math-display" data-latex="\delta\eta=0,\qquad \eta=u^\flat">incompressibility</div></article>
+            <article><b>Preserve vortices</b><div class="cs-math-display" data-latex="\omega=d\eta">vorticity two-form</div></article>
           </div>
-
-          <div class="cs-gauge-grid">
-            <article><span>AN EXPLICIT GAUGE</span><h3>Change two potentials; keep the velocity fixed.</h3><p>For any smooth one-variable function <span class="cs-math-inline" data-latex="F">F</span>, make the replacement</p><div class="cs-math-display" data-latex="\phi'=\phi-F(\beta),\qquad \alpha'=\alpha+F'(\beta),\qquad \beta'=\beta">a Clebsch gauge transformation</div><div class="cs-gauge-proof cs-math-display" data-latex="d\phi'+\alpha' d\beta'=d\phi-F'(\beta)d\beta+\alpha d\beta+F'(\beta)d\beta=u^\flat">the transformed potentials give the same velocity one-form</div><p>Even after fixing this gauge, constants in φ and more general area-preserving relabelings of the <span class="cs-math-inline" data-latex="(\alpha,\beta)">(alpha, beta)</span> label plane leave the physical field unchanged after a compensating change of φ.</p></article>
-
-            <article><span>LOCAL EXISTENCE</span><h3>Factor the vorticity first.</h3><p>Given a velocity one-form, first ask for two labels whose crossing reproduces its vorticity. Then the leftover one-form is closed:</p><div class="cs-math-display" data-latex="\omega=du^\flat=d\alpha\wedge d\beta">factor the vorticity two-form</div><div class="cs-math-display" data-latex="d\!\left(u^\flat-\alpha d\beta\right)=0\quad\Longrightarrow\quad u^\flat-\alpha d\beta=d\phi\ \text{ locally}">recover phi locally</div><p>This is why Clebsch variables are naturally a <em>local factorization</em>, not a unique coordinate system for all vector fields.</p></article>
-
-            <article><span>GLOBAL ACCOUNTING</span><h3>Topology adds circulation periods.</h3><p>On a closed genus-<span class="cs-math-inline" data-latex="g">g</span> surface, the harmonic part has <span class="cs-math-inline" data-latex="2g">two g</span> independent periods:</p><div class="cs-math-display" data-latex="u^\flat=d\chi+\star_g d\psi+h,\qquad \dim\mathcal H^1(S)=2g">Hodge decomposition and harmonic dimension</div><p>A single globally single-valued Clebsch pair need not capture every harmonic circulation or every smooth vorticity pattern without singularities. Multiple charts, multiple pairs, or an explicit harmonic component may be required.</p></article>
-          </div>
+          <p>The solver ultimately needs <span class="cs-math-inline" data-latex="u">u</span> to move particles. It may store <span class="cs-math-inline" data-latex="u">u</span>, its covector <span class="cs-math-inline" data-latex="\eta=u^\flat">eta</span>, the vorticity <span class="cs-math-inline" data-latex="\omega">omega</span>, or potentials from which these can be reconstructed.</p>
         </section>
 
-        <section class="cs-simulation" aria-labelledby="cs-simulation-title">
-          <header><div><p class="cs-eyebrow">What this buys a fluid solver</p><h2 id="cs-simulation-title">Why simulate with Clebsch variables?</h2></div><p>The main appeal is structural: vorticity becomes the crossing of two advected scalar labels. But Clebsch variables are one possible representation of the velocity covector—not the only way to obtain circulation-preserving dynamics.</p></header>
+        <section class="cs-state-choices" aria-labelledby="cs-state-title">
+          <header><p class="cs-eyebrow">Three representations of the state</p><h2 id="cs-state-title">What does each choice buy?</h2></header>
 
-          <div class="cs-route-compare">
-            <article><span>CLEBSCH ROUTE</span><h3>Advect labels, then reconstruct velocity.</h3><div class="cs-math-display" data-latex="\partial_t\alpha+u[\alpha]=0,\qquad \partial_t\beta+u[\beta]=0">materially advect the two labels</div><div class="cs-math-display" data-latex="u^\flat=d\phi+\alpha d\beta,\qquad \omega=d\alpha\wedge d\beta">reconstruct velocity and vorticity</div><p>If both labels are transported by the flow, their wedge product is transported with them. The scalar φ supplies the exact part selected by the dynamics and pressure constraint.</p></article>
-            <i>not the same algorithm</i>
-            <article><span>COURSE-NOTES COVECTOR ROUTE</span><h3>Transport the velocity one-form directly.</h3><div class="cs-math-display" data-latex="\partial_t\eta+\mathcal L_u\eta=-d\lambda,\qquad \eta=u^\flat">covector Euler equation</div><div class="cs-math-display" data-latex="\partial_t(d\eta)+\mathcal L_u(d\eta)=0">the induced vorticity equation</div><p>This route uses pullback/Lie transport of the velocity covector and does not require a Clebsch factorization. The exact pressure term changes neither vorticity nor closed-loop circulation.</p></article>
-          </div>
+          <article>
+            <div class="cs-state-number">1</div>
+            <div><span>VELOCITY OR VELOCITY COVECTOR</span><h3>Store what moves the particles.</h3><p>This is the most direct state. The vector <span class="cs-math-inline" data-latex="u">u</span> advects particles; the one-form <span class="cs-math-inline" data-latex="\eta=u^\flat">eta equals u flat</span> measures circulation. Pressure projection is straightforward.</p></div>
+            <div class="cs-state-tradeoff"><strong>BEST FEATURE</strong><p>No reconstruction is needed before advection.</p><strong>COST</strong><p>Naively advecting vector components can numerically damp or distort vorticity. Covector pullback transport is designed to reduce this problem.</p></div>
+          </article>
 
-          <div class="cs-simulation-grid">
-            <article><span>STRUCTURE</span><h3>Vorticity is built in.</h3><p>The identity <span class="cs-math-inline" data-latex="du^\flat=d\alpha\wedge d\beta">d u flat equals d alpha wedge d beta</span> makes curl compatibility automatic and turns vortex transport into label transport.</p></article>
-            <article><span>VARIATIONAL FORM</span><h3>Scalar fields expose constraints.</h3><p>Clebsch potentials arise naturally as multipliers and canonical variables in variational or Hamiltonian descriptions. They separate vortical content from exact pressure-like motion.</p></article>
-            <article><span>PROJECTION</span><h3>Exact corrections preserve vorticity.</h3><p>A Hodge projection subtracts <span class="cs-math-inline" data-latex="dp">d p</span>. Since <span class="cs-math-inline" data-latex="d^2p=0">d squared p is zero</span>, the resolved vorticity survives the incompressibility solve.</p></article>
-          </div>
+          <article>
+            <div class="cs-state-number">2</div>
+            <div><span>VORTICITY TWO-FORM</span><h3>Store the rotational content directly.</h3><p>On a surface, <span class="cs-math-inline" data-latex="\omega=d\eta">omega equals d eta</span> is one scalar density times oriented area. It is the natural state if vortex transport is the main concern.</p></div>
+            <div class="cs-state-tradeoff"><strong>BEST FEATURE</strong><p>Rotation is represented directly and is not hidden inside derivatives of velocity.</p><strong>COST</strong><p>Vorticity cannot move particles by itself. At every step, recover a velocity by solving <span class="cs-math-inline" data-latex="d\eta=\omega,\ \delta\eta=0">d eta equals omega and delta eta equals zero</span>, together with boundary conditions and harmonic circulation periods.</p></div>
+          </article>
 
-          <aside class="cs-simulation-warning"><strong>What Clebsch variables do not solve</strong><p>They do not enforce incompressibility by themselves. Advected labels can develop extremely fine gradients, so interpolation and numerical diffusion can still destroy their vorticity. Global topology may require harmonic modes or additional Clebsch pairs, and reconstructing a divergence-free velocity still requires a metric-dependent solve. For many solvers, transporting the velocity covector directly is simpler.</p></aside>
+          <article>
+            <div class="cs-state-number">3</div>
+            <div><span>CLEBSCH POTENTIALS</span><h3>Factor vorticity into two scalar labels.</h3><div class="cs-math-display" data-latex="\eta_C=d\phi+\alpha d\beta,\qquad d\eta_C=d\alpha\wedge d\beta">Clebsch candidate and its vorticity</div><p>Think of α and β as two painted coordinate grids carried by the fluid. Where their contours cross determines vorticity. This label-based picture is useful in some variational and Hamiltonian schemes.</p></div>
+            <div class="cs-state-tradeoff"><strong>BEST FEATURE</strong><p>The identity <span class="cs-math-inline" data-latex="d\eta_C=d\alpha\wedge d\beta">d eta C equals d alpha wedge d beta</span> builds curl compatibility into the representation.</p><strong>COST</strong><p>The potentials are nonunique, may need multiple charts, and the raw candidate <span class="cs-math-inline" data-latex="\eta_C">eta C</span> is generally not incompressible.</p></div>
+          </article>
+        </section>
+
+        <section class="cs-projection-answer" aria-labelledby="cs-projection-title">
+          <header><p class="cs-eyebrow">The direct answer</p><h2 id="cs-projection-title">What does Hodge-projecting Clebsch buy?</h2></header>
+
+          <ol class="cs-projection-steps">
+            <li><div><span>START WITH A VORTICAL CANDIDATE</span><h3>Clebsch supplies vorticity, not incompressibility.</h3><p>The one-form <span class="cs-math-inline" data-latex="\eta_C=d\phi+\alpha d\beta">eta C</span> already has the desired vorticity <span class="cs-math-inline" data-latex="\omega=d\alpha\wedge d\beta">omega</span>, but it may contain an exact source–sink component.</p></div><div class="cs-math-display" data-latex="d\eta_C=\omega,\qquad \delta\eta_C\ne0\ \text{ in general}">raw Clebsch properties</div></li>
+            <li><div><span>REMOVE ONLY THE SOURCE–SINK PART</span><h3>Solve one scalar Poisson problem.</h3><p>Find p so that <span class="cs-math-inline" data-latex="dp">d p</span> has exactly the same divergence as the candidate, then subtract it. In Clebsch language this simply replaces φ by <span class="cs-math-inline" data-latex="\phi-p">phi minus p</span>; α, β, and their vorticity do not change.</p></div><div class="cs-math-display" data-latex="\delta d p=\delta\eta_C,\qquad \eta=d(\phi-p)+\alpha d\beta">Hodge projection chooses the exact potential</div></li>
+            <li><div><span>KEEP THE ROTATION</span><h3>The result is a usable incompressible velocity.</h3><p>The projection changes the local arrows, but it changes neither the vorticity nor the closed-loop circulation periods of the candidate.</p></div><div class="cs-math-display" data-latex="\delta\eta=0,\qquad d\eta=d\eta_C-d^2p=\omega">projected properties</div></li>
+          </ol>
+
+          <aside class="cs-projection-takeaway"><strong>Projection is not extra fluid physics.</strong><p>It selects the exact potential φ that makes the Clebsch candidate divergence-free. If you evolve vorticity directly, you still need a global solve for <span class="cs-math-inline" data-latex="d\eta=\omega">d eta equals omega</span> and <span class="cs-math-inline" data-latex="\delta\eta=0">delta eta equals zero</span> before moving particles. Clebsch plus projection is worthwhile when the moving labels α and β are useful—not because projection is a cheaper way to recover velocity.</p></aside>
+        </section>
+
+        <section class="cs-decision" aria-labelledby="cs-decision-title">
+          <header><p class="cs-eyebrow">A practical decision</p><h2 id="cs-decision-title">Which representation should the solver use?</h2></header>
+          <dl>
+            <div><dt>Velocity or covector</dt><dd>Use it when particle motion, forces, boundaries, and compatibility with standard pressure solvers matter most. Direct covector transport is often the simplest circulation-aware compromise.</dd></div>
+            <div><dt>Vorticity two-form</dt><dd>Use it when vortex evolution is primary and the cost of reconstructing velocity through a Poisson/Biot–Savart solve is acceptable.</dd></div>
+            <div><dt>Clebsch plus projection</dt><dd>Use it when material labels, canonical variables, a variational discretization, or the factorization <span class="cs-math-inline" data-latex="\omega=d\alpha\wedge d\beta">omega equals d alpha wedge d beta</span> is itself useful. It is not automatically cheaper than the other choices.</dd></div>
+          </dl>
+        </section>
+
+        <section class="cs-technical" aria-labelledby="cs-technical-title">
+          <header><p class="cs-eyebrow">Technical details, after the idea</p><h2 id="cs-technical-title">Open these when the representation makes sense.</h2></header>
+
+          <details>
+            <summary>Where does the metric enter?</summary>
+            <p>The metric is not needed for <span class="cs-math-inline" data-latex="d">d</span>, wedge products, or pullback. It is needed to turn a covector into a vector, turn a vorticity two-form into a displayed scalar, and define divergence:</p>
+            <div class="cs-technical-formulas"><div class="cs-math-display" data-latex="u=\eta^{\sharp_g}">raise the velocity covector</div><div class="cs-math-display" data-latex="\omega_{\mathrm{scalar}}=\star_g\omega">display vorticity as a scalar</div><div class="cs-math-display" data-latex="\delta\eta=-\star_g d\!\left(\star_g\eta\right)">codifferential on one-forms over an oriented surface</div></div>
+          </details>
+
+          <details>
+            <summary>How many degrees of freedom do Clebsch variables add?</summary>
+            <p>None physically. With a fixed metric, <span class="cs-math-inline" data-latex="u\leftrightarrow\eta=u^\flat">u corresponds to eta</span> uniquely. A surface one-form has two local component functions, whereas Clebsch uses three nonunique potentials. For any smooth F,</p>
+            <div class="cs-math-display" data-latex="\phi'=\phi-F(\beta),\qquad \alpha'=\alpha+F'(\beta),\qquad \beta'=\beta">Clebsch gauge transformation</div>
+            <div class="cs-math-display" data-latex="d\phi'+\alpha'd\beta'=d\phi+\alpha d\beta">the physical one-form is unchanged</div>
+            <p>The representation is therefore an overcomplete encoding with gauge freedom, not a larger physical state.</p>
+          </details>
+
+          <details>
+            <summary>What can fail globally on a surface?</summary>
+            <p>Locally, factor <span class="cs-math-inline" data-latex="\omega=d\alpha\wedge d\beta">omega</span>; then <span class="cs-math-inline" data-latex="u^\flat-\alpha d\beta">u flat minus alpha d beta</span> is closed and is locally <span class="cs-math-inline" data-latex="d\phi">d phi</span>. Globally, topology can contribute harmonic circulation:</p>
+            <div class="cs-math-display" data-latex="u^\flat=d\chi+\star_g d\psi+h,\qquad \dim\mathcal H^1(S)=2g">Hodge decomposition on a closed genus-g surface</div>
+            <p>A single globally single-valued Clebsch pair may need to be supplemented by multiple charts, multiple pairs, or an explicit harmonic component.</p>
+          </details>
+
+          <p class="cs-source-note">The velocity-versus-vorticity tradeoff and the circulation-preserving covector alternative are discussed in <a href="https://cseweb.ucsd.edu/~viscomp/projects/SIG22CovectorFluids/">Covector Fluids</a>. The differential-form conventions follow <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a>.</p>
         </section>
       </section>
     </main>

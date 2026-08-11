@@ -241,65 +241,62 @@ button { cursor: pointer; }
 .cs-source-note a { color: var(--violet); font-weight: 800; }
 
 .cs-tutorial { padding: 70px max(24px, calc((100vw - 1260px) / 2)) 90px; background: #f7f1ff; }
-.cs-tutorial > header { max-width: 950px; }
-.cs-type-flow { display: grid; grid-template-columns: 1fr 55px 1fr 55px 1fr; gap: 8px; align-items: stretch; margin-top: 34px; }
-.cs-type-flow article { padding: 25px; color: white; border-top: 6px solid var(--orange); border-radius: 6px; background: linear-gradient(145deg, #21143f, #3c2a60); }
-.cs-type-flow article:nth-of-type(2) { border-top-color: var(--cyan); }
-.cs-type-flow article:nth-of-type(3) { border-top-color: var(--gold); }
-.cs-type-flow span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .1em; }
-.cs-type-flow h3 { margin: 10px 0 8px; font-size: 23px; }
-.cs-type-flow p { margin: 0; color: #cfc3d9; font-size: 9px; line-height: 1.6; }
-.cs-type-flow > i { display: grid; place-items: center; color: var(--violet); font: 700 23px var(--mono); font-style: normal; }
-.cs-explanation-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 9px; }
-.cs-explanation-grid article { padding: 25px; border: 1px solid #cdbddd; border-top: 6px solid var(--violet); border-radius: 6px; background: white; }
-.cs-explanation-grid article:nth-child(2) { border-top-color: var(--orange); }
-.cs-explanation-grid article:nth-child(3) { border-top-color: var(--cyan); }
-.cs-explanation-grid span { color: var(--violet); font: 700 7px var(--mono); letter-spacing: .08em; }
-.cs-explanation-grid h3 { margin: 10px 0; color: var(--ink); font-size: 21px; line-height: 1.05; }
-.cs-explanation-grid .cs-math-display { min-height: 62px; margin: 16px 0; padding: 14px 8px; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 11px; }
-.cs-explanation-grid p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.65; }
-.cs-formula-stack { display: grid; gap: 1px; margin: 16px 0; overflow: hidden; border-radius: 4px; background: #4b3a67; }
-.cs-explanation-grid .cs-formula-stack .cs-math-display { min-height: 0; margin: 0; padding: 10px 7px; border-radius: 0; font-size: 9px; }
+.cs-problem-header { max-width: 1050px; }
+.cs-problem-header > p:last-child { max-width: 820px; margin: 22px 0 0; color: var(--muted); font-size: 12px; line-height: 1.75; }
+.cs-problem { margin-top: 34px; padding: 30px; color: white; border: 1px solid #594771; border-top: 7px solid var(--orange); border-radius: 7px; background: linear-gradient(145deg, #19102f, #31204e 58%, #135363); }
+.cs-problem > span, .cs-state-choices article > div:nth-child(2) > span, .cs-projection-steps span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .09em; }
+.cs-problem h3 { max-width: 850px; margin: 10px 0 23px; font-size: clamp(25px, 3.4vw, 44px); line-height: .98; letter-spacing: -.035em; }
+.cs-problem-equations { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.cs-problem-equations article { min-width: 0; padding: 17px; border: 1px solid rgba(255,255,255,.12); border-radius: 4px; background: rgba(8,6,27,.32); }
+.cs-problem-equations b { display: block; color: var(--gold); font-size: 10px; }
+.cs-problem-equations .cs-math-display { margin-top: 12px; color: var(--cyan); font-size: 11px; }
+.cs-problem > p { margin: 22px 0 0; color: #d0c5db; font-size: 10px; line-height: 1.7; }
+.cs-problem .cs-math-inline { color: var(--gold); }
 
-.cs-dof, .cs-simulation { margin-top: 72px; padding-top: 62px; border-top: 1px solid #cdbddd; }
-.cs-dof > header, .cs-simulation > header { display: grid; grid-template-columns: minmax(0, 1.12fr) minmax(360px, .88fr); gap: clamp(35px, 7vw, 90px); align-items: end; margin-bottom: 30px; }
-.cs-dof > header > p, .cs-simulation > header > p { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.72; }
-.cs-dof-count { display: grid; grid-template-columns: 1fr 120px 1fr; gap: 9px; align-items: stretch; }
-.cs-dof-count article { padding: 24px; color: white; border: 1px solid #594771; border-top: 6px solid var(--cyan); border-radius: 6px; background: linear-gradient(145deg, #19102f, #31204e); }
-.cs-dof-count article:last-child { border-top-color: var(--orange); }
-.cs-dof-count > i, .cs-route-compare > i { display: grid; place-items: center; color: var(--violet); font: 700 8px var(--mono); font-style: normal; text-align: center; text-transform: uppercase; }
-.cs-dof-count article > span, .cs-gauge-grid article > span, .cs-route-compare article > span, .cs-simulation-grid article > span { color: var(--orange); font: 700 7px var(--mono); letter-spacing: .08em; }
-.cs-dof-count h3, .cs-gauge-grid h3, .cs-route-compare h3, .cs-simulation-grid h3 { margin: 9px 0; line-height: 1.05; }
-.cs-dof-count h3 { font-size: 22px; }
-.cs-dof-count .cs-math-display { margin: 16px 0; padding: 14px 8px; color: var(--cyan); border: 1px solid rgba(255,255,255,.1); border-radius: 4px; background: rgba(8,6,27,.34); font-size: 11px; }
-.cs-dof-count p { margin: 0; color: #cfc3d9; font-size: 9px; line-height: 1.65; }
-.cs-dof-count .cs-math-inline { color: var(--gold); }
+.cs-state-choices, .cs-projection-answer, .cs-decision, .cs-technical { margin-top: 72px; padding-top: 60px; border-top: 1px solid #cdbddd; }
+.cs-state-choices > header, .cs-projection-answer > header, .cs-decision > header, .cs-technical > header { margin-bottom: 28px; }
+.cs-state-choices > article { display: grid; grid-template-columns: 50px minmax(0, 1fr) minmax(300px, .72fr); gap: 20px; align-items: stretch; margin-top: 8px; padding: 12px; border: 1px solid #cdbddd; border-radius: 7px; background: white; }
+.cs-state-number { display: grid; place-items: center; min-height: 138px; color: white; border-radius: 4px; background: var(--violet); font: 700 20px var(--mono); }
+.cs-state-choices article:nth-of-type(2) .cs-state-number { color: var(--ink); background: var(--cyan); }
+.cs-state-choices article:nth-of-type(3) .cs-state-number { color: var(--ink); background: var(--orange); }
+.cs-state-choices article > div:nth-child(2) { align-self: center; padding: 14px 5px; }
+.cs-state-choices h3 { margin: 8px 0; color: var(--ink); font-size: 24px; line-height: 1.03; }
+.cs-state-choices article > div:nth-child(2) > p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.65; }
+.cs-state-choices article > div:nth-child(2) > .cs-math-display { margin: 13px 0; padding: 12px 8px; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 10px; }
+.cs-state-tradeoff { align-self: stretch; padding: 17px; color: white; border-radius: 5px; background: linear-gradient(145deg, #19102f, #31204e); }
+.cs-state-tradeoff strong { display: block; color: var(--gold); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-state-tradeoff strong:not(:first-child) { margin-top: 15px; }
+.cs-state-tradeoff p { margin: 6px 0 0; color: #cfc3d9; font-size: 9px; line-height: 1.6; }
+.cs-state-tradeoff .cs-math-inline { color: var(--cyan); }
 
-.cs-gauge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 9px; }
-.cs-gauge-grid article { min-width: 0; padding: 24px; border: 1px solid #cdbddd; border-top: 6px solid var(--violet); border-radius: 6px; background: white; }
-.cs-gauge-grid article:nth-child(2) { border-top-color: var(--orange); }
-.cs-gauge-grid article:nth-child(3) { border-top-color: var(--cyan); }
-.cs-gauge-grid h3 { color: var(--ink); font-size: 20px; }
-.cs-gauge-grid p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.65; }
-.cs-gauge-grid .cs-math-display { margin: 15px 0; padding: 13px 8px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 10px; }
-.cs-gauge-grid .cs-gauge-proof { color: var(--gold); font-size: 8px; }
+.cs-projection-answer { border-top-color: var(--orange); }
+.cs-projection-steps { display: grid; gap: 8px; margin: 0; padding: 0; list-style: none; counter-reset: projection-step; }
+.cs-projection-steps li { counter-increment: projection-step; display: grid; grid-template-columns: minmax(0, 1fr) minmax(330px, .72fr); gap: 25px; align-items: center; padding: 24px 27px 24px 76px; border: 1px solid #cdbddd; border-radius: 6px; background: white; position: relative; }
+.cs-projection-steps li::before { content: counter(projection-step); position: absolute; left: 20px; display: grid; place-items: center; width: 37px; height: 37px; color: white; border-radius: 50%; background: var(--violet); font: 700 12px var(--mono); }
+.cs-projection-steps li:nth-child(2)::before { color: var(--ink); background: var(--orange); }
+.cs-projection-steps li:nth-child(3)::before { color: var(--ink); background: var(--cyan); }
+.cs-projection-steps h3 { margin: 8px 0; color: var(--ink); font-size: 21px; line-height: 1.04; }
+.cs-projection-steps p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.65; }
+.cs-projection-steps > li > .cs-math-display { min-width: 0; padding: 15px 10px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 10px; }
+.cs-projection-takeaway { display: grid; grid-template-columns: 230px 1fr; gap: 22px; align-items: center; margin-top: 10px; padding: 25px 28px; color: white; border-left: 8px solid var(--gold); border-radius: 6px; background: linear-gradient(135deg, #21143f, #35245a 55%, #135363); }
+.cs-projection-takeaway strong { color: var(--gold); font-size: 18px; line-height: 1.08; }
+.cs-projection-takeaway p { margin: 0; color: #d2c6dc; font-size: 10px; line-height: 1.72; }
+.cs-projection-takeaway .cs-math-inline { color: var(--cyan); }
 
-.cs-simulation > header .cs-eyebrow { color: var(--orange); }
-.cs-route-compare { display: grid; grid-template-columns: 1fr 120px 1fr; gap: 9px; align-items: stretch; }
-.cs-route-compare article { min-width: 0; padding: 25px; color: white; border: 1px solid #594771; border-top: 6px solid var(--orange); border-radius: 6px; background: linear-gradient(145deg, #19102f, #31204e); }
-.cs-route-compare article:last-child { border-top-color: var(--cyan); }
-.cs-route-compare h3 { font-size: 22px; }
-.cs-route-compare .cs-math-display { margin: 12px 0; padding: 13px 8px; overflow-x: auto; color: var(--cyan); border: 1px solid rgba(255,255,255,.1); border-radius: 4px; background: rgba(8,6,27,.34); font-size: 10px; }
-.cs-route-compare p { margin: 0; color: #cfc3d9; font-size: 9px; line-height: 1.65; }
-.cs-simulation-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 9px; }
-.cs-simulation-grid article { padding: 23px; border: 1px solid #cdbddd; border-top: 6px solid var(--violet); border-radius: 6px; background: white; }
-.cs-simulation-grid article:nth-child(2) { border-top-color: var(--cyan); }
-.cs-simulation-grid article:nth-child(3) { border-top-color: var(--orange); }
-.cs-simulation-grid h3 { color: var(--ink); font-size: 20px; }
-.cs-simulation-grid p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.65; }
-.cs-simulation-warning { display: grid; grid-template-columns: 230px 1fr; gap: 20px; align-items: center; margin-top: 10px; padding: 23px 27px; color: white; border: 1px solid #5f4a79; border-left: 8px solid var(--orange); border-radius: 6px; background: linear-gradient(135deg, #21143f, #35245a 55%, #135363); }
-.cs-simulation-warning strong { color: var(--gold); font-size: 17px; line-height: 1.05; }
-.cs-simulation-warning p { margin: 0; color: #d2c6dc; font-size: 10px; line-height: 1.7; }
+.cs-decision dl { margin: 0; border-top: 1px solid #cdbddd; }
+.cs-decision dl > div { display: grid; grid-template-columns: 245px 1fr; gap: 26px; padding: 20px 7px; border-bottom: 1px solid #cdbddd; }
+.cs-decision dt { color: var(--ink); font-size: 16px; font-weight: 850; }
+.cs-decision dd { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.7; }
+
+.cs-technical details { margin-top: 8px; border: 1px solid #cdbddd; border-radius: 6px; background: white; }
+.cs-technical summary { padding: 20px 22px; color: var(--ink); font-size: 16px; font-weight: 850; cursor: pointer; }
+.cs-technical details[open] summary { border-bottom: 1px solid #cdbddd; }
+.cs-technical details > p, .cs-technical details > .cs-math-display, .cs-technical-formulas { margin-inline: 22px; }
+.cs-technical details > p { color: var(--muted); font-size: 10px; line-height: 1.72; }
+.cs-technical details > p:last-child { margin-bottom: 22px; }
+.cs-technical details > .cs-math-display { margin-block: 12px; padding: 14px 8px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 10px; }
+.cs-technical-formulas { display: grid; gap: 1px; margin-block: 12px 22px; overflow: hidden; border-radius: 4px; background: #4b3a67; }
+.cs-technical-formulas .cs-math-display { padding: 12px 8px; color: var(--cyan); background: var(--night); font-size: 10px; }
 
 @media (max-width: 1180px) {
   .cs-lab { grid-template-columns: 225px minmax(480px, 1fr); }
@@ -318,7 +315,7 @@ button { cursor: pointer; }
   .cs-header { grid-template-columns: 1fr auto; }
   .cs-header > div { display: none; }
   .cs-header nav a:not(:first-child) { display: none; }
-  .cs-intro, .cs-pairing > header, .cs-foundations > header, .cs-dec > header, .cs-dof > header, .cs-simulation > header { grid-template-columns: 1fr; gap: 25px; }
+  .cs-intro, .cs-pairing > header, .cs-foundations > header, .cs-dec > header { grid-template-columns: 1fr; gap: 25px; }
   .cs-intro h1 { font-size: clamp(3.1rem, 15vw, 5.5rem); }
   .cs-lab { grid-template-columns: 1fr; }
   .cs-guide { border-right: 0; border-bottom: 1px solid var(--line); }
@@ -336,13 +333,12 @@ button { cursor: pointer; }
   .cs-foundation-equation { grid-column: 1 / -1; }
   .cs-foundation-summary { grid-template-columns: 1fr; }
   .cs-diagram-grid { grid-template-columns: repeat(2, 1fr); }
-  .cs-type-flow { grid-template-columns: 1fr; }
-  .cs-type-flow > i { min-height: 42px; }
-  .cs-explanation-grid { grid-template-columns: 1fr; }
-  .cs-dof-count, .cs-route-compare { grid-template-columns: 1fr; }
-  .cs-dof-count > i, .cs-route-compare > i { min-height: 38px; }
-  .cs-gauge-grid, .cs-simulation-grid { grid-template-columns: 1fr; }
-  .cs-simulation-warning { grid-template-columns: 1fr; }
+  .cs-problem-equations { grid-template-columns: 1fr; }
+  .cs-state-choices > article { grid-template-columns: 45px 1fr; }
+  .cs-state-tradeoff { grid-column: 1 / -1; }
+  .cs-projection-steps li { grid-template-columns: 1fr; padding-left: 72px; }
+  .cs-projection-takeaway { grid-template-columns: 1fr; }
+  .cs-decision dl > div { grid-template-columns: 1fr; gap: 8px; }
 }
 
 @media (max-width: 530px) {
@@ -356,4 +352,10 @@ button { cursor: pointer; }
   .cs-stage-actions { grid-template-columns: 1fr; }
   .cs-glyph-list { grid-template-columns: 1fr 1fr; }
   #cs-pairing-canvas { height: 330px; }
+  .cs-problem { padding: 22px 18px; }
+  .cs-state-choices > article { grid-template-columns: 40px 1fr; gap: 12px; padding: 8px; }
+  .cs-state-number { min-height: 80px; }
+  .cs-state-tradeoff { grid-column: 1 / -1; }
+  .cs-projection-steps li { padding: 65px 18px 20px; }
+  .cs-projection-steps li::before { top: 16px; left: 18px; }
 }
