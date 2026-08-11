@@ -996,11 +996,11 @@ const stepCopy: Record<ConstructionStep, {
   copy: string;
 }> = {
   labels: {
-    kicker: "STEP 01 · LABELS",
-    equation: String.raw`\phi,\alpha,\beta\in\Omega^0(S)`,
-    type: "SMOOTH VIEW: evaluate at a point · MESH VIEW: sample at vertices",
+    kicker: "STEP 01 · CHOOSE THE LABEL MAP",
+    equation: String.raw`F=(\alpha,\beta):S\longrightarrow\mathbb R^2`,
+    type: "THE VALUES (α(p),β(p)) LABEL EACH POINT; THEY ARE NOT VELOCITY COMPONENTS",
     example: String.raw`\alpha=A\sin x,\quad\beta=\cos\theta\sin x+\sin\theta\sin y`,
-    copy: "The angle θ controls whether the two label families change in the same direction or independently. These 0-forms are scalar fields, not velocity arrows.",
+    copy: "We choose sine waves only because they are smooth and periodic. A sets the first label’s scale; θ rotates the second label from a copy of α toward an independent y-pattern. Many other choices encode the same vorticity.",
   },
   differentials: {
     kicker: "STEP 02 · DIFFERENTIALS",
@@ -1010,18 +1010,18 @@ const stepCopy: Record<ConstructionStep, {
     copy: "The smooth 1-forms exist at every point. An edge cochain stores their line integrals; the drawn arrows are (dα)♯ and (dβ)♯ after the metric converts covectors into vectors.",
   },
   wedge: {
-    kicker: "STEP 03 · VORTICITY",
+    kicker: "STEP 03 · CHECK THE CHOSEN VORTICITY",
     equation: String.raw`du^\flat=d\alpha\wedge d\beta\in\Omega^2(S)`,
     type: "LOCAL VIEW: evaluate an oriented parallelogram · INTEGRAL VIEW: measure a patch",
     example: String.raw`d\alpha\wedge d\beta=A\sin\theta\cos x\cos y\,dx\wedge dy`,
-    copy: "This determinant measures the signed independence of the two label changes. By Stokes, its integral over a patch equals velocity circulation around the patch boundary.",
+    copy: "This is the constraint on the label choice: their signed crossing must equal the vorticity you intend to represent. Parallel labels produce zero; independent labels produce local circulation.",
   },
   assemble: {
-    kicker: "STEP 04 · ASSEMBLY",
+    kicker: "STEP 04 · CHOOSE THE EXACT COMPLETION",
     equation: String.raw`u^\flat=d\phi+\alpha\,d\beta`,
     type: "ONE-FORM VIEW: measure circulation · VECTOR VIEW: apply ♯g to advect",
     example: String.raw`d\phi=P\sin(x-y)(-dx+dy),\qquad u=(u^\flat)^{\sharp_g}`,
-    copy: "The scalar α scales dβ pointwise. The exact term dφ changes the local velocity but not closed-loop circulation or vorticity because ∮dφ = 0 and d²φ = 0.",
+    copy: "After α and β match the target vorticity, choose φ so that dφ fills the remaining curl-free part of the target velocity. This toy lab lets P vary independently to show that dφ changes velocity but not vorticity.",
   },
   project: {
     kicker: "STEP 05 · HODGE PROJECTION",
@@ -1034,11 +1034,11 @@ const stepCopy: Record<ConstructionStep, {
 
 const taylorGreenStepCopy: typeof stepCopy = {
   labels: {
-    kicker: "TEST 01 · EXACT LABELS",
+    kicker: "TEST 01 · FACTOR THE KNOWN VORTICITY",
     equation: String.raw`\phi,\alpha,\beta\in\Omega^0(\mathbb T^2)`,
     type: "ALL THREE SCALARS ARE SINGLE-VALUED AND 2π-PERIODIC",
     example: String.raw`\alpha=2U\cos x,\quad\beta=\cos y,\quad\phi=-U\cos x\cos y+C\sin(x+y)`,
-    copy: "This triple is chosen so its assembled one-form is the Taylor–Green vortex plus one known exact contaminant dq.",
+    copy: "These labels are not guessed: differentiating them gives exactly the known Taylor–Green vorticity. The φ term is then chosen algebraically to complete the target velocity, plus one controlled exact contaminant dq.",
   },
   differentials: {
     kicker: "TEST 02 · DIFFERENTIATE",
@@ -1105,6 +1105,82 @@ function activateStep(step: ConstructionStep): void {
   updateSceneLayers();
 }
 
+function updateChoicePresetState(): void {
+  const crossing = Number(controls.crossing.value);
+  const potential = Number(controls.potential.value);
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cs-choice-preset]")) {
+    const preset = button.dataset.csChoicePreset;
+    const active = fieldCase === "controlled" && (
+      (preset === "parallel" && crossing < 0.005 && potential < 0.005)
+      || (preset === "vortical" && crossing > 0.995 && potential < 0.005)
+      || (preset === "exact" && crossing > 0.995 && Math.abs(potential - 0.45) < 0.005)
+    );
+    button.classList.toggle("active", active);
+    button.setAttribute("aria-pressed", String(active));
+  }
+}
+
+function updateChoiceSummary(): void {
+  const strength = Number(controls.label.value);
+  const potential = Number(controls.potential.value);
+  const angle = 0.5 * Math.PI * Number(controls.crossing.value);
+  const parallel = Math.cos(angle);
+  const transverse = Math.sin(angle);
+  const labelEquation = byId("cs-choice-label-equation");
+  const vorticityEquation = byId("cs-choice-vorticity-equation");
+  const phiEquation = byId("cs-choice-phi-equation");
+  const reading = byId("cs-choice-reading");
+  const kicker = byId("cs-current-choice-kicker");
+
+  if (fieldCase === "taylor-green") {
+    kicker.textContent = "A TARGET-DRIVEN FACTORIZATION";
+    renderLatex(labelEquation, String.raw`\alpha=${(2 * strength).toFixed(2)}\cos x,\qquad\beta=\cos y`, true);
+    renderLatex(vorticityEquation, String.raw`d\alpha\wedge d\beta=${(2 * strength).toFixed(2)}\sin x\sin y\,dx\wedge dy`, true);
+    renderLatex(phiEquation, String.raw`\phi=-${strength.toFixed(2)}\cos x\cos y+${potential.toFixed(2)}\sin(x+y)`, true);
+    reading.textContent = "Here the target is known first. α and β are selected to factor its checkerboard vorticity; φ then completes the Taylor–Green velocity and adds the controlled exact test field.";
+    updateChoicePresetState();
+    return;
+  }
+
+  kicker.textContent = "YOUR CURRENT FACTORIZATION";
+  if (surface === "sphere") {
+    renderLatex(labelEquation, String.raw`\alpha=${strength.toFixed(2)}z,\qquad\beta=${parallel.toFixed(2)}z+${transverse.toFixed(2)}x`, true);
+    renderLatex(vorticityEquation, String.raw`d\alpha\wedge d\beta=${(strength * transverse).toFixed(2)}\,dz\wedge dx\big|_{TS^2}`, true);
+    renderLatex(phiEquation, String.raw`\phi=${potential.toFixed(2)}y,\qquad d(d\phi)=0`, true);
+  } else if (surface === "frog") {
+    renderLatex(labelEquation, String.raw`\alpha=${strength.toFixed(2)}e_1,\qquad\beta=${parallel.toFixed(2)}e_1+${transverse.toFixed(2)}e_3`, true);
+    renderLatex(vorticityEquation, String.raw`d\alpha\wedge d\beta=${(strength * transverse).toFixed(2)}\,de_1\wedge de_3`, true);
+    renderLatex(phiEquation, String.raw`\phi=${potential.toFixed(2)}e_6,\qquad d(d\phi)=0`, true);
+  } else {
+    const firstCoordinate = surface === "torus" ? "u" : "x";
+    const secondCoordinate = surface === "torus" ? "v" : "y";
+    renderLatex(
+      labelEquation,
+      String.raw`\alpha=${strength.toFixed(2)}\sin ${firstCoordinate},\quad\beta=${parallel.toFixed(2)}\sin ${firstCoordinate}+${transverse.toFixed(2)}\sin ${secondCoordinate}`,
+      true,
+    );
+    renderLatex(
+      vorticityEquation,
+      String.raw`d\alpha\wedge d\beta=${(strength * transverse).toFixed(2)}\cos ${firstCoordinate}\cos ${secondCoordinate}\,d${firstCoordinate}\wedge d${secondCoordinate}`,
+      true,
+    );
+    renderLatex(
+      phiEquation,
+      String.raw`\phi=${potential.toFixed(2)}\cos(${firstCoordinate}-${secondCoordinate}),\qquad d(d\phi)=0`,
+      true,
+    );
+  }
+
+  if (transverse < 0.015) {
+    reading.textContent = "β changes in the same direction as α, so their wedge product vanishes: this label choice creates no vorticity. The exact term dφ may still move particles, but only with curl-free motion.";
+  } else if (potential < 0.005) {
+    reading.textContent = "The crossing labels now carry vorticity through αdβ. With φ = 0, you are looking at the label-coupling contribution without an added exact velocity component.";
+  } else {
+    reading.textContent = "The label crossing fixes the displayed vorticity. The independently chosen φ adds a curl-free velocity component; changing its strength cannot alter dα∧dβ.";
+  }
+  updateChoicePresetState();
+}
+
 function updateControlOutputs(): void {
   outputs.crossing.value = fieldCase === "taylor-green"
     ? "fixed"
@@ -1112,6 +1188,7 @@ function updateControlOutputs(): void {
   outputs.label.value = Number(controls.label.value).toFixed(2);
   outputs.potential.value = Number(controls.potential.value).toFixed(2);
   byId("cs-tg-raw-divergence").textContent = `√2 C = ${(Math.SQRT2 * Number(controls.potential.value)).toFixed(3)}`;
+  updateChoiceSummary();
 }
 
 function updateStageTitle(): void {
@@ -1129,6 +1206,7 @@ function updateFieldCaseInterface(): void {
   controls.crossing.disabled = taylorGreen;
   byId("cs-crossing-control").classList.toggle("cs-control-locked", taylorGreen);
   byId<HTMLElement>("cs-taylor-green-case").hidden = !taylorGreen;
+  byId<HTMLElement>("cs-choice-presets").hidden = taylorGreen;
   controlCopy.crossingLabel.textContent = taylorGreen ? "Taylor–Green labels" : "Label crossing";
   controlCopy.crossingHelp.textContent = taylorGreen ? "α = 2U cos x and β = cos y are fixed" : "0° parallel → 90° independent";
   controlCopy.labelLabel.textContent = taylorGreen ? "Vortex amplitude U" : "Label strength";
@@ -1172,6 +1250,7 @@ function setSurface(next: ClebschSurface): void {
   orbit.target.set(0, 0, 0);
   orbit.update();
   updateStageTitle();
+  updateChoiceSummary();
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cs-surface]")) {
     const active = button.dataset.csSurface === surface;
     button.classList.toggle("active", active);
@@ -1196,6 +1275,28 @@ function setFieldCase(next: FieldCase): void {
   if (fieldCase === "taylor-green" && surface !== "plane") setSurface("plane");
   else rebuildSamples();
   activateStep(fieldCase === "taylor-green" ? "assemble" : "labels");
+}
+
+for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cs-choice-preset]")) {
+  button.addEventListener("click", () => {
+    fieldCase = "controlled";
+    const preset = button.dataset.csChoicePreset;
+    controls.label.value = "0.7";
+    if (preset === "parallel") {
+      controls.crossing.value = "0";
+      controls.potential.value = "0";
+    } else if (preset === "vortical") {
+      controls.crossing.value = "1";
+      controls.potential.value = "0";
+    } else {
+      controls.crossing.value = "1";
+      controls.potential.value = "0.45";
+    }
+    velocityView = "raw";
+    updateFieldCaseInterface();
+    rebuildSamples();
+    activateStep(preset === "exact" ? "assemble" : "wedge");
+  });
 }
 
 for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cs-surface]")) {

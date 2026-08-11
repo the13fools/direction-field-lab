@@ -65,6 +65,20 @@ button { cursor: pointer; }
 .cs-intro-copy .cs-math-inline { color: var(--cyan); }
 .cs-intro-copy .cs-math-display { margin: 17px 0; padding: 14px; color: var(--cyan); border: 1px solid rgba(255,255,255,.15); border-radius: 4px; background: rgba(8, 6, 27, .36); font-size: 13px; }
 
+.cs-choice-principle { padding: 42px max(24px, calc((100vw - 1320px) / 2)) 50px; border-top: 1px solid var(--line); background: #f8f3eb; }
+.cs-choice-principle > header { display: grid; grid-template-columns: minmax(390px, 1fr) minmax(330px, .8fr); gap: 52px; align-items: end; }
+.cs-choice-principle > header .cs-eyebrow { grid-column: 1 / -1; }
+.cs-choice-principle h2 { margin: 9px 0 0; color: var(--ink); font-size: clamp(2.5rem, 4.5vw, 5rem); line-height: .9; letter-spacing: -.055em; }
+.cs-choice-principle > header > p:last-child { margin: 0; color: var(--muted); font-size: 11px; line-height: 1.72; }
+.cs-choice-principle ol { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; margin: 28px 0 0; padding: 0; list-style: none; }
+.cs-choice-principle li { display: grid; grid-template-columns: 38px 1fr; gap: 11px; min-width: 0; padding: 18px; border: 1px solid #cdbddd; border-top: 6px solid var(--violet); border-radius: 5px; background: #fffdf8; }
+.cs-choice-principle li:nth-child(2) { border-top-color: var(--orange); }
+.cs-choice-principle li:nth-child(3) { border-top-color: var(--cyan); }
+.cs-choice-principle li > span { display: grid; place-items: center; width: 36px; height: 36px; color: white; border-radius: 50%; background: var(--violet); font: 700 8px var(--mono); }
+.cs-choice-principle li strong { color: var(--ink); font-size: 12px; line-height: 1.08; }
+.cs-choice-principle li .cs-math-display { margin-top: 10px; padding: 10px 7px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 9px; }
+.cs-choice-principle li p { margin: 10px 0 0; color: var(--muted); font-size: 8px; line-height: 1.58; }
+
 .cs-lab {
   display: grid;
   grid-template-columns: 260px minmax(560px, 1fr) 330px;
@@ -145,6 +159,15 @@ button { cursor: pointer; }
 .cs-glyph-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; margin-top: 10px; }
 .cs-glyph-list button { min-height: 57px; padding: 8px 9px; }
 .cs-glyph-list button b { font-size: 10px; }
+.cs-choice-presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; margin-top: 10px; }
+.cs-choice-presets[hidden] { display: none; }
+.cs-choice-presets button { min-width: 0; min-height: 77px; padding: 7px; color: var(--ink); border: 1px solid var(--line); border-radius: 4px; background: #fbf8ff; text-align: left; }
+.cs-choice-presets button span, .cs-choice-presets button b, .cs-choice-presets button small { display: block; }
+.cs-choice-presets button span { color: var(--orange); font: 700 7px var(--mono); }
+.cs-choice-presets button b { margin-top: 5px; font-size: 8px; line-height: 1.08; }
+.cs-choice-presets button small { margin-top: 4px; color: var(--muted); font-size: 7px; line-height: 1.3; }
+.cs-choice-presets button.active { color: white; border-color: var(--orange); background: var(--violet); }
+.cs-choice-presets button.active small { color: #e4d9ec; }
 .cs-controls > label { display: grid; grid-template-columns: 1fr auto; gap: 5px 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }
 .cs-controls label span strong, .cs-controls label span small { display: block; }
 .cs-controls label span strong { color: var(--ink); font-size: 10px; }
@@ -153,6 +176,11 @@ button { cursor: pointer; }
 .cs-controls input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--orange); }
 .cs-controls > label.cs-control-locked { opacity: .48; }
 .cs-controls > label.cs-control-locked input { cursor: not-allowed; }
+.cs-current-choice { margin-top: 14px; padding: 14px; color: white; border: 1px solid #624d7a; border-top: 5px solid var(--orange); border-radius: 5px; background: linear-gradient(145deg, #21163e, #27375a); }
+.cs-current-choice > span { display: block; color: var(--orange); font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-current-choice .cs-math-display { margin-top: 8px; padding: 8px 5px; overflow-x: auto; color: var(--cyan); border-radius: 3px; background: rgba(13,8,31,.54); font-size: 8px; }
+.cs-current-choice .cs-math-display:nth-of-type(2) { color: var(--gold); }
+.cs-current-choice p { margin: 10px 0 0; color: #c5b8d0; font-size: 8px; line-height: 1.52; }
 .cs-probe { margin-top: 14px; padding: 15px; color: white; border: 1px solid #624d7a; border-top: 5px solid var(--cyan); border-radius: 5px; background: linear-gradient(145deg, #21163e, #27375a); }
 .cs-probe > span, .cs-probe > strong { display: block; }
 .cs-probe > span { color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .08em; }
@@ -420,11 +448,14 @@ button { cursor: pointer; }
 
 @media (max-width: 1180px) {
   .cs-lab { grid-template-columns: 225px minmax(480px, 1fr); }
-  .cs-controls { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; border-top: 1px solid var(--line); border-left: 0; }
-  .cs-controls > .cs-second-label, .cs-controls > .cs-glyph-list { grid-column: 2; }
-  .cs-controls > .cs-second-label { grid-row: 1; margin-top: 0; }
-  .cs-controls > .cs-glyph-list { grid-row: 2 / span 2; }
-  .cs-controls > label, .cs-controls > .cs-probe { grid-column: 1 / -1; }
+  .cs-controls { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 24px; align-content: start; border-top: 1px solid var(--line); border-left: 0; }
+  .cs-controls > .cs-build-label, .cs-controls > .cs-choice-presets, .cs-controls > label { grid-column: 1; }
+  .cs-controls > .cs-current-choice { grid-column: 2; grid-row: 1 / span 6; margin-top: 0; }
+  .cs-controls > .cs-view-label { grid-column: 3; grid-row: 1; margin-top: 0; }
+  .cs-controls > .cs-colors { grid-column: 3; grid-row: 2; }
+  .cs-controls > .cs-glyph-label { grid-column: 3; grid-row: 3; }
+  .cs-controls > .cs-glyph-list { grid-column: 3; grid-row: 4 / span 3; }
+  .cs-controls > .cs-probe { grid-column: 1 / -1; }
   .cs-pairing-grid { grid-template-columns: minmax(440px, 1.1fr) minmax(310px, .9fr); }
   .cs-foundation-step { grid-template-columns: 54px 1fr; }
   .cs-foundation-equation { grid-column: 2; }
@@ -435,7 +466,9 @@ button { cursor: pointer; }
   .cs-header { grid-template-columns: 1fr auto; }
   .cs-header > div { display: none; }
   .cs-header nav a:not(:first-child) { display: none; }
-  .cs-intro, .cs-pairing > header, .cs-foundations > header, .cs-dec > header { grid-template-columns: 1fr; gap: 25px; }
+  .cs-intro, .cs-choice-principle > header, .cs-pairing > header, .cs-foundations > header, .cs-dec > header { grid-template-columns: 1fr; gap: 25px; }
+  .cs-choice-principle > header .cs-eyebrow { grid-column: auto; }
+  .cs-choice-principle ol { grid-template-columns: 1fr; }
   .cs-intro h1 { font-size: clamp(3.1rem, 15vw, 5.5rem); }
   .cs-lab { grid-template-columns: 1fr; }
   .cs-guide { border-right: 0; border-bottom: 1px solid var(--line); }
@@ -472,7 +505,7 @@ button { cursor: pointer; }
 
 @media (max-width: 530px) {
   .cs-header nav { gap: 8px; }
-  .cs-intro, .cs-roadmap, .cs-pairing, .cs-foundations, .cs-dec, .cs-tutorial { padding-inline: 15px; }
+  .cs-intro, .cs-choice-principle, .cs-roadmap, .cs-pairing, .cs-foundations, .cs-dec, .cs-tutorial { padding-inline: 15px; }
   .cs-intro-copy { padding: 20px; }
   .cs-surfaces, .cs-steps, .cs-diagram-grid { grid-template-columns: 1fr; }
   .cs-stage { padding: 10px; }

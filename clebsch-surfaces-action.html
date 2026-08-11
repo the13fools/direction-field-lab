@@ -24,6 +24,15 @@
         </div>
       </section>
 
+      <section class="cs-choice-principle" aria-labelledby="cs-choice-principle-title">
+        <header><p class="cs-eyebrow">How the potentials are chosen</p><h2 id="cs-choice-principle-title">Do not choose three mysterious fields at once.</h2><p>Start from the physical velocity or vorticity you want. The Clebsch fields are a nonunique factorization of that data—not three additional observables.</p></header>
+        <ol>
+          <li><span>01</span><div><strong>Name the target rotation.</strong><div class="cs-math-display" data-latex="\omega=du^\flat">vorticity is d of velocity flat</div><p>This is the local circulation density the labels must reproduce.</p></div></li>
+          <li><span>02</span><div><strong>Choose two label families whose crossing matches it.</strong><div class="cs-math-display" data-latex="d\alpha\wedge d\beta=\omega">factor the target vorticity</div><p>This factorization is local and highly nonunique. In a material formulation, these labels can instead be initialized once and transported with the fluid.</p></div></li>
+          <li><span>03</span><div><strong>Complete the velocity with the curl-free remainder.</strong><div class="cs-math-display" data-latex="d(u^\flat-\alpha d\beta)=0\quad\Longrightarrow\quad u^\flat=d\phi+\alpha d\beta\ \text{locally}">the remaining closed part is locally exact</div><p>Globally, a harmonic term may still be needed. For incompressible flow, projection changes this exact part by replacing φ with φ − p.</p></div></li>
+        </ol>
+      </section>
+
       <section class="cs-lab" aria-label="Interactive Clebsch variables on surfaces lab">
         <aside class="cs-guide">
           <p class="cs-eyebrow">Choose a surface</p>
@@ -36,13 +45,13 @@
 
           <p class="cs-eyebrow cs-second-label">Choose a field case</p>
           <div class="cs-button-stack cs-cases">
-            <button class="active" data-cs-case="controlled" aria-pressed="true"><b>Crossing labels</b><small>explore how arbitrary α, β, and φ assemble</small></button>
+            <button class="active" data-cs-case="controlled" aria-pressed="true"><b>Crossing labels</b><small>vary label crossing and exact completion separately</small></button>
             <button data-cs-case="taylor-green" aria-pressed="false"><b>Taylor–Green test</b><small>exact periodic vortex + removable exact noise</small></button>
           </div>
 
           <p class="cs-eyebrow cs-second-label">Build the one-form</p>
           <div class="cs-button-stack cs-steps">
-            <button class="active" data-cs-step="labels"><i>01</i><span><b>Paint α and β</b><small>0-forms evaluate at points</small></span></button>
+            <button class="active" data-cs-step="labels"><i>01</i><span><b>Choose α and β</b><small>two scalar label families</small></span></button>
             <button data-cs-step="differentials"><i>02</i><span><b>Take dα and dβ</b><small>1-forms measure tangent arrows</small></span></button>
             <button data-cs-step="wedge"><i>03</i><span><b>Form dα ∧ dβ</b><small>2-forms measure oriented patches</small></span></button>
             <button data-cs-step="assemble"><i>04</i><span><b>Assemble u♭</b><small>dφ + α dβ</small></span></button>
@@ -50,9 +59,9 @@
           </div>
 
           <div class="cs-question">
-            <span>THE QUESTION TO KEEP ASKING</span>
-            <strong>What does this object measure?</strong>
-            <p>A smooth 0-form evaluates a point. A 1-form integrates along a curve. A 2-form integrates over an oriented patch. A mesh stores discrete samples of those measurements on vertices, edges, and faces.</p>
+            <span>THE NONUNIQUENESS IS REAL</span>
+            <strong>Many triples encode the same velocity.</strong>
+            <p>The labels are representation variables, not separately measurable fluid quantities. Judge a choice by whether dα ∧ dβ gives the desired vorticity and whether dφ + αdβ gives the desired velocity, up to harmonic terms.</p>
           </div>
         </aside>
 
@@ -77,24 +86,38 @@
         </section>
 
         <aside class="cs-controls">
-          <p class="cs-eyebrow">Color shows a scalar</p>
+          <p class="cs-eyebrow cs-build-label">Build one controlled example</p>
+          <div id="cs-choice-presets" class="cs-choice-presets" role="group" aria-label="Controlled Clebsch comparisons">
+            <button data-cs-choice-preset="parallel"><span>01</span><b>Parallel labels</b><small>same label direction · ω = 0</small></button>
+            <button data-cs-choice-preset="vortical"><span>02</span><b>Cross the labels</b><small>create ω · keep φ = 0</small></button>
+            <button data-cs-choice-preset="exact"><span>03</span><b>Add dφ</b><small>change velocity · keep ω fixed</small></button>
+          </div>
+          <label id="cs-crossing-control"><span><strong id="cs-crossing-label">Label crossing</strong><small id="cs-crossing-help">0° parallel → 90° independent</small></span><output id="cs-crossing-output">70°</output><input id="cs-crossing" type="range" min="0" max="1" step="0.01" value="0.78" /></label>
+          <label><span><strong id="cs-label-label">Label strength</strong><small id="cs-label-help">scales α and its vorticity</small></span><output id="cs-label-output">0.70</output><input id="cs-label" type="range" min="0" max="1.2" step="0.02" value="0.7" /></label>
+          <label><span><strong id="cs-potential-label">Potential strength</strong><small id="cs-potential-help">changes dφ, never dα∧dβ</small></span><output id="cs-potential-output">0.24</output><input id="cs-potential" type="range" min="0" max="1" step="0.02" value="0.24" /></label>
+
+          <section class="cs-current-choice" aria-live="polite">
+            <span id="cs-current-choice-kicker">YOUR CURRENT FACTORIZATION</span>
+            <div id="cs-choice-label-equation" class="cs-math-display" data-latex="\alpha=0.70\sin x,\quad\beta=0.34\sin x+0.94\sin y">chosen alpha and beta</div>
+            <div id="cs-choice-vorticity-equation" class="cs-math-display" data-latex="d\alpha\wedge d\beta=0.66\cos x\cos y\,dx\wedge dy">resulting vorticity</div>
+            <div id="cs-choice-phi-equation" class="cs-math-display" data-latex="\phi=0.24\cos(x-y),\qquad d(d\phi)=0">chosen exact part</div>
+            <p id="cs-choice-reading">The sine fields are only a simple periodic example. Their crossing determines vorticity; φ independently changes the curl-free part of velocity.</p>
+          </section>
+
+          <p class="cs-eyebrow cs-second-label cs-view-label">Choose what to inspect</p>
           <div class="cs-segmented cs-colors">
             <button class="active" data-cs-scalar="alpha">α</button><button data-cs-scalar="beta">β</button><button data-cs-scalar="phi">φ</button><button data-cs-scalar="vorticity">ω</button><button data-cs-scalar="none">mesh</button>
           </div>
 
-          <p class="cs-eyebrow cs-second-label">Glyphs show metric duals</p>
+          <p class="cs-eyebrow cs-second-label cs-glyph-label">Glyphs show metric duals</p>
           <div class="cs-glyph-list">
             <button class="active" data-cs-glyph="dAlpha"><b>(dα)♯</b><small>normal to α contours</small></button>
             <button data-cs-glyph="dBeta"><b>(dβ)♯</b><small>normal to β contours</small></button>
             <button data-cs-glyph="dPhi"><b>(dφ)♯</b><small>exact velocity piece</small></button>
-            <button data-cs-glyph="alphaDBeta"><b>(αdβ)♯</b><small>label-coupling piece</small></button>
+            <button data-cs-glyph="alphaDBeta"><b>(αdβ)♯</b><small>vorticity-carrying piece</small></button>
             <button data-cs-glyph="velocity"><b>u or u⊥</b><small>selected velocity view</small></button>
             <button data-cs-glyph="none"><b>none</b><small>scalar color only</small></button>
           </div>
-
-          <label id="cs-crossing-control"><span><strong id="cs-crossing-label">Label crossing</strong><small id="cs-crossing-help">0° parallel → 90° independent</small></span><output id="cs-crossing-output">70°</output><input id="cs-crossing" type="range" min="0" max="1" step="0.01" value="0.78" /></label>
-          <label><span><strong id="cs-label-label">Label strength</strong><small id="cs-label-help">scales α and its vorticity</small></span><output id="cs-label-output">0.70</output><input id="cs-label" type="range" min="0" max="1.2" step="0.02" value="0.7" /></label>
-          <label><span><strong id="cs-potential-label">Potential strength</strong><small id="cs-potential-help">changes dφ, never dα∧dβ</small></span><output id="cs-potential-output">0.24</output><input id="cs-potential" type="range" min="0" max="1" step="0.02" value="0.24" /></label>
 
           <section class="cs-probe">
             <span>POINT PROBE</span><strong id="cs-probe-location">u = 0.19 · v = 0.31</strong>

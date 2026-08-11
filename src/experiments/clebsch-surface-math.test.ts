@@ -37,4 +37,13 @@ describe("Clebsch surface lesson math", () => {
     expect(introPageSource).toContain('href="./clebsch-surfaces-action.html"');
     expect(actionPageSource).toContain('href="./clebsch-surfaces.html"');
   });
+
+  it("explains how a target field determines the roles of alpha, beta, and phi", () => {
+    expect(actionPageSource).toContain("Do not choose three mysterious fields at once");
+    expect(actionPageSource).toContain("d(u^\\flat-\\alpha d\\beta)=0");
+    expect(actionPageSource).toContain('data-cs-choice-preset="parallel"');
+    expect(actionPageSource).toContain('data-cs-choice-preset="vortical"');
+    expect(actionPageSource).toContain('data-cs-choice-preset="exact"');
+    expect(actionPageSource).toContain('id="cs-current-choice-kicker"');
+  });
 });
