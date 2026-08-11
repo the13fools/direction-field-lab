@@ -46,4 +46,13 @@ describe("Clebsch surface lesson math", () => {
     expect(actionPageSource).toContain('data-cs-choice-preset="exact"');
     expect(actionPageSource).toContain('id="cs-current-choice-kicker"');
   });
+
+  it("includes a material-label evolution lab with an explicit controlled-flow caveat", () => {
+    expect(actionPageSource).toContain('id="cs-material-canvas"');
+    expect(actionPageSource).toContain('data-cs-material-view="both"');
+    expect(actionPageSource).toContain("D_t\\alpha=0");
+    expect(actionPageSource).toContain("D_t\\phi=\\tfrac12|u|^2-p");
+    expect(actionPageSource).toContain("pressure changes it along the trajectory");
+    expect(actionPageSource).toContain("not yet a free-running nonlinear solver");
+  });
 });

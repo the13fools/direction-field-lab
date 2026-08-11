@@ -21,6 +21,10 @@ import {
   reduceHarmonicLoop,
   sampleClebschLoop,
 } from "./clebsch-torus-loop-model";
+import {
+  ClebschMaterialLabelModel,
+  type ClebschMaterialPoint,
+} from "./clebsch-material-label-model";
 import type { Vec3 } from "./random-surface-fluid-model";
 
 type ConstructionStep = "labels" | "differentials" | "wedge" | "assemble" | "project";
@@ -236,6 +240,252 @@ function initializeDualPairingLab(): void {
   for (const input of [angleInput, lengthInput, strengthInput]) {
     input.addEventListener("input", draw);
   }
+  new ResizeObserver(draw).observe(canvas);
+  draw();
+}
+
+function initializeMaterialLabelLab(): void {
+  const canvas = byId<HTMLCanvasElement>("cs-material-canvas");
+  const canvasContext = canvas.getContext("2d");
+  if (!canvasContext) throw new Error("Unable to create the material-label canvas.");
+  const context: CanvasRenderingContext2D = canvasContext;
+  const resetButton = byId<HTMLButtonElement>("cs-material-reset");
+  const stepButton = byId<HTMLButtonElement>("cs-material-step");
+  const playButton = byId<HTMLButtonElement>("cs-material-play");
+  const viewButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-cs-material-view]")];
+
+  let model = new ClebschMaterialLabelModel();
+  let view: "both" | "alpha" | "beta" = "both";
+  let playing = false;
+  let previousFrame = 0;
+  let animationFrame = 0;
+
+  function materialColor(value: number): string {
+    const amount = Math.min(1, Math.sqrt(Math.abs(value) / (2 * model.amplitude)));
+    const target = value >= 0 ? [209, 76, 43] : [35, 174, 184];
+    const base = [18, 12, 40];
+    const mix = 0.08 + 0.58 * amount;
+    const color = base.map((channel, index) => Math.round(channel + mix * (target[index]! - channel)));
+    return `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+  }
+
+  function prepareCanvas(): { width: number; height: number; left: number; top: number; side: number } {
+    const bounds = canvas.getBoundingClientRect();
+    const width = Math.max(1, bounds.width);
+    const height = Math.max(1, bounds.height);
+    const pixelRatio = Math.min(2, window.devicePixelRatio || 1);
+    const pixelWidth = Math.round(width * pixelRatio);
+    const pixelHeight = Math.round(height * pixelRatio);
+    if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+      canvas.width = pixelWidth;
+      canvas.height = pixelHeight;
+    }
+    context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    context.clearRect(0, 0, width, height);
+    const side = Math.max(1, Math.min(width - 48, height - 48));
+    return { width, height, left: (width - side) / 2, top: (height - side) / 2, side };
+  }
+
+  function drawLine(
+    points: readonly ClebschMaterialPoint[],
+    color: string,
+    lineWidth: number,
+    left: number,
+    top: number,
+    side: number,
+  ): void {
+    context.beginPath();
+    for (let index = 0; index < points.length; index += 1) {
+      const point = points[index]!;
+      const drawX = left + side * point.x / TAU;
+      const drawY = top + side * (1 - point.y / TAU);
+      const previous = points[index - 1];
+      const crossedSeam = previous
+        ? Math.abs(point.x - previous.x) > Math.PI || Math.abs(point.y - previous.y) > Math.PI
+        : true;
+      if (crossedSeam) context.moveTo(drawX, drawY);
+      else context.lineTo(drawX, drawY);
+    }
+    context.strokeStyle = color;
+    context.lineWidth = lineWidth;
+    context.lineJoin = "round";
+    context.lineCap = "round";
+    context.stroke();
+  }
+
+  function arrow(startX: number, startY: number, dx: number, dy: number): void {
+    const length = Math.hypot(dx, dy);
+    if (length < 0.3) return;
+    const endX = startX + dx;
+    const endY = startY + dy;
+    const ux = dx / length;
+    const uy = dy / length;
+    context.beginPath();
+    context.moveTo(startX, startY);
+    context.lineTo(endX, endY);
+    context.lineTo(endX - 4.5 * ux + 2.7 * uy, endY - 4.5 * uy - 2.7 * ux);
+    context.moveTo(endX, endY);
+    context.lineTo(endX - 4.5 * ux - 2.7 * uy, endY - 4.5 * uy + 2.7 * ux);
+    context.stroke();
+  }
+
+  function updateMetrics(): void {
+    const diagnostics = model.diagnostics();
+    byId("cs-material-time").textContent = diagnostics.time.toFixed(3);
+    byId("cs-material-labels").textContent = `α ${format(diagnostics.tracerAlpha)} · β ${format(diagnostics.tracerBeta)}`;
+    byId("cs-material-phi").textContent = `φ ${format(diagnostics.tracerPhi)}`;
+    byId("cs-material-phi-change").textContent = `Δφ ${format(diagnostics.tracerPhiChange)}`;
+    byId("cs-material-area").textContent = `area ratio ${diagnostics.patchAreaRatio.toFixed(4)}`;
+    byId("cs-material-vorticity-error").textContent = `|Δω| ${Math.abs(diagnostics.tracerVorticityError).toExponential(2)}`;
+  }
+
+  function draw(): void {
+    const { width, height, left, top, side } = prepareCanvas();
+    context.fillStyle = "#0f0925";
+    context.fillRect(0, 0, width, height);
+
+    const cells = 44;
+    const cellSize = side / cells;
+    for (let row = 0; row < cells; row += 1) {
+      for (let column = 0; column < cells; column += 1) {
+        const x = TAU * (column + 0.5) / cells;
+        const y = TAU * (cells - row - 0.5) / cells;
+        context.fillStyle = materialColor(model.vorticity(x, y));
+        context.fillRect(left + column * cellSize, top + row * cellSize, cellSize + 0.6, cellSize + 0.6);
+      }
+    }
+
+    context.save();
+    context.beginPath();
+    context.rect(left, top, side, side);
+    context.clip();
+
+    context.strokeStyle = "rgba(255, 255, 255, .24)";
+    context.lineWidth = 0.8;
+    const arrowCount = 10;
+    const arrowScale = side / 54;
+    for (let row = 0; row < arrowCount; row += 1) {
+      for (let column = 0; column < arrowCount; column += 1) {
+        const x = TAU * (column + 0.5) / arrowCount;
+        const y = TAU * (row + 0.5) / arrowCount;
+        const velocity = model.velocity(x, y);
+        arrow(
+          left + side * x / TAU,
+          top + side * (1 - y / TAU),
+          arrowScale * velocity.x / model.amplitude,
+          -arrowScale * velocity.y / model.amplitude,
+        );
+      }
+    }
+
+    if (view === "both" || view === "alpha") {
+      for (const line of model.alphaLines) drawLine(line, "rgba(89, 227, 239, .93)", 1.75, left, top, side);
+    }
+    if (view === "both" || view === "beta") {
+      for (const line of model.betaLines) drawLine(line, "rgba(255, 122, 61, .93)", 1.75, left, top, side);
+    }
+
+    context.beginPath();
+    for (let index = 0; index < model.patch.length; index += 1) {
+      const point = model.patch[index]!;
+      const drawX = left + side * point.x / TAU;
+      const drawY = top + side * (1 - point.y / TAU);
+      if (index === 0) context.moveTo(drawX, drawY);
+      else context.lineTo(drawX, drawY);
+    }
+    context.closePath();
+    context.fillStyle = "rgba(255, 216, 109, .22)";
+    context.fill();
+    context.strokeStyle = "#ffd86d";
+    context.lineWidth = 2.5;
+    context.stroke();
+
+    const tracerX = left + side * model.tracer.x / TAU;
+    const tracerY = top + side * (1 - model.tracer.y / TAU);
+    context.beginPath();
+    context.arc(tracerX, tracerY, 7, 0, TAU);
+    context.fillStyle = "#ff7a3d";
+    context.shadowColor = "#ffd86d";
+    context.shadowBlur = 12;
+    context.fill();
+    context.shadowBlur = 0;
+    context.strokeStyle = "#fff4ca";
+    context.lineWidth = 2;
+    context.stroke();
+    context.restore();
+
+    context.strokeStyle = "rgba(255, 255, 255, .58)";
+    context.lineWidth = 1;
+    context.strokeRect(left + 0.5, top + 0.5, side - 1, side - 1);
+    context.fillStyle = "rgba(223, 211, 235, .8)";
+    context.font = "700 9px SFMono-Regular, Consolas, monospace";
+    context.textAlign = "left";
+    context.fillText("0 ≡ 2π", left, top - 9);
+    context.textAlign = "right";
+    context.fillText("periodic x", left + side, top - 9);
+    context.save();
+    context.translate(left - 11, top + side);
+    context.rotate(-Math.PI / 2);
+    context.textAlign = "left";
+    context.fillText("periodic y", 0, 0);
+    context.restore();
+
+    updateMetrics();
+    canvas.setAttribute(
+      "aria-label",
+      `At time ${model.time.toFixed(2)}, material alpha and beta contours deform in a periodic Taylor-Green flow while the orange tracer carries fixed labels.`,
+    );
+  }
+
+  function advance(duration: number): void {
+    const steps = Math.ceil(duration / 0.008);
+    const timeStep = duration / steps;
+    for (let index = 0; index < steps; index += 1) model.step(timeStep);
+  }
+
+  function setPlaying(nextPlaying: boolean): void {
+    if (playing === nextPlaying) return;
+    playing = nextPlaying;
+    previousFrame = 0;
+    playButton.textContent = playing ? "Pause" : "Play";
+    playButton.classList.toggle("active", playing);
+    playButton.setAttribute("aria-pressed", String(playing));
+    if (playing) animationFrame = requestAnimationFrame(tick);
+    else if (animationFrame) cancelAnimationFrame(animationFrame);
+  }
+
+  function tick(timestamp: number): void {
+    if (!playing) return;
+    if (previousFrame > 0) advance(Math.min(0.04, (timestamp - previousFrame) / 1000) * 0.72);
+    previousFrame = timestamp;
+    draw();
+    animationFrame = requestAnimationFrame(tick);
+  }
+
+  resetButton.addEventListener("click", () => {
+    setPlaying(false);
+    model = new ClebschMaterialLabelModel();
+    draw();
+  });
+  stepButton.addEventListener("click", () => {
+    setPlaying(false);
+    advance(0.04);
+    draw();
+  });
+  playButton.addEventListener("click", () => setPlaying(!playing));
+  for (const button of viewButtons) {
+    button.setAttribute("aria-pressed", String(button.dataset.csMaterialView === view));
+    button.addEventListener("click", () => {
+      view = button.dataset.csMaterialView as typeof view;
+      for (const candidate of viewButtons) {
+        const active = candidate === button;
+        candidate.classList.toggle("active", active);
+        candidate.setAttribute("aria-pressed", String(active));
+      }
+      draw();
+    });
+  }
+  playButton.setAttribute("aria-pressed", "false");
   new ResizeObserver(draw).observe(canvas);
   draw();
 }
@@ -1417,6 +1667,7 @@ function animate(): void {
 new ResizeObserver(resizeRenderer).observe(viewer);
 renderStaticLatex();
 initializeDualPairingLab();
+initializeMaterialLabelLab();
 initializeTorusChartLab();
 updateFieldCaseInterface();
 rebuildSurface();

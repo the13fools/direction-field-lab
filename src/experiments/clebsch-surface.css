@@ -192,6 +192,51 @@ button { cursor: pointer; }
 .cs-probe b { margin-top: 4px; color: var(--gold); font: 8px var(--mono); }
 .cs-probe > p { margin: 11px 0 0; color: #c5b8d0; font-size: 8px; line-height: 1.5; }
 
+.cs-material { padding: 72px max(24px, calc((100vw - 1320px) / 2)); border-bottom: 4px solid var(--orange); background: linear-gradient(180deg, #f5effd, #fffaf2); }
+.cs-material > header { display: grid; grid-template-columns: minmax(380px, 1fr) minmax(390px, .78fr); gap: clamp(36px, 7vw, 96px); align-items: end; }
+.cs-material > header h2 { margin: 10px 0 0; color: var(--ink); font-size: clamp(3rem, 5.7vw, 6.4rem); line-height: .86; letter-spacing: -.065em; }
+.cs-material > header h2 em { color: var(--orange); font-style: normal; }
+.cs-material > header aside { min-width: 0; padding: 24px; color: white; border: 1px solid #594771; border-top: 7px solid var(--cyan); border-radius: 7px; background: linear-gradient(145deg, #1b1135, #332052 60%, #135363); box-shadow: 10px 10px 0 rgba(114, 73, 167, .12); }
+.cs-material > header aside > span { color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .09em; }
+.cs-material > header aside .cs-math-display { margin: 15px 0 12px; padding: 13px 8px; overflow-x: auto; color: var(--gold); border-radius: 4px; background: rgba(8, 6, 27, .4); font-size: 11px; }
+.cs-material > header aside p { margin: 0; color: #d2c6dc; font-size: 9px; line-height: 1.65; }
+.cs-material-lab { display: grid; grid-template-columns: minmax(520px, 1.25fr) minmax(350px, .75fr); gap: 8px; margin-top: 34px; }
+.cs-material-stage { min-width: 0; padding: 15px; color: white; border: 1px solid #594771; border-radius: 7px; background: linear-gradient(145deg, #130c2b, #1e2748 62%, #331746); }
+.cs-material-stage > header { display: flex; justify-content: space-between; gap: 18px; align-items: center; padding: 2px 2px 12px; }
+.cs-material-stage > header span, .cs-material-stage > header strong { display: block; }
+.cs-material-stage > header span { color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .09em; }
+.cs-material-stage > header strong { margin-top: 4px; font-size: 11px; }
+.cs-material-legend { color: #b6a8c3; font: 700 7px var(--mono); white-space: nowrap; }
+.cs-material-legend i { display: inline-block; width: 7px; height: 7px; margin: 0 5px 0 10px; border-radius: 50%; background: var(--cyan); }
+.cs-material-legend i:nth-of-type(2) { background: var(--orange); }
+.cs-material-legend i:nth-of-type(3) { background: var(--gold); }
+#cs-material-canvas { display: block; width: 100%; height: clamp(470px, 57vw, 650px); border: 1px solid #594771; border-radius: 5px; background: var(--night); }
+.cs-material-view { display: grid; grid-template-columns: auto repeat(3, minmax(0, 1fr)); gap: 5px; align-items: stretch; margin-top: 9px; }
+.cs-material-view > span { align-self: center; padding: 0 8px 0 2px; color: #9e90ae; font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-material-view button, .cs-material-actions button { min-width: 0; height: 43px; padding: 8px 10px; color: #ded5e7; border: 1px solid #594771; border-radius: 4px; background: #21163d; font-size: 9px; font-weight: 800; }
+.cs-material-view button.active { color: var(--ink); border-color: var(--cyan); background: var(--cyan); }
+.cs-material-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 6px; }
+.cs-material-actions button { height: 55px; }
+.cs-material-actions button.primary { color: var(--ink); border-color: var(--gold); background: linear-gradient(135deg, var(--gold), var(--orange)); }
+.cs-material-actions button.primary.active { color: var(--ink); background: linear-gradient(135deg, var(--cyan), var(--gold)); }
+.cs-material-reading { min-width: 0; padding: clamp(22px, 3vw, 36px); border: 1px solid #cdbddd; border-top: 7px solid var(--orange); border-radius: 7px; background: #fffdf8; }
+.cs-material-reading h3 { margin: 10px 0 16px; color: var(--ink); font-size: clamp(24px, 2.5vw, 37px); line-height: .96; letter-spacing: -.035em; }
+.cs-material-reading > .cs-math-display { padding: 15px 9px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 10px; }
+.cs-material-reading ol { margin: 22px 0 0; padding: 0; list-style: none; }
+.cs-material-reading li { display: grid; grid-template-columns: 34px 1fr; gap: 12px; padding: 15px 0; border-top: 1px solid var(--line); }
+.cs-material-reading li > span { display: grid; place-items: center; width: 32px; height: 32px; color: white; border-radius: 50%; background: var(--violet); font: 700 8px var(--mono); }
+.cs-material-reading li:nth-child(2) > span { color: var(--ink); background: var(--cyan); }
+.cs-material-reading li:nth-child(3) > span { color: var(--ink); background: var(--orange); }
+.cs-material-reading li p { margin: 0; color: var(--muted); font-size: 9px; line-height: 1.62; }
+.cs-material-reading li b { color: var(--ink); }
+.cs-material-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin-top: 9px; overflow: hidden; border: 1px solid #48395e; border-radius: 5px; background: #48395e; }
+.cs-material-metrics > div { min-width: 0; min-height: 76px; padding: 11px; background: #19112f; }
+.cs-material-metrics small, .cs-material-metrics b, .cs-material-metrics em { display: block; }
+.cs-material-metrics small { color: #9889a7; font: 7px var(--mono); }
+.cs-material-metrics b { margin-top: 8px; overflow: hidden; color: var(--gold); font: 700 9px var(--mono); text-overflow: ellipsis; white-space: nowrap; }
+.cs-material-metrics em { margin-top: 5px; color: var(--cyan); font: 700 7px var(--mono); font-style: normal; }
+.cs-material-caveat { margin: 17px 0 0; padding: 14px; color: var(--muted); border-left: 5px solid var(--gold); background: #f4ecfd; font-size: 8px; line-height: 1.58; }
+
 .cs-roadmap { padding: 76px max(24px, calc((100vw - 1180px) / 2)); border-bottom: 1px solid var(--line); background: #fffdf8; }
 .cs-roadmap > header { max-width: 940px; }
 .cs-roadmap > header h2 { margin: 10px 0 0; color: var(--ink); font-size: clamp(2.8rem, 5vw, 5.8rem); line-height: .9; letter-spacing: -.06em; }
@@ -492,6 +537,10 @@ button { cursor: pointer; }
   .cs-same-flow li > div { flex-direction: column; align-items: stretch; gap: 8px; }
   .cs-exact-ambiguity aside { flex-direction: column; align-items: flex-start; gap: 9px; }
   .cs-exact-ambiguity aside strong { flex-basis: auto; }
+  .cs-material > header, .cs-material-lab { grid-template-columns: 1fr; }
+  .cs-material-stage > header { align-items: flex-start; }
+  .cs-material-legend { white-space: normal; text-align: right; }
+  #cs-material-canvas { height: min(78vw, 610px); min-height: 420px; }
   .cs-torus-atlas-lab, .cs-torus-atlas-proof, .cs-torus-coordinate-answer { grid-template-columns: 1fr; }
   .cs-torus-coordinate-answer { gap: 8px; }
   .cs-torus-atlas-visual { position: relative; top: auto; height: 400px; min-height: 0; }
@@ -505,7 +554,7 @@ button { cursor: pointer; }
 
 @media (max-width: 530px) {
   .cs-header nav { gap: 8px; }
-  .cs-intro, .cs-choice-principle, .cs-roadmap, .cs-pairing, .cs-foundations, .cs-dec, .cs-tutorial { padding-inline: 15px; }
+  .cs-intro, .cs-choice-principle, .cs-material, .cs-roadmap, .cs-pairing, .cs-foundations, .cs-dec, .cs-tutorial { padding-inline: 15px; }
   .cs-intro-copy { padding: 20px; }
   .cs-surfaces, .cs-steps, .cs-diagram-grid { grid-template-columns: 1fr; }
   .cs-stage { padding: 10px; }
@@ -521,6 +570,15 @@ button { cursor: pointer; }
   .cs-same-flow li > div { flex-basis: 100%; margin-left: 50px; }
   .cs-exact-calculation { display: grid; grid-template-columns: 1fr; }
   .cs-exact-ambiguity aside { padding: 20px 18px; }
+  .cs-material-stage { padding: 10px; }
+  .cs-material-stage > header { display: block; }
+  .cs-material-legend { margin-top: 9px; text-align: left; }
+  #cs-material-canvas { height: 88vw; min-height: 310px; }
+  .cs-material-view { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .cs-material-view > span { grid-column: 1 / -1; padding: 3px 0; }
+  .cs-material-actions { grid-template-columns: 1fr; }
+  .cs-material-actions button { height: 47px; }
+  .cs-material-metrics { grid-template-columns: 1fr; }
   .cs-torus-atlas-visual { height: 340px; min-height: 0; }
   .cs-torus-atlas-panel { padding: 10px; }
   .cs-torus-mode-buttons { grid-template-columns: 1fr; }
