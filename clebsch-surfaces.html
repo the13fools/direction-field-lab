@@ -4,348 +4,90 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#130c2b" />
-    <meta name="description" content="A course-notes-grounded visual lab for vectors, covectors, differential forms, Clebsch variables, vorticity, and Hodge projection on surfaces." />
-    <title>Clebsch variables on surfaces · Direction Field Lab</title>
+    <meta name="description" content="A gentle introduction to the fluid problem that motivates velocity one-forms, vorticity, Clebsch variables, and Hodge projection on surfaces." />
+    <title>Why Clebsch variables? · Direction Field Lab</title>
   </head>
   <body>
     <header class="cs-header">
       <a href="./index.html">← Direction Field Lab</a>
-      <div><span>CLEBSCH · EXPERIMENT 02</span><strong>Variables on surfaces</strong></div>
-      <nav><a href="./random-fluids.html">Random flows</a><a href="./clebsch-shallow-water.html">Clebsch water</a><a href="./dec-playground.html">DEC operators</a></nav>
+      <div><span>CLEBSCH · TUTORIAL 01 OF 02</span><strong>The problem and the representation</strong></div>
+      <nav><a href="./clebsch-surfaces-action.html">Part II · In action →</a><a href="./random-fluids.html">Random flows</a></nav>
     </header>
 
     <main>
       <section class="cs-intro">
-        <div><p class="cs-eyebrow">Following Exterior Calculus in Graphics · begin with the dual pairing</p><h1>An arrow<br /><em>and a measurement.</em></h1></div>
+        <div><p class="cs-eyebrow">Begin with the physical problem</p><h1>A fluid must<br /><em>move and remember.</em></h1></div>
         <div class="cs-intro-copy">
-          <p>A tangent vector <span class="cs-math-inline" data-latex="v\in T_pS">v in the tangent space</span> is an arrow: it can be a particle's instantaneous motion. A covector <span class="cs-math-inline" data-latex="\eta_p\in T_p^*S">eta in the cotangent space</span> is a linear measuring device: feed it an arrow and it returns one number.</p>
-          <div class="cs-math-display" data-latex="\underbrace{v}_{\text{tangent arrow}}\quad+\quad\underbrace{\eta_p}_{\text{covector}}\quad\longrightarrow\quad\underbrace{\eta_p(v)\in\mathbb R}_{\text{dual pairing}}">a covector evaluates a tangent vector</div>
-          <p>For a fluid, the metric converts the velocity arrow <span class="cs-math-inline" data-latex="u">u</span> into the velocity one-form <span class="cs-math-inline" data-latex="\eta=u^\flat">eta equals u flat</span>. Locally it measures a tangent direction; along a whole curve it measures <strong>circulation</strong>.</p>
-          <div class="cs-math-display" data-latex="\int_\gamma u^\flat=\int u^\flat_{\gamma(t)}(\dot\gamma(t))\,dt">the velocity one-form integrated along a curve</div>
-          <p>Only now do Clebsch variables enter: <span class="cs-math-inline" data-latex="u^\flat=d\phi+\alpha\,d\beta">u flat equals d phi plus alpha d beta</span>. They parameterize the one-form; they are not themselves the velocity, an evolution law, or an incompressibility condition.</p>
+          <p>A surface-fluid solver must move particles, avoid artificial sources and sinks, and preserve the rotation already present in the flow. Clebsch variables are one way to organize that information. They are not a new kind of fluid.</p>
+          <div class="cs-math-display" data-latex="\dot x=u(x),\qquad \operatorname{div}u=0,qquad \omega=d(u^\flat)">motion, incompressibility, and vorticity</div>
+          <p>The solver ultimately needs the velocity vector <span class="cs-math-inline" data-latex="u">u</span>. Everything else on this page is a representation that helps us construct or evolve it.</p>
         </div>
-      </section>
-
-      <section class="cs-lab" aria-label="Interactive Clebsch variables on surfaces lab">
-        <aside class="cs-guide">
-          <p class="cs-eyebrow">Choose a surface</p>
-          <div class="cs-button-stack cs-surfaces">
-            <button class="active" data-cs-surface="plane" aria-pressed="true"><b>Periodic plane</b><small>compare smooth forms with mesh samples</small></button>
-            <button data-cs-surface="sphere" aria-pressed="false"><b>Sphere</b><small>the metric keeps gradients tangent</small></button>
-            <button data-cs-surface="torus" aria-pressed="false"><b>Torus</b><small>periodic coordinates, curved metric</small></button>
-            <button data-cs-surface="frog" aria-pressed="false"><b>Tree frog</b><small>triangle-mesh Laplace–Beltrami modes</small></button>
-          </div>
-
-          <p class="cs-eyebrow cs-second-label">Build the one-form</p>
-          <div class="cs-button-stack cs-steps">
-            <button class="active" data-cs-step="labels"><i>01</i><span><b>Paint α and β</b><small>0-forms evaluate at points</small></span></button>
-            <button data-cs-step="differentials"><i>02</i><span><b>Take dα and dβ</b><small>1-forms measure tangent arrows</small></span></button>
-            <button data-cs-step="wedge"><i>03</i><span><b>Form dα ∧ dβ</b><small>2-forms measure oriented patches</small></span></button>
-            <button data-cs-step="assemble"><i>04</i><span><b>Assemble u♭</b><small>dφ + α dβ</small></span></button>
-            <button data-cs-step="project"><i>05</i><span><b>Project out div</b><small>subtract an exact 1-form</small></span></button>
-          </div>
-
-          <div class="cs-question">
-            <span>THE QUESTION TO KEEP ASKING</span>
-            <strong>What does this object measure?</strong>
-            <p>A smooth 0-form evaluates a point. A 1-form integrates along a curve. A 2-form integrates over an oriented patch. A mesh stores discrete samples of those measurements on vertices, edges, and faces.</p>
-          </div>
-        </aside>
-
-        <section class="cs-stage">
-          <header><div><span>LIVE CONTROLLED FIELD</span><strong id="cs-stage-title">periodic plane · two crossing label foliations</strong></div><div class="cs-stage-key"><i></i>metric-dual arrows <i></i>selected probe</div></header>
-          <div id="cs-viewer" aria-label="Interactive Clebsch field on a surface"><div class="cs-viewer-note">drag to orbit · click the surface to move the probe</div><div id="cs-layer-caption">color: α · arrows: (dα)♯</div></div>
-          <div class="cs-stage-actions">
-            <button class="active" data-cs-velocity="raw" aria-pressed="true"><span>RAW CLEBSCH</span><b>u♭ = dφ + αdβ</b><small>tangent, vortical, generally divergent</small></button>
-            <button data-cs-velocity="projected" aria-pressed="false"><span>HODGE PROJECTED</span><b>u⊥♭ = u♭ − dp</b><small>same resolved curl, exact part removed</small></button>
-          </div>
-          <div class="cs-stage-equation">
-            <span id="cs-step-kicker">STEP 01 · LABELS</span>
-            <div class="cs-stage-math"><div id="cs-step-equation" class="cs-math-display" data-latex="\alpha,\beta\in\Omega^0(S)">alpha and beta are zero forms</div><p id="cs-step-type">SMOOTH VIEW: evaluate at a point · MESH VIEW: sample at vertices</p></div>
-            <div class="cs-stage-example"><strong>IN THE PERIODIC-PLANE EXAMPLE</strong><div id="cs-step-example" class="cs-math-display" data-latex="\alpha=A\sin x,\quad\beta=\cos\theta\sin x+\sin\theta\sin y">controlled planar labels</div><p id="cs-step-copy">The angle θ controls whether the two label families change in the same direction or independently.</p></div>
-          </div>
-        </section>
-
-        <aside class="cs-controls">
-          <p class="cs-eyebrow">Color shows a scalar</p>
-          <div class="cs-segmented cs-colors">
-            <button class="active" data-cs-scalar="alpha">α</button><button data-cs-scalar="beta">β</button><button data-cs-scalar="phi">φ</button><button data-cs-scalar="vorticity">ω</button><button data-cs-scalar="none">mesh</button>
-          </div>
-
-          <p class="cs-eyebrow cs-second-label">Glyphs show metric duals</p>
-          <div class="cs-glyph-list">
-            <button class="active" data-cs-glyph="dAlpha"><b>(dα)♯</b><small>normal to α contours</small></button>
-            <button data-cs-glyph="dBeta"><b>(dβ)♯</b><small>normal to β contours</small></button>
-            <button data-cs-glyph="dPhi"><b>(dφ)♯</b><small>exact velocity piece</small></button>
-            <button data-cs-glyph="alphaDBeta"><b>(αdβ)♯</b><small>label-coupling piece</small></button>
-            <button data-cs-glyph="velocity"><b>u or u⊥</b><small>selected velocity view</small></button>
-            <button data-cs-glyph="none"><b>none</b><small>scalar color only</small></button>
-          </div>
-
-          <label><span><strong>Label crossing</strong><small>0° parallel → 90° independent</small></span><output id="cs-crossing-output">70°</output><input id="cs-crossing" type="range" min="0" max="1" step="0.01" value="0.78" /></label>
-          <label><span><strong>Label strength</strong><small>scales α and its vorticity</small></span><output id="cs-label-output">0.70</output><input id="cs-label" type="range" min="0" max="1.2" step="0.02" value="0.7" /></label>
-          <label><span><strong>Potential strength</strong><small>changes dφ, never dα∧dβ</small></span><output id="cs-potential-output">0.24</output><input id="cs-potential" type="range" min="0" max="1" step="0.02" value="0.24" /></label>
-
-          <section class="cs-probe">
-            <span>POINT PROBE</span><strong id="cs-probe-location">u = 0.19 · v = 0.31</strong>
-            <div><p><small>α</small><b id="cs-probe-alpha">—</b></p><p><small>β</small><b id="cs-probe-beta">—</b></p><p><small>φ</small><b id="cs-probe-phi">—</b></p><p><small>ω</small><b id="cs-probe-vorticity">—</b></p></div>
-            <p id="cs-probe-reading">At this point, the two label differentials meet at an angle and contribute oriented area.</p>
-          </section>
-        </aside>
       </section>
 
       <section class="cs-roadmap" aria-labelledby="cs-roadmap-title">
         <header>
-          <p class="cs-eyebrow">Orient yourself before the details</p>
-          <h2 id="cs-roadmap-title">One fluid. Several ways to store it.</h2>
-          <p>The physical problem comes first: find an incompressible velocity that moves particles and carries the desired rotation. Velocity, vorticity, and Clebsch variables are competing descriptions of that state—not different kinds of fluid.</p>
+          <p class="cs-eyebrow">One idea at a time</p>
+          <h2 id="cs-roadmap-title">Start with one rotating flow.</h2>
+          <p>We will describe exactly the same counterclockwise motion four ways. The objects are related by translation; they are not four successive simulation steps.</p>
         </header>
 
         <div class="cs-roadmap-task">
-          <strong>THE SOLVER MUST EVENTUALLY PRODUCE</strong>
-          <div class="cs-math-display" data-latex="\dot x=u(x),\qquad \operatorname{div}u=0">move particles with a divergence-free velocity</div>
-          <p>Whatever the solver stores internally, particle advection ultimately needs the vector <span class="cs-math-inline" data-latex="u">u</span>. The other representations reorganize information that helps construct or evolve it.</p>
+          <strong>THE TARGET MOTION</strong>
+          <div class="cs-math-display" data-latex="u=-y\,\partial_x+x\,\partial_y">solid-body rotation in a planar patch</div>
+          <p>An arrow at each point tells a particle where to move. This velocity is already divergence-free.</p>
         </div>
 
         <section class="cs-same-flow" aria-labelledby="cs-same-flow-title">
-          <header><span>A CONCRETE LOCAL EXAMPLE</span><h3 id="cs-same-flow-title">Solid rotation in a planar patch</h3><p>Every row below describes the same counterclockwise motion. Read downward as translations, not as a sequence of simulation steps.</p></header>
+          <header><span>THE SAME FLOW, REPACKAGED</span><h3 id="cs-same-flow-title">From motion to circulation to vorticity.</h3><p>Each row keeps some information convenient and makes other information less direct.</p></header>
           <ol>
-            <li><b>Velocity vector</b><div><div class="cs-math-display" data-latex="u=-y\,\partial_x+x\,\partial_y">solid-body rotation</div><p>This is the object that moves particles.</p></div></li>
-            <li><b>Velocity covector</b><div><div class="cs-math-display" data-latex="\eta=u^\flat=-y\,dx+x\,dy">lower the index with the Euclidean metric</div><p>This is the same velocity viewed as a circulation-measuring one-form.</p></div></li>
-            <li><b>Vorticity two-form</b><div><div class="cs-math-display" data-latex="\omega=d\eta=2\,dx\wedge dy">differentiate the velocity covector</div><p>This retains the local rotation but no longer tells a particle which way to move.</p></div></li>
-            <li><b>One Clebsch encoding</b><div><div class="cs-math-display" data-latex="\alpha=2x,\quad\beta=y,\quad\phi=-xy,\qquad d\phi+\alpha d\beta=\eta">three potentials encode the same velocity covector</div><p>The crossing of the α- and β-label grids gives <span class="cs-math-inline" data-latex="d\alpha\wedge d\beta=2\,dx\wedge dy">the same vorticity</span>. This encoding is not unique.</p></div></li>
+            <li><b>Velocity vector</b><div><div class="cs-math-display" data-latex="u=-y\,\partial_x+x\,\partial_y">the particle-motion field</div><p>This is what the advection step needs.</p></div></li>
+            <li><b>Velocity one-form</b><div><div class="cs-math-display" data-latex="\eta=u^\flat=-y\,dx+x\,dy">lower the index using the metric</div><p>The one-form measures motion along a tangent direction; integrated around a loop, it measures circulation.</p></div></li>
+            <li><b>Vorticity two-form</b><div><div class="cs-math-display" data-latex="\omega=d\eta=2\,dx\wedge dy">differentiate the velocity one-form</div><p>This directly records local rotation, but it no longer tells a particle which direction to move.</p></div></li>
+            <li><b>Clebsch variables</b><div><div class="cs-math-display" data-latex="\alpha=2x,\quad\beta=y,\quad\phi=-xy,\qquad d\phi+\alpha d\beta=\eta">one encoding of the same one-form</div><p>Three nonunique scalar fields reproduce the velocity one-form, while <span class="cs-math-inline" data-latex="d\alpha\wedge d\beta=\omega">their crossing reproduces vorticity</span>.</p></div></li>
           </ol>
         </section>
 
-        <section class="cs-exact-ambiguity" aria-labelledby="cs-exact-title">
-          <div><span>WHY PROJECTION APPEARS</span><h3 id="cs-exact-title">Vorticity cannot see an exact velocity component.</h3><p>Add the gradient of any scalar q to the velocity covector. The local arrows and divergence may change, but the vorticity does not, because <span class="cs-math-inline" data-latex="d^2q=0">d squared q is zero</span>.</p></div>
-          <div class="cs-exact-calculation">
-            <div class="cs-math-display" data-latex="\eta_C=\eta+dq">a different Clebsch candidate</div>
-            <div class="cs-math-display" data-latex="d\eta_C=d\eta">the same vorticity</div>
-            <div class="cs-math-display" data-latex="\eta_\perp=\eta_C-dp,\qquad \delta\eta_\perp=0">projection chooses the incompressible representative</div>
-          </div>
-          <aside><strong>The key distinction</strong><p>Vorticity determines the rotational part of velocity, but not the exact or harmonic parts. Clebsch supplies a candidate velocity; Hodge projection fixes its exact part. Starting from vorticity alone requires the same kind of global reconstruction before particles can move.</p></aside>
-        </section>
-
-        <section class="cs-torus-atlas" aria-labelledby="cs-torus-atlas-title">
-          <header>
-            <span>THE TOPOLOGICAL OBSTRUCTION, MADE VISIBLE</span>
-            <h3 id="cs-torus-atlas-title">Follow one circulation all the way around a torus.</h3>
-            <p>The smooth one-form <span class="cs-math-inline" data-latex="\eta_h=c\,d\theta">eta h equals c d theta</span> circulates around the torus hole. Locally it looks like the differential of an angle. Globally that angle must jump somewhere.</p>
-          </header>
-
-          <div class="cs-torus-atlas-lab">
-            <div class="cs-torus-atlas-visual">
-              <canvas id="cs-torus-chart-canvas" role="img" aria-label="A torus showing an angle-chart seam and a smooth circulation field"></canvas>
-              <div class="cs-torus-atlas-note">drag to orbit · arrows show <span class="cs-math-inline" data-latex="(d\theta)^{\sharp_g}">the metric dual of d theta</span></div>
-              <div id="cs-torus-chart-caption">orange ring: the unavoidable branch cut of one angle field</div>
-            </div>
-
-            <div class="cs-torus-atlas-panel">
-              <div class="cs-torus-mode-buttons" role="group" aria-label="Torus chart representation">
-                <button class="active" data-cs-torus-mode="single" aria-pressed="true"><span>01</span><b>One angle field</b></button>
-                <button data-cs-torus-mode="atlas" aria-pressed="false"><span>02</span><b>Two-chart atlas</b></button>
-                <button data-cs-torus-mode="pair" aria-pressed="false"><span>03</span><b>Global Clebsch pair</b></button>
-                <button data-cs-torus-mode="harmonic" aria-pressed="false"><span>04</span><b>Harmonic mode</b></button>
-              </div>
-              <section aria-live="polite">
-                <span id="cs-torus-mode-kicker">ONE REAL-VALUED POTENTIAL</span>
-                <h4 id="cs-torus-mode-title">The angle tears at the orange seam.</h4>
-                <div id="cs-torus-mode-equation" class="cs-math-display" data-latex="\phi_A=\theta_A\in(0,2\pi),\qquad \eta_h=c\,d\phi_A">one local angle potential</div>
-                <p id="cs-torus-mode-copy">Approaching the seam from opposite sides gives values near 2π and 0. The physical one-form is smooth, but a naïve difference of the scalar samples sees a false jump of 2π.</p>
-              </section>
-            </div>
-          </div>
-
-          <div class="cs-torus-atlas-proof">
-            <article><span>WHY ONE GLOBAL φ IS IMPOSSIBLE</span><h4>Exact forms have zero period.</h4><div class="cs-math-display" data-latex="\oint_{\gamma_\theta}d\phi=0\quad\text{but}\quad\oint_{\gamma_\theta}c\,d\theta=2\pi c">closed-loop contradiction</div><p>A single-valued scalar returns to its starting value after a closed loop. The toroidal circulation does not. Therefore <span class="cs-math-inline" data-latex="c\,d\theta">c d theta</span> is closed but not globally exact.</p></article>
-            <article><span>HOW THE EXTRA CHART FIXES IT</span><h4>Move the cuts and glue derivatives.</h4><div class="cs-math-display" data-latex="\phi_B=\phi_A+2\pi k\quad\Longrightarrow\quad d\phi_B=d\phi_A=d\theta">transition on each overlap component</div><p>Chart A fails only at one meridian; chart B puts its cut at another. On overlaps their angle values differ by a constant, so their differentials—and hence the velocity—agree exactly.</p></article>
-            <article><span>A CLEBSCH WORKAROUND</span><h4>Two periodic labels can hide the cut.</h4><div class="cs-math-display" data-latex="\alpha=-2\sin\theta,\quad\beta=\cos\theta,\quad\phi=\tfrac12\sin2\theta\quad\Longrightarrow\quad d\phi+\alpha d\beta=d\theta">a global Clebsch triple for this example</div><p>This triple is globally single-valued even though θ is not. It proves that an extra chart is not mandatory for this particular flow; it does not guarantee that one Clebsch pair can encode every global velocity field.</p></article>
-            <article><span>WHAT A SOLVER USUALLY STORES</span><h4>Keep topology as a harmonic coefficient.</h4><div class="cs-math-display" data-latex="\eta=d\chi+\star_g d\psi+c_1h_1+c_2h_2,\qquad \dim\mathcal H^1(T^2)=2">Hodge decomposition on the torus</div><p>Rather than manage multivalued potentials, a mesh solver can store two global harmonic basis one-forms and their circulation coefficients. Charts explain the geometry; harmonic modes are often the cleaner numerical representation.</p></article>
-          </div>
-
-          <p class="cs-source-note">The distinction between closed and exact forms is the de Rham-cohomology obstruction. The torus has two independent degree-one classes, corresponding to its two noncontractible cycles; see the <a href="https://math.mit.edu/~tristanc/Math18.966/HW3.pdf">MIT notes on de Rham cohomology and the Hodge Laplacian</a>. The form and metric conventions follow <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a>.</p>
-        </section>
-
-        <nav class="cs-roadmap-links" aria-label="Choose the next explanation">
-          <a href="#cs-pairing-title"><span>01</span><b>Vectors versus covectors</b><small>Why use the velocity one-form?</small></a>
-          <a href="#cs-derivation"><span>02</span><b>Derive the formula</b><small>From scalar labels to vorticity.</small></a>
-          <a href="#cs-dec-diagrams"><span>03</span><b>Put it on a mesh</b><small>Vertices, edges, and faces.</small></a>
-          <a href="#cs-representations"><span>04</span><b>Choose a solver state</b><small>Velocity, vorticity, or Clebsch?</small></a>
-        </nav>
-      </section>
-
-      <section class="cs-pairing" aria-labelledby="cs-pairing-title">
-        <header>
-          <div><p class="cs-eyebrow">Chapter 1 picture · dual pairing</p><h2 id="cs-pairing-title">Make the covector visible.</h2></div>
-          <p>For this planar microscope, fix <span class="cs-math-inline" data-latex="\eta=s\,dx">eta equals s d x</span>. Its level lines are vertical. Rotate the orange tangent vector and watch the pairing count signed crossings. The cyan arrow is <span class="cs-math-inline" data-latex="\eta^\sharp">eta sharp</span>, which can be drawn only after choosing the Euclidean metric.</p>
-        </header>
-
-        <div class="cs-pairing-grid">
-          <div class="cs-pairing-visual">
-            <canvas id="cs-pairing-canvas" role="img" aria-label="A tangent vector crossing the parallel level lines that represent a covector"></canvas>
-            <div class="cs-pairing-legend"><span><i></i>covector level lines</span><span><i></i>metric-dual η♯</span><span><i></i>test vector v</span></div>
-          </div>
-
-          <div class="cs-pairing-controls">
-            <section class="cs-pairing-reading" aria-live="polite">
-              <span>THE NUMBER RETURNED BY THE COVECTOR</span>
-              <div id="cs-pairing-equation" class="cs-math-display" data-latex="\eta(v)=1.2\cdot1.0\cos 55^\circ">eta of v</div>
-              <strong id="cs-pairing-value">η(v) = 0.688</strong>
-              <p id="cs-pairing-copy">The vector crosses the level lines in the positive direction.</p>
-            </section>
-
-            <label><span><strong>Angle of the tangent vector v</strong><small>90° follows a level line; 180° reverses direction</small></span><output id="cs-vector-angle-output">55°</output><input id="cs-vector-angle" type="range" min="-180" max="180" step="1" value="55" /></label>
-            <label><span><strong>Length of v</strong><small>a longer displacement can cross more level lines</small></span><output id="cs-vector-length-output">1.00</output><input id="cs-vector-length" type="range" min="0.25" max="1.6" step="0.05" value="1" /></label>
-            <label><span><strong>Covector strength s</strong><small>larger s packs the level lines more densely</small></span><output id="cs-covector-strength-output">1.20</output><input id="cs-covector-strength" type="range" min="0.35" max="2.2" step="0.05" value="1.2" /></label>
-          </div>
-        </div>
-
-        <div class="cs-pairing-bridge">
-          <article><span>WITHOUT A METRIC</span><strong>The pairing already exists.</strong><p><span class="cs-math-inline" data-latex="\eta_p(v)">eta at p acting on v</span> only needs a vector and a covector at the same point.</p></article>
-          <article><span>WITH A METRIC</span><strong>We may draw η as an arrow.</strong><p>The metric defines <span class="cs-math-inline" data-latex="\eta^\sharp">eta sharp</span>, so in this Euclidean picture <span class="cs-math-inline" data-latex="\eta(v)=g(\eta^\sharp,v)">eta of v is the metric pairing</span>.</p></article>
-          <article><span>ALONG A FLUID PATH</span><strong>Add the local readings.</strong><p>Set <span class="cs-math-inline" data-latex="v=\dot\gamma(t)">v equal to gamma dot</span> and integrate: <span class="cs-math-inline" data-latex="\int_\gamma u^\flat">integral of u flat along gamma</span> is circulation.</p></article>
-        </div>
-      </section>
-
-      <section class="cs-foundations" id="cs-derivation">
-        <header>
-          <div><p class="cs-eyebrow">Notes-guided path · Chapters 1, 2, and 5</p><h2>From arrows to circulation.</h2></div>
-          <p>The course notes build exterior calculus in this order: distinguish vectors from covectors; interpret forms by what they integrate over; introduce <span class="cs-math-inline" data-latex="d">d</span>, <span class="cs-math-inline" data-latex="\wedge">wedge</span>, and Stokes; add the metric and Hodge star; then treat fluid velocity as a one-form. The Clebsch formula is our worked example in that language.</p>
-        </header>
-
-        <article class="cs-foundation-step">
-          <div class="cs-foundation-number">0</div>
-          <div><span>DUAL PAIRING</span><h3>An arrow is not a covector.</h3><p>A vector <span class="cs-math-inline" data-latex="v\in T_pS">v</span> is a possible tangent displacement or velocity. A covector <span class="cs-math-inline" data-latex="\eta_p\in T_p^*S">eta at p</span> is a linear function of such displacements. Picture the vector as an arrow and the covector as a stack of local contour lines: the pairing counts signed contour crossings.</p></div>
-          <div class="cs-foundation-equation"><span>NO METRIC REQUIRED</span><div class="cs-math-display" data-latex="\eta_p:T_pS\to\mathbb R,\qquad v\longmapsto\eta_p(v)">a covector maps an arrow to a scalar</div><small>This is a dual pairing, not a dot product. A metric is extra structure and is not needed merely to evaluate η on v.</small></div>
-        </article>
-
-        <article class="cs-foundation-step">
-          <div class="cs-foundation-number">1</div>
-          <div><span>MICROSCOPIC ↔ MACROSCOPIC</span><h3>A one-form has two compatible pictures.</h3><p>Microscopically, <span class="cs-math-inline" data-latex="\eta_p(v)">eta at p acting on v</span> measures one tangent arrow. Macroscopically, <span class="cs-math-inline" data-latex="\int_\gamma\eta">the integral of eta along gamma</span> adds those infinitesimal measurements along an oriented curve. For fluid velocity this integral is circulation.</p></div>
-          <div class="cs-foundation-equation"><span>FROM LOCAL READINGS TO A CURVE</span><div class="cs-math-display" data-latex="\int_\gamma\eta=\int_a^b\eta_{\gamma(t)}\!\left(\dot\gamma(t)\right)dt">integrate a one-form along a parameterized curve</div><small>DEC stores this macroscopic quantity on an edge: the edge number approximates ∫e η. It is not saying that the smooth one-form exists only on edges.</small></div>
-        </article>
-
-        <article class="cs-foundation-step">
-          <div class="cs-foundation-number">2</div>
-          <div><span>CHOOSE THREE 0-FORMS</span><h3>Paint three scalar fields.</h3><p>The fields <span class="cs-math-inline" data-latex="\phi,\alpha,\beta:S\to\mathbb R">phi, alpha, and beta map the surface to real numbers</span>. They are not vectors or coordinates that the surface must obey. In this lab α and β are label fields; φ supplies an exact potential contribution.</p></div>
-          <div class="cs-foundation-equation"><span>THIS LAB'S PERIODIC-PLANE FIELDS</span><div class="cs-math-display" data-latex="\alpha=A\sin x,\quad \beta=\cos\theta\sin x+\sin\theta\sin y,\quad \phi=P\cos(x-y)">the three controlled scalar fields</div><small>At θ = 0, β changes in the same direction as α. At θ = π/2, their changes are independent.</small></div>
-        </article>
-
-        <article class="cs-foundation-step">
-          <div class="cs-foundation-number">3</div>
-          <div><span>EXTERIOR DERIVATIVE</span><h3>A scalar derivative is a one-form.</h3><p>For a tangent displacement <span class="cs-math-inline" data-latex="v=v^x\partial_x+v^y\partial_y">v</span>, the number <span class="cs-math-inline" data-latex="d\alpha(v)">d alpha of v</span> is the instantaneous change of α along v. This definition needs no metric. Only after applying <span class="cs-math-inline" data-latex="\sharp_g">sharp g</span> may the lab draw a gradient arrow.</p></div>
-          <div class="cs-foundation-equation"><span>COORDINATE CALCULATION</span><div class="cs-math-display" data-latex="d\alpha=A\cos x\,dx,\qquad d\beta=\cos\theta\cos x\,dx+\sin\theta\cos y\,dy">differentiate the two labels</div><small>On the Euclidean plane, (dα)♯ = ∇α. On a curved surface, the metric changes the conversion from covector to vector.</small></div>
-        </article>
-
-        <article class="cs-foundation-step">
-          <div class="cs-foundation-number">4</div>
-          <div><span>WEDGE + STOKES</span><h3>A two-form measures oriented patches.</h3><p>The value <span class="cs-math-inline" data-latex="(d\alpha\wedge d\beta)(v,w)">d alpha wedge d beta evaluated on v and w</span> is the signed determinant of the label changes along two tangent directions. For velocity, the vorticity two-form <span class="cs-math-inline" data-latex="du^\flat">d u flat</span> measures the circulation around the patch boundary.</p></div>
-          <div class="cs-foundation-equation accent"><span>THE LOCAL AND INTEGRAL PICTURES AGREE</span><div class="cs-math-display" data-latex="\int_A du^\flat=\oint_{\partial A}u^\flat,\qquad d\alpha\wedge d\beta=A\sin\theta\cos x\cos y\,dx\wedge dy">Stokes and the planar Clebsch vorticity</div><small>At θ = 0 the two label differentials are parallel, so their determinant and the resolved circulation density both vanish.</small></div>
-        </article>
-
-        <article class="cs-foundation-step">
-          <div class="cs-foundation-number">5</div>
-          <div><span>CLEBSCH PARAMETERIZATION</span><h3>Now assemble the velocity one-form.</h3><p>The scalar α scales the one-form <span class="cs-math-inline" data-latex="d\beta">d beta</span> pointwise. Adding <span class="cs-math-inline" data-latex="d\phi">d phi</span> gives a velocity covector. The surface metric then supplies the velocity arrow that actually transports a particle.</p></div>
-          <div class="cs-foundation-equation"><span>WHY THE VORTICITY IS SIMPLE</span><div class="cs-math-display" data-latex="u^\flat=d\phi+\alpha d\beta,\quad u=(u^\flat)^{\sharp_g},\quad du^\flat=d\alpha\wedge d\beta">assemble, raise the index, and differentiate</div><small>The identity d² = 0 removes the exact terms. On a closed loop, ∮dφ = 0 as well: the potential changes local velocity but not closed-loop circulation.</small></div>
-        </article>
-
-        <article class="cs-foundation-step">
-          <div class="cs-foundation-number">6</div>
-          <div><span>HODGE PROJECTION</span><h3>Incompressibility is a separate constraint.</h3><p>Clebsch kinematics can still contain sources and sinks. Use the metric-dependent codifferential <span class="cs-math-inline" data-latex="\delta u^\flat">delta u flat</span> to measure divergence. Solve for a scalar p whose exact one-form carries that part, then subtract it.</p></div>
-          <div class="cs-foundation-equation accent"><span>REMOVE DIVERGENCE, KEEP CIRCULATION DENSITY</span><div class="cs-math-display" data-latex="\delta d p=\delta u^\flat,\qquad u_\perp^\flat=u^\flat-dp">solve for p and subtract the exact component</div><div class="cs-preservation"><span><b>DIVERGENCE</b><i class="cs-math-inline" data-latex="\delta u_\perp^\flat=0">delta u perpendicular is zero</i></span><span><b>VORTICITY</b><i class="cs-math-inline" data-latex="du_\perp^\flat=du^\flat-d^2p=du^\flat">curl is unchanged</i></span></div></div>
-        </article>
-
-        <aside class="cs-foundation-summary"><strong>The whole story in one sentence</strong><p>A velocity arrow moves a particle; its metric-dual one-form measures circulation; Clebsch variables parameterize that one-form; <span class="cs-math-inline" data-latex="d">d</span> turns it into vorticity; and a separate, metric-dependent Hodge projection enforces zero divergence.</p></aside>
-        <p class="cs-course-note">This route follows Stephanie Wang, Mohammad Sina Nabizadeh, and Albert Chern, <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics: Course Notes for a SIGGRAPH 2023 Course</a>, especially Chapters 1, 2, and 5. The notes provide the vector/covector and fluid-form language; this lab then applies that language to the Clebsch parameterization.</p>
-      </section>
-
-      <section class="cs-dec" id="cs-dec-diagrams">
-        <header><div><p class="cs-eyebrow">Smooth form first · discrete cochain second</p><h2>What the mesh stores.</h2></div><p>A smooth form is defined all over the surface by what it measures. DEC stores a finite set of those measurements as cochains: point samples on vertices, line integrals on oriented edges, and area integrals on oriented faces.</p></header>
-        <div class="cs-diagram-grid">
-          <article class="active" data-cs-diagram="labels"><span>01 · 0-FORM SAMPLE</span><h3>Evaluate α at mesh vertices</h3><svg viewBox="0 0 260 150" role="img" aria-label="Triangle with scalar values at vertices"><path d="M40 119L126 25L222 119Z"/><circle cx="40" cy="119" r="12"/><circle cx="126" cy="25" r="12"/><circle cx="222" cy="119" r="12"/><text x="18" y="145">α₀</text><text x="115" y="17">α₁</text><text x="222" y="145">α₂</text><path class="contour" d="M62 96Q125 69 199 94"/><path class="contour second" d="M80 118Q139 68 171 119"/></svg><p>The smooth scalar exists between vertices too. Its discrete 0-cochain keeps only the sampled values α(v<sub>i</sub>).</p></article>
-          <article data-cs-diagram="differentials"><span>02 · 1-FORM INTEGRAL</span><h3>Integrate dα along each edge</h3><svg viewBox="0 0 260 150" role="img" aria-label="Oriented triangle edges carrying scalar differences"><defs><marker id="arrow-edge" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z"/></marker></defs><path d="M40 119L126 25L222 119Z"/><path class="edge-arrow" d="M52 111L117 40" marker-end="url(#arrow-edge)"/><path class="edge-arrow" d="M142 38L209 108" marker-end="url(#arrow-edge)"/><path class="edge-arrow" d="M202 119L61 119" marker-end="url(#arrow-edge)"/><text x="47" y="65">α₁−α₀</text><text x="158" y="69">δα</text><text x="106" y="142">∫e dα</text></svg><p>On edge <em>i → j</em>, <span class="cs-math-inline" data-latex="\int_{e_{ij}}d\alpha=\alpha_j-\alpha_i">the integral of d alpha is alpha j minus alpha i</span>. Reversing orientation reverses the sign.</p></article>
-          <article data-cs-diagram="wedge"><span>03 · 2-FORM INTEGRAL</span><h3>Integrate vorticity over a face</h3><svg viewBox="0 0 260 150" role="img" aria-label="Oriented triangle face carrying vorticity"><defs><linearGradient id="face-vorticity" x1="0" x2="1"><stop stop-color="#59e3ef"/><stop offset=".5" stop-color="#362457"/><stop offset="1" stop-color="#ff7a3d"/></linearGradient><marker id="arrow-face" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z"/></marker></defs><path class="face" d="M40 119L126 25L222 119Z"/><path class="loop" d="M73 111Q43 73 86 45Q128 10 169 45Q216 73 189 109" marker-end="url(#arrow-face)"/><text x="105" y="92">∫f ω</text></svg><p>The face cochain stores <span class="cs-math-inline" data-latex="\int_f d\alpha\wedge d\beta">the integral of d alpha wedge d beta over f</span>: the signed circulation around that face.</p></article>
-          <article data-cs-diagram="assemble"><span>04 · VELOCITY CIRCULATION</span><h3>Measure u♭ along each edge</h3><svg viewBox="0 0 260 150" role="img" aria-label="Velocity one-form assembled on oriented triangle edges"><path d="M40 119L126 25L222 119Z"/><path class="thick-edge" d="M43 116L123 29"/><path class="thick-edge second" d="M130 29L218 116"/><path class="thick-edge third" d="M216 122L44 122"/><text x="35" y="62">dφ</text><text x="158" y="62">α dβ</text><text x="84" y="145">∫e u♭ ≈ Δφ + ᾱ Δβ</text></svg><p>A discrete one-form stores line integrals, not vertex arrows. The metric and <span class="cs-math-inline" data-latex="\sharp_g">sharp g</span> are needed to reconstruct a tangent velocity vector for drawing or advection.</p></article>
-          <article data-cs-diagram="project"><span>05 · HODGE PROJECTION</span><h3>Remove the exact 1-form dp</h3><svg viewBox="0 0 260 150" role="img" aria-label="Raw one-form decomposed into exact and divergence-free pieces"><defs><marker id="arrow-flow" markerWidth="7" markerHeight="7" refX="5" refY="3.5" orient="auto"><path d="M0 0L7 3.5L0 7Z"/></marker></defs><path class="flow raw" d="M28 46Q80 18 111 74" marker-end="url(#arrow-flow)"/><path class="flow exact" d="M125 75L181 28" marker-end="url(#arrow-flow)"/><path class="flow kept" d="M129 96Q187 132 231 77" marker-end="url(#arrow-flow)"/><text x="17" y="27">u♭</text><text x="139" y="27">− dp</text><text x="173" y="141">= u⊥♭</text><circle cx="128" cy="83" r="7"/><text x="17" y="137">δu⊥♭ = 0</text></svg><p>Solve <span class="cs-math-inline" data-latex="\Delta p=\delta u^\flat">Laplacian p = divergence u flat</span>, then subtract <span class="cs-math-inline" data-latex="dp">d p</span>. Curl is unchanged because <span class="cs-math-inline" data-latex="d^2p=0">d squared p is zero</span>.</p></article>
-        </div>
-        <p class="cs-source-note">This smooth-to-discrete distinction follows the integration viewpoint in <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a> and the primal-cochain implementation viewpoint in the Geometry Collective’s <a href="https://geometrycollective.github.io/geometry-processing-js/projects/discrete-exterior-calculus/index.html">Discrete Exterior Calculus project</a>.</p>
+        <aside class="cs-foundation-summary"><strong>The role of each symbol</strong><p><span class="cs-math-inline" data-latex="u">u</span> moves particles. <span class="cs-math-inline" data-latex="u^\flat">u flat</span> measures circulation. <span class="cs-math-inline" data-latex="\omega=d(u^\flat)">omega</span> measures rotation. The Clebsch fields <span class="cs-math-inline" data-latex="(\phi,\alpha,\beta)">phi, alpha, beta</span> are an overcomplete way to encode the velocity one-form.</p></aside>
       </section>
 
       <section class="cs-tutorial">
-        <header class="cs-problem-header" id="cs-representations"><p class="cs-eyebrow">Now compare the implementation choices</p><h2>What does each representation buy?</h2><p>The worked rotation above showed that these encodings can describe the same fluid. Here is the practical reason a simulator might choose one over another.</p></header>
+        <header class="cs-problem-header"><p class="cs-eyebrow">Three choices for the state</p><h2>What could the solver store?</h2><p>There is no universally best representation. The benefit of Clebsch variables appears only when their scalar-label structure is useful.</p></header>
 
         <section class="cs-state-choices" aria-label="Three representations of the fluid state">
-
           <article>
             <div class="cs-state-number">1</div>
-            <div><span>VELOCITY OR VELOCITY COVECTOR</span><h3>Store what moves the particles.</h3><p>This is the most direct state. The vector <span class="cs-math-inline" data-latex="u">u</span> advects particles; the one-form <span class="cs-math-inline" data-latex="\eta=u^\flat">eta equals u flat</span> measures circulation. Pressure projection is straightforward.</p></div>
-            <div class="cs-state-tradeoff"><strong>BEST FEATURE</strong><p>No reconstruction is needed before advection.</p><strong>COST</strong><p>Naively advecting vector components can numerically damp or distort vorticity. Covector pullback transport is designed to reduce this problem.</p></div>
+            <div><span>VELOCITY OR VELOCITY COVECTOR</span><h3>Store what moves the particles.</h3><p>The most direct choice is <span class="cs-math-inline" data-latex="u">u</span>, or equivalently <span class="cs-math-inline" data-latex="\eta=u^\flat">eta equals u flat</span> once a metric is fixed.</p></div>
+            <div class="cs-state-tradeoff"><strong>BENEFIT</strong><p>No reconstruction is needed before advection.</p><strong>RESPONSIBILITY</strong><p>The numerical update must still preserve incompressibility and circulation.</p></div>
           </article>
-
           <article>
             <div class="cs-state-number">2</div>
-            <div><span>VORTICITY TWO-FORM</span><h3>Store the rotational content directly.</h3><p>On a surface, <span class="cs-math-inline" data-latex="\omega=d\eta">omega equals d eta</span> is one scalar density times oriented area. It is the natural state if vortex transport is the main concern.</p></div>
-            <div class="cs-state-tradeoff"><strong>BEST FEATURE</strong><p>Rotation is represented directly and is not hidden inside derivatives of velocity.</p><strong>COST</strong><p>Vorticity cannot move particles by itself. At every step, recover a velocity by solving <span class="cs-math-inline" data-latex="d\eta=\omega,\ \delta\eta=0">d eta equals omega and delta eta equals zero</span>, together with boundary conditions and harmonic circulation periods.</p></div>
+            <div><span>VORTICITY TWO-FORM</span><h3>Store the rotation directly.</h3><p>The two-form <span class="cs-math-inline" data-latex="\omega=d\eta">omega equals d eta</span> is natural when vortex transport is the central concern.</p></div>
+            <div class="cs-state-tradeoff"><strong>BENEFIT</strong><p>Rotation is represented explicitly.</p><strong>RESPONSIBILITY</strong><p>Before moving particles, reconstruct a velocity satisfying <span class="cs-math-inline" data-latex="d\eta=\omega">d eta equals omega</span> and <span class="cs-math-inline" data-latex="\delta\eta=0">delta eta equals zero</span>.</p></div>
           </article>
-
           <article>
             <div class="cs-state-number">3</div>
-            <div><span>CLEBSCH POTENTIALS</span><h3>Factor vorticity into two scalar labels.</h3><div class="cs-math-display" data-latex="\eta_C=d\phi+\alpha d\beta,\qquad d\eta_C=d\alpha\wedge d\beta">Clebsch candidate and its vorticity</div><p>Think of α and β as two painted coordinate grids carried by the fluid. Where their contours cross determines vorticity. This label-based picture is useful in some variational and Hamiltonian schemes.</p></div>
-            <div class="cs-state-tradeoff"><strong>BEST FEATURE</strong><p>The identity <span class="cs-math-inline" data-latex="d\eta_C=d\alpha\wedge d\beta">d eta C equals d alpha wedge d beta</span> builds curl compatibility into the representation.</p><strong>COST</strong><p>The potentials are nonunique, may need multiple charts, and the raw candidate <span class="cs-math-inline" data-latex="\eta_C">eta C</span> is generally not incompressible.</p></div>
+            <div><span>CLEBSCH POTENTIALS</span><h3>Store scalar labels whose crossing carries vorticity.</h3><div class="cs-math-display" data-latex="\eta_C=d\phi+\alpha d\beta,qquad d\eta_C=d\alpha\wedge d\beta">Clebsch velocity candidate and vorticity</div><p>The labels can be carried with the fluid and arise naturally in some variational or Hamiltonian formulations.</p></div>
+            <div class="cs-state-tradeoff"><strong>BENEFIT</strong><p>The curl identity is built into the representation.</p><strong>RESPONSIBILITY</strong><p>The potentials are nonunique, can have global topological issues, and do not enforce zero divergence by themselves.</p></div>
           </article>
         </section>
 
         <section class="cs-projection-answer" aria-labelledby="cs-projection-title">
-          <header><p class="cs-eyebrow">The direct answer</p><h2 id="cs-projection-title">What does Hodge-projecting Clebsch buy?</h2></header>
-
+          <header><p class="cs-eyebrow">Why projection still appears</p><h2 id="cs-projection-title">Clebsch gives a candidate, not automatically a fluid velocity.</h2></header>
           <ol class="cs-projection-steps">
-            <li><div><span>START WITH A VORTICAL CANDIDATE</span><h3>Clebsch supplies vorticity, not incompressibility.</h3><p>The one-form <span class="cs-math-inline" data-latex="\eta_C=d\phi+\alpha d\beta">eta C</span> already has the desired vorticity <span class="cs-math-inline" data-latex="\omega=d\alpha\wedge d\beta">omega</span>, but it may contain an exact source–sink component.</p></div><div class="cs-math-display" data-latex="d\eta_C=\omega,\qquad \delta\eta_C\ne0\ \text{ in general}">raw Clebsch properties</div></li>
-            <li><div><span>REMOVE ONLY THE SOURCE–SINK PART</span><h3>Solve one scalar Poisson problem.</h3><p>Find p so that <span class="cs-math-inline" data-latex="dp">d p</span> has exactly the same divergence as the candidate, then subtract it. In Clebsch language this simply replaces φ by <span class="cs-math-inline" data-latex="\phi-p">phi minus p</span>; α, β, and their vorticity do not change.</p></div><div class="cs-math-display" data-latex="\delta d p=\delta\eta_C,\qquad \eta=d(\phi-p)+\alpha d\beta">Hodge projection chooses the exact potential</div></li>
-            <li><div><span>KEEP THE ROTATION</span><h3>The result is a usable incompressible velocity.</h3><p>The projection changes the local arrows, but it changes neither the vorticity nor the closed-loop circulation periods of the candidate.</p></div><div class="cs-math-display" data-latex="\delta\eta=0,\qquad d\eta=d\eta_C-d^2p=\omega">projected properties</div></li>
+            <li><div><span>BUILD THE CANDIDATE</span><h3>Its vorticity is already known.</h3><p>The labels determine <span class="cs-math-inline" data-latex="\omega=d\alpha\wedge d\beta">omega</span>, but the raw one-form may contain a source–sink component.</p></div><div class="cs-math-display" data-latex="d\eta_C=\omega,qquad \delta\eta_C\ne0\ \text{in general}">raw Clebsch properties</div></li>
+            <li><div><span>CHOOSE THE EXACT PART</span><h3>Solve one scalar Poisson problem.</h3><p>Subtract an exact one-form whose divergence matches the candidate. In Clebsch language this changes only φ.</p></div><div class="cs-math-display" data-latex="\delta dp=\delta\eta_C,qquad \eta=d(\phi-p)+\alpha d\beta">projection selects phi</div></li>
+            <li><div><span>USE THE RESULT</span><h3>Move particles with the projected velocity.</h3><p>The correction removes divergence without changing vorticity because <span class="cs-math-inline" data-latex="d^2p=0">d squared p is zero</span>.</p></div><div class="cs-math-display" data-latex="\delta\eta=0,qquad d\eta=\omega,qquad u=\eta^{\sharp_g}">usable incompressible velocity</div></li>
           </ol>
-
-          <aside class="cs-projection-takeaway"><strong>Projection is not extra fluid physics.</strong><p>It selects the exact potential φ that makes the Clebsch candidate divergence-free. If you evolve vorticity directly, you still need a global solve for <span class="cs-math-inline" data-latex="d\eta=\omega">d eta equals omega</span> and <span class="cs-math-inline" data-latex="\delta\eta=0">delta eta equals zero</span> before moving particles. Clebsch plus projection is worthwhile when the moving labels α and β are useful—not because projection is a cheaper way to recover velocity.</p></aside>
+          <aside class="cs-projection-takeaway"><strong>The short answer</strong><p>Clebsch plus Hodge projection is worthwhile when the scalar labels themselves are useful. It is not automatically cheaper or more complete than storing velocity or vorticity.</p></aside>
         </section>
 
-        <section class="cs-decision" aria-labelledby="cs-decision-title">
-          <header><p class="cs-eyebrow">A practical decision</p><h2 id="cs-decision-title">Which representation should the solver use?</h2></header>
-          <dl>
-            <div><dt>Velocity or covector</dt><dd>Use it when particle motion, forces, boundaries, and compatibility with standard pressure solvers matter most. Direct covector transport is often the simplest circulation-aware compromise.</dd></div>
-            <div><dt>Vorticity two-form</dt><dd>Use it when vortex evolution is primary and the cost of reconstructing velocity through a Poisson/Biot–Savart solve is acceptable.</dd></div>
-            <div><dt>Clebsch plus projection</dt><dd>Use it when material labels, canonical variables, a variational discretization, or the factorization <span class="cs-math-inline" data-latex="\omega=d\alpha\wedge d\beta">omega equals d alpha wedge d beta</span> is itself useful. It is not automatically cheaper than the other choices.</dd></div>
-          </dl>
-        </section>
-
-        <section class="cs-technical" aria-labelledby="cs-technical-title">
-          <header><p class="cs-eyebrow">Technical details, after the idea</p><h2 id="cs-technical-title">Open these when the representation makes sense.</h2></header>
-
-          <details>
-            <summary>Where does the metric enter?</summary>
-            <p>The metric is not needed for <span class="cs-math-inline" data-latex="d">d</span>, wedge products, or pullback. It is needed to turn a covector into a vector, turn a vorticity two-form into a displayed scalar, and define divergence:</p>
-            <div class="cs-technical-formulas"><div class="cs-math-display" data-latex="u=\eta^{\sharp_g}">raise the velocity covector</div><div class="cs-math-display" data-latex="\omega_{\mathrm{scalar}}=\star_g\omega">display vorticity as a scalar</div><div class="cs-math-display" data-latex="\delta\eta=-\star_g d\!\left(\star_g\eta\right)">codifferential on one-forms over an oriented surface</div></div>
-          </details>
-
-          <details>
-            <summary>How many degrees of freedom do Clebsch variables add?</summary>
-            <p>None physically. With a fixed metric, <span class="cs-math-inline" data-latex="u\leftrightarrow\eta=u^\flat">u corresponds to eta</span> uniquely. A surface one-form has two local component functions, whereas Clebsch uses three nonunique potentials. For any smooth F,</p>
-            <div class="cs-math-display" data-latex="\phi'=\phi-F(\beta),\qquad \alpha'=\alpha+F'(\beta),\qquad \beta'=\beta">Clebsch gauge transformation</div>
-            <div class="cs-math-display" data-latex="d\phi'+\alpha'd\beta'=d\phi+\alpha d\beta">the physical one-form is unchanged</div>
-            <p>The representation is therefore an overcomplete encoding with gauge freedom, not a larger physical state.</p>
-          </details>
-
-          <details>
-            <summary>What can fail globally on a surface?</summary>
-            <p>Locally, factor <span class="cs-math-inline" data-latex="\omega=d\alpha\wedge d\beta">omega</span>; then <span class="cs-math-inline" data-latex="u^\flat-\alpha d\beta">u flat minus alpha d beta</span> is closed and is locally <span class="cs-math-inline" data-latex="d\phi">d phi</span>. Globally, topology can contribute harmonic circulation:</p>
-            <div class="cs-math-display" data-latex="u^\flat=d\chi+\star_g d\psi+h,\qquad \dim\mathcal H^1(S)=2g">Hodge decomposition on a closed genus-g surface</div>
-            <p>A single globally single-valued Clebsch pair may need to be supplemented by multiple charts, multiple pairs, or an explicit harmonic component.</p>
-          </details>
-
-          <p class="cs-source-note">The velocity-versus-vorticity tradeoff and the circulation-preserving covector alternative are discussed in <a href="https://cseweb.ucsd.edu/~viscomp/projects/SIG22CovectorFluids/">Covector Fluids</a>. The differential-form conventions follow <a href="https://stephaniewang.page/ExteriorCalculusInGraphics/">Exterior Calculus in Graphics</a>.</p>
+        <section class="cs-course-handoff" aria-labelledby="cs-handoff-title">
+          <div><p class="cs-eyebrow">Tutorial 02</p><h2 id="cs-handoff-title">Now watch every object appear on a surface.</h2><p>The second page begins with the interactive construction, then follows a circulation around a torus to expose the chart obstruction and compare three repairs.</p></div>
+          <a href="./clebsch-surfaces-action.html"><span>CONTINUE TO PART II</span><strong>Fields in action, charts, and topology →</strong></a>
         </section>
       </section>
     </main>
 
-    <script type="module" src="/src/experiments/clebsch-surface-page.ts"></script>
+    <script type="module" src="/src/experiments/clebsch-surface-intro-page.ts"></script>
   </body>
 </html>

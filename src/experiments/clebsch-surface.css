@@ -360,6 +360,15 @@ button { cursor: pointer; }
 .cs-technical details > .cs-math-display { margin-block: 12px; padding: 14px 8px; overflow-x: auto; color: var(--cyan); border-radius: 4px; background: var(--night); font-size: 10px; }
 .cs-technical-formulas { display: grid; gap: 1px; margin-block: 12px 22px; overflow: hidden; border-radius: 4px; background: #4b3a67; }
 .cs-technical-formulas .cs-math-display { padding: 12px 8px; color: var(--cyan); background: var(--night); font-size: 10px; }
+.cs-course-handoff { display: grid; grid-template-columns: minmax(0, 1fr) minmax(310px, .72fr); gap: 38px; align-items: center; margin-top: 72px; padding: 30px; color: white; border: 1px solid #594771; border-top: 7px solid var(--orange); border-radius: 7px; background: linear-gradient(145deg, #19102f, #31204e 58%, #135363); }
+.cs-course-handoff .cs-eyebrow { color: var(--orange); }
+.cs-course-handoff h2 { color: white; font-size: clamp(2.3rem, 4.2vw, 4.8rem); }
+.cs-course-handoff p { max-width: 720px; margin: 18px 0 0; color: #d2c6dc; font-size: 10px; line-height: 1.7; }
+.cs-course-handoff > a { display: block; padding: 23px; color: var(--ink); border: 1px solid var(--gold); border-radius: 5px; background: linear-gradient(135deg, var(--gold), var(--orange)); text-decoration: none; }
+.cs-course-handoff > a span, .cs-course-handoff > a strong { display: block; }
+.cs-course-handoff > a span { color: #62334c; font: 700 7px var(--mono); letter-spacing: .08em; }
+.cs-course-handoff > a strong { margin-top: 9px; font-size: 17px; line-height: 1.08; }
+.cs-course-handoff > a:hover, .cs-course-handoff > a:focus-visible { outline: 3px solid var(--cyan); outline-offset: 3px; }
 
 @media (max-width: 1180px) {
   .cs-lab { grid-template-columns: 225px minmax(480px, 1fr); }
@@ -407,6 +416,7 @@ button { cursor: pointer; }
   .cs-projection-steps li { grid-template-columns: 1fr; padding-left: 72px; }
   .cs-projection-takeaway { grid-template-columns: 1fr; }
   .cs-decision dl > div { grid-template-columns: 1fr; gap: 8px; }
+  .cs-course-handoff { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 530px) {
@@ -434,4 +444,5 @@ button { cursor: pointer; }
   .cs-state-tradeoff { grid-column: 1 / -1; }
   .cs-projection-steps li { padding: 65px 18px 20px; }
   .cs-projection-steps li::before { top: 16px; left: 18px; }
+  .cs-course-handoff { padding: 22px 18px; }
 }

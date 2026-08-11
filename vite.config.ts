@@ -14,6 +14,7 @@ export default defineConfig({
         "getting-started.html",
         "shallow-water.html",
         "clebsch-surfaces.html",
+        "clebsch-surfaces-action.html",
         "clebsch-shallow-water.html",
         "random-fluids.html",
         "representations.html",
