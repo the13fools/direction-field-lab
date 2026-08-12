@@ -12,6 +12,7 @@ import {
   sampleSmoothDisk,
   type DiskPoint,
 } from "./disk-circulation-model";
+import { drawSlitConformalFlow } from "./slit-conformal-flow";
 
 type GridView = "both" | "alpha" | "beta" | "none";
 type PageMode = "smooth" | "annulus";
@@ -46,10 +47,12 @@ const speedInput = byId<HTMLInputElement>("dd-speed");
 const innerInput = byId<HTMLInputElement>("dd-inner");
 const outerInput = byId<HTMLInputElement>("dd-outer");
 const radiusInput = byId<HTMLInputElement>("dd-radius");
+const maxTimeInput = byId<HTMLInputElement>("dd-max-time");
 const speedOutput = byId<HTMLOutputElement>("dd-speed-output");
 const innerOutput = byId<HTMLOutputElement>("dd-inner-output");
 const outerOutput = byId<HTMLOutputElement>("dd-outer-output");
 const radiusOutput = byId<HTMLOutputElement>("dd-radius-output");
+const maxTimeOutput = byId<HTMLOutputElement>("dd-max-time-output");
 const playButton = byId<HTMLButtonElement>("dd-play");
 const modeButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-dd-mode]")];
 const gridButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-dd-grid]")];
@@ -162,8 +165,11 @@ function drawMaterialFamily(
     let drawing = false;
     let previous: DiskPoint | null = null;
     context.beginPath();
-    for (let index = 0; index <= 220; index += 1) {
-      const free = -extent + 2 * extent * index / 220;
+    const sampleCount = mode === "annulus"
+      ? Math.min(1800, 240 + Math.ceil(Math.abs(time) * 70))
+      : 240;
+    for (let index = 0; index <= sampleCount; index += 1) {
+      const free = -extent + 2 * extent * index / sampleCount;
       const initial = family === "alpha" ? { x: fixed, y: free } : { x: free, y: fixed };
       const radius = Math.hypot(initial.x, initial.y);
       if (mode === "annulus" && radius < PUNCTURE_RADIUS + 0.006) {
@@ -364,6 +370,8 @@ function updateReadout(): void {
   innerOutput.value = format(innerCirculation, 2);
   outerOutput.value = format(outerCirculation, 2);
   radiusOutput.value = format(probeRadius, 2);
+  maxTimeOutput.value = format(Number(maxTimeInput.value), 1);
+  byId("dd-time-metric").textContent = `${format(time, 2)} / ${format(Number(maxTimeInput.value), 2)}`;
   byId("dd-radius-metric").textContent = format(probeRadius, 2);
   byId("dd-loop-circulation").textContent = format(circulation);
   byId("dd-area-vorticity").textContent = format(enclosedVorticity);
@@ -381,14 +389,14 @@ function updateReadout(): void {
       true,
     );
     byId("dd-live-copy").textContent = "At t = 0, rescale a to α = 2U_b a and take β = b. The labels then stay material as the grid moves, while φ must evolve to preserve the steady Euler velocity.";
-    byId("dd-probe-kicker").textContent = "WHY Γ SHRINKS WITH THE LOOP";
-    byId("dd-probe-title").textContent = "The smaller loop encloses less vorticity.";
+    byId("dd-probe-kicker").textContent = "MOVABLE STOKES AUDIT";
+    byId("dd-probe-title").textContent = "The probe measures the field; it does not steer it.";
     renderLatex(
       byId("dd-probe-equation"),
       String.raw`\Gamma(${latexNumber(probeRadius)})=2\pi(${latexNumber(boundarySpeed)})(${latexNumber(probeRadius)})^2=${latexNumber(circulation, 3)}`,
       true,
     );
-    byId("dd-probe-copy").textContent = "Every probe circle bounds a smaller disk. Its circulation equals the constant vorticity 2U_b integrated over that disk.";
+    byId("dd-probe-copy").textContent = "Changing ρ only chooses a different loop to integrate around. It leaves the velocity untouched. The measured circulation equals the constant vorticity 2U_b integrated over the enclosed disk.";
     renderLatex(byId("dd-boundary-equation"), String.raw`u\cdot n=0,\qquad u\cdot t=${latexNumber(boundarySpeed)}\quad(r=1)`, true);
     byId("dd-boundary-copy").textContent = "The normal component vanishes pointwise. The tangential value on the unit boundary fixes its single outer circulation.";
   } else {
@@ -401,14 +409,14 @@ function updateReadout(): void {
       true,
     );
     byId("dd-live-copy").textContent = "The Ar²dθ term carries constant vorticity. The Bdθ term is curl-free and harmonic. The a,b grid only visualizes the flow map in this mode.";
-    byId("dd-probe-kicker").textContent = "STOKES WITH AN INNER BOUNDARY";
-    byId("dd-probe-title").textContent = "Subtract the circulation already around the hole.";
+    byId("dd-probe-kicker").textContent = "MOVABLE STOKES AUDIT · INNER BOUNDARY";
+    byId("dd-probe-title").textContent = "Move the loop; subtract what was already around the hole.";
     renderLatex(
       byId("dd-probe-equation"),
       String.raw`\Gamma(${latexNumber(probeRadius)})-\Gamma_{\rm in}=${latexNumber(circulation, 3)}-(${latexNumber(innerCirculation, 3)})=${latexNumber(enclosedVorticity, 3)}`,
       true,
     );
-    byId("dd-probe-copy").textContent = "The annular patch between the inner ring and the gold loop has two oriented boundaries. Its vorticity integral equals Γ(ρ) − Γ_in.";
+    byId("dd-probe-copy").textContent = "The slider changes only the gold measurement loop. The annular patch between the hole and that loop has two oriented boundaries, so its vorticity integral equals Γ(ρ) − Γ_in.";
     renderLatex(
       byId("dd-boundary-equation"),
       String.raw`\Gamma_{\rm out}-\Gamma_{\rm in}=${latexNumber(outerCirculation - innerCirculation, 3)}=\int_A\omega`,
@@ -457,11 +465,12 @@ function setPlaying(next: boolean): void {
 
 function advance(delta: number): void {
   time += delta;
-  const limit = mode === "smooth" ? 12 : 1.35;
+  const limit = Number(maxTimeInput.value);
   if (time >= limit) {
     time = limit;
     setPlaying(false);
   }
+  byId("dd-time-metric").textContent = `${format(time, 2)} / ${format(limit, 2)}`;
   draw();
 }
 
@@ -496,6 +505,14 @@ for (const button of gridButtons) {
 }
 
 for (const input of [speedInput, innerInput, outerInput, radiusInput]) input.addEventListener("input", updateReadout);
+maxTimeInput.addEventListener("input", () => {
+  const limit = Number(maxTimeInput.value);
+  if (time > limit) {
+    time = limit;
+    setPlaying(false);
+  }
+  updateReadout();
+});
 byId("dd-equal-circulation").addEventListener("click", () => {
   innerInput.value = "3";
   outerInput.value = "3";
@@ -517,7 +534,65 @@ byId("dd-step").addEventListener("click", () => {
   setPlaying(false);
   advance(mode === "smooth" ? 0.08 : 0.025);
 });
-playButton.addEventListener("click", () => setPlaying(!playing));
+playButton.addEventListener("click", () => {
+  if (!playing && time >= Number(maxTimeInput.value) - 1e-9) time = 0;
+  setPlaying(!playing);
+});
 playButton.setAttribute("aria-pressed", "false");
 new ResizeObserver(draw).observe(canvas);
 updateReadout();
+
+const slitCanvas = byId<HTMLCanvasElement>("dd-slit-canvas");
+const slitCInput = byId<HTMLInputElement>("dd-slit-c");
+const slitSpeedInput = byId<HTMLInputElement>("dd-slit-speed");
+const slitPlayButton = byId<HTMLButtonElement>("dd-slit-play");
+let slitTime = 0;
+let slitPlaying = false;
+let slitPreviousFrame = 0;
+let slitFrame = 0;
+
+function drawSlit(): void {
+  byId<HTMLOutputElement>("dd-slit-c-output").value = format(Number(slitCInput.value), 2);
+  byId<HTMLOutputElement>("dd-slit-speed-output").value = format(Number(slitSpeedInput.value), 2);
+  drawSlitConformalFlow(slitCanvas, Number(slitCInput.value), slitTime);
+}
+
+function setSlitPlaying(next: boolean): void {
+  slitPlaying = next;
+  slitPlayButton.textContent = next ? "Pause through-flow" : "Play through-flow";
+  slitPlayButton.classList.toggle("active", next);
+  slitPlayButton.setAttribute("aria-pressed", String(next));
+  if (next) {
+    slitPreviousFrame = 0;
+    slitFrame = requestAnimationFrame(slitTick);
+  } else {
+    cancelAnimationFrame(slitFrame);
+  }
+}
+
+function slitTick(timestamp: number): void {
+  if (!slitPlaying) return;
+  if (slitPreviousFrame > 0) {
+    slitTime += Math.min(0.04, (timestamp - slitPreviousFrame) / 1000) * Number(slitSpeedInput.value);
+    drawSlit();
+  }
+  slitPreviousFrame = timestamp;
+  if (slitPlaying) slitFrame = requestAnimationFrame(slitTick);
+}
+
+slitCInput.addEventListener("input", drawSlit);
+slitSpeedInput.addEventListener("input", drawSlit);
+byId("dd-slit-reset").addEventListener("click", () => {
+  setSlitPlaying(false);
+  slitTime = 0;
+  drawSlit();
+});
+byId("dd-slit-step").addEventListener("click", () => {
+  setSlitPlaying(false);
+  slitTime += 0.035;
+  drawSlit();
+});
+slitPlayButton.addEventListener("click", () => setSlitPlaying(!slitPlaying));
+slitPlayButton.setAttribute("aria-pressed", "false");
+new ResizeObserver(drawSlit).observe(slitCanvas);
+drawSlit();

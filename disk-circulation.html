@@ -64,6 +64,7 @@
             <p id="dd-live-copy">At t = 0 the global Cartesian parameter labels give a seam-free Clebsch triple. As a and b are carried, φ must evolve to keep the same Euler velocity.</p>
           </section>
           <div class="dd-metrics">
+            <div><span>time / horizon</span><strong id="dd-time-metric">0.00 / 8.00</strong></div>
             <div><span>probe radius</span><strong id="dd-radius-metric">—</strong></div>
             <div><span>loop circulation</span><strong id="dd-loop-circulation">—</strong></div>
             <div><span>enclosed vorticity</span><strong id="dd-area-vorticity">—</strong></div>
@@ -85,7 +86,8 @@
             <label><span><strong>Outer circulation Γ<sub>out</sub></strong><small>counterclockwise integral around r = 1</small></span><output id="dd-outer-output">4.40</output><input id="dd-outer" type="range" min="-6" max="6" step="0.1" value="4.4" /></label>
             <div class="dd-annulus-presets"><button id="dd-equal-circulation"><strong>Equal circulations</strong><small>pure harmonic flow · zero vorticity</small></button><button id="dd-different-circulation"><strong>Different circulations</strong><small>restore harmonic + vortical flow</small></button></div>
           </div>
-          <label><span><strong>Probe-loop radius ρ</strong><small>compare its circulation with enclosed vorticity</small></span><output id="dd-radius-output">0.68</output><input id="dd-radius" type="range" min="0.2" max="1" step="0.01" value="0.68" /></label>
+          <label><span><strong>Probe-loop radius ρ</strong><small>measurement loop only · it does not change the flow</small></span><output id="dd-radius-output">0.68</output><input id="dd-radius" type="range" min="0.2" max="1" step="0.01" value="0.68" /></label>
+          <label><span><strong>Maximum forward time</strong><small>pause at this horizon · exact resampling avoids time-step drift</small></span><output id="dd-max-time-output">8.0</output><input id="dd-max-time" type="range" min="1" max="30" step="0.5" value="8" /></label>
           <section class="dd-boundary-card">
             <span>BOUNDARY AUDIT</span>
             <div id="dd-boundary-equation" class="dd-math-display" data-latex="u\cdot n=0,\qquad u\cdot t=U_b">impermeable circulating boundary</div>
@@ -98,10 +100,10 @@
             <p>Changing Γ<sub>out</sub> − Γ<sub>in</sub> changes A. Adding the same amount to both sliders leaves A fixed and changes only B.</p>
           </section>
           <section class="dd-probe-card" aria-live="polite">
-            <span id="dd-probe-kicker">WHY Γ SHRINKS WITH THE LOOP</span>
-            <h3 id="dd-probe-title">The smaller loop encloses less vorticity.</h3>
+            <span id="dd-probe-kicker">MOVABLE STOKES AUDIT</span>
+            <h3 id="dd-probe-title">The probe measures the field; it does not steer it.</h3>
             <div id="dd-probe-equation" class="dd-math-display" data-latex="\Gamma(\rho)=2\pi U_b\rho^2=\int_{D_\rho}2U_b\,dA">smooth disk Stokes audit</div>
-            <p id="dd-probe-copy">Every probe circle bounds a smaller disk. Its circulation must equal the vorticity inside that smaller disk.</p>
+            <p id="dd-probe-copy">Slide ρ to choose a different integration loop. Every probe circle bounds a smaller disk, so its circulation must equal the vorticity inside that disk.</p>
           </section>
         </aside>
       </section>
@@ -119,6 +121,21 @@
 
       <section class="dd-puzzle">
         <header><p class="dd-eyebrow">The Jacobi-sn puzzle</p><h2>A slit chooses a branch.<br />A hole changes the domain.</h2><p>The attached Mathematica experiment maps a rectangle into a disk with two radial slits using <span class="dd-math-inline" data-latex="z=c\,\operatorname{sn}(u\mid c^4)">z equals c Jacobi sn of u</span>. Its vertical rectangle lines become curved coordinate lines in the slit disk.</p></header>
+        <section class="dd-slit-demo" aria-label="Interactive conformal flow through a two-slit disk">
+          <div class="dd-slit-stage">
+            <header><div><span>OPEN CONFORMAL FLOW</span><strong>the notebook's coordinate curves used as streamlines</strong></div><div class="dd-legend"><i></i> Re u constant <i></i> Im u constant <i></i> tracers</div></header>
+            <canvas id="dd-slit-canvas" role="img" aria-label="A two-slit disk beside its conformal parameter rectangle, with tracers moving along constant real-coordinate curves"></canvas>
+            <div class="dd-actions"><button id="dd-slit-reset">Reset tracers</button><button id="dd-slit-step">One step</button><button id="dd-slit-play" class="primary">Play through-flow</button></div>
+          </div>
+          <aside class="dd-slit-controls">
+            <p class="dd-eyebrow">Turn the map into a velocity</p>
+            <div class="dd-math-display" data-latex="\psi(z)=\operatorname{Re}u(z),\qquad (u^\flat)_{\rm flow}=*d\psi">streamfunction from the inverse coordinate</div>
+            <p>Constant-<span class="dd-math-inline" data-latex="\operatorname{Re}u">real u</span> curves are streamlines. The flow is divergence-free in the interior and tangent to the slit shores. Tracers enter and leave through the outer circle, so this is an <strong>open-boundary</strong> experiment—not the impermeable circulating-wall problem above.</p>
+            <label><span><strong>Slit-tip position c</strong><small>slits run from ±c to the outer circle</small></span><output id="dd-slit-c-output">0.60</output><input id="dd-slit-c" type="range" min="0.2" max="0.88" step="0.01" value="0.6" /></label>
+            <label><span><strong>Tracer speed</strong><small>coordinate-time speed through the conformal sheet</small></span><output id="dd-slit-speed-output">0.34</output><input id="dd-slit-speed" type="range" min="0.08" max="0.8" step="0.02" value="0.34" /></label>
+            <div class="dd-slit-warning"><strong>Want closed walls instead?</strong><p>Choose one streamfunction value on every physical boundary piece. A smooth example for these horizontal slits is <span class="dd-math-inline" data-latex="\psi_{\rm wall}(z)=(1-|z|^2)\operatorname{Im}z">one minus radius squared times imaginary z</span>. It vanishes on both slit shores and the outer circle, so <span class="dd-math-inline" data-latex="u^\flat=*d\psi_{\rm wall}">star d psi wall</span> creates vortical recirculation with no boundary flux.</p></div>
+          </aside>
+        </section>
         <div class="dd-puzzle-grid">
           <article><span>01 · FUNDAMENTAL SHEET</span><h3>The slits make the inverse coordinate single-valued.</h3><div class="dd-math-display" data-latex="u(z)=\operatorname{sn}^{-1}(z/c\mid c^4)">inverse elliptic coordinate</div><p>On the chosen slit domain, one branch of u can be followed continuously. The red curves are level sets of Re u.</p></article>
           <article><span>02 · MIRRORED SHEETS</span><h3>Crossing a slit continues to another branch.</h3><div class="dd-math-display" data-latex="u\longmapsto 2jK+(-1)^j u">schematic reflected continuation</div><p>The stacked surfaces in the notebook visualize analytic continuation, not additional layers of physical fluid.</p></article>
