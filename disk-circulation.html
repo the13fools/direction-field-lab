@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#101d2d" />
-    <meta name="description" content="An interactive disk-domain lab connecting circulating boundary conditions, interior vorticity, Clebsch labels, and the punctured-disk obstruction." />
+    <meta name="description" content="An interactive disk and annulus lab connecting independent boundary circulations, interior vorticity, harmonic flow, Clebsch labels, and branch cuts." />
     <title>Circulation on a disk · Direction Field Lab</title>
   </head>
   <body>
@@ -32,7 +32,7 @@
       <section class="dd-contrast" aria-label="Disk and torus circulation comparison">
         <article><span>FULL DISK</span><h2>The loop bounds a patch.</h2><div class="dd-math-display" data-latex="\Gamma(r)=\int_{D_r}\omega">circulation is accumulated vorticity</div><p>A smooth nonzero circulation at the outer boundary requires nonzero total vorticity inside.</p></article>
         <article><span>FLAT TORUS</span><h2>A generator bounds no patch.</h2><div class="dd-math-display" data-latex="d\eta=0,\qquad\oint_\gamma\eta\ne0">closed form with nonzero period</div><p>The missing circulation can be a smooth harmonic degree of freedom because the loop is noncontractible.</p></article>
-        <article class="accent"><span>PUNCTURED DISK</span><h2>Removing the center creates a hole.</h2><div class="dd-math-display" data-latex="\eta=U_b\,d\theta,\qquad d\eta=0\ \text{away from }0">potential vortex on a punctured disk</div><p>The curl-free circulation returns only after the center is removed—or accepted as a singular vortex.</p></article>
+        <article class="accent"><span>ANNULUS</span><h2>Two boundary circulations reveal two pieces.</h2><div class="dd-math-display" data-latex="\eta=(Ar^2+B)d\theta,\qquad d\eta=2A\,dx\wedge dy">vortical plus harmonic circulation</div><p>The difference Γ<sub>out</sub> − Γ<sub>in</sub> measures total vorticity. A common shift of both circulations changes only the harmonic part.</p></article>
       </section>
 
       <section class="dd-lab" aria-label="Interactive circulating disk lab">
@@ -42,9 +42,9 @@
             <li><span>01</span><div><strong>Follow the parameter grid.</strong><p>Cyan and orange curves carry the initial coordinates a and b, drawn like the material grid in the torus lesson.</p></div></li>
             <li><span>02</span><div><strong>Move the gold loop.</strong><p>Its circulation grows with enclosed area on the smooth disk.</p></div></li>
             <li><span>03</span><div><strong>Check the boundary.</strong><p>The vector field is tangent and has the selected speed <span class="dd-math-inline" data-latex="U_b">U b</span> at radius one.</p></div></li>
-            <li><span>04</span><div><strong>Remove the center.</strong><p>The same boundary circulation can then be curl-free away from the new hole.</p></div></li>
+            <li><span>04</span><div><strong>Remove the center.</strong><p>Set the two annulus circulations independently and watch the vortical and harmonic pieces separate.</p></div></li>
           </ol>
-          <section class="dd-guide-note"><span>KEY DISTINCTION</span><strong>Boundary data are not harmonic data.</strong><p>On a full disk, Stokes couples the outer circulation to interior curl. The punctured comparison changes the topology of the domain.</p></section>
+          <section class="dd-guide-note"><span>KEY DISTINCTION</span><strong>One boundary is not two boundaries.</strong><p>On a full disk, Stokes couples the outer circulation to interior curl. Removing the center creates an annulus, one noncontractible loop, and one harmonic degree of freedom.</p></section>
         </aside>
 
         <section class="dd-stage">
@@ -60,7 +60,7 @@
           <div class="dd-actions"><button id="dd-reset">Reset labels</button><button id="dd-step">One step</button><button id="dd-play" class="primary">Play</button></div>
           <section class="dd-live-equation">
             <span id="dd-equation-kicker">SMOOTH CLEBSCH RECONSTRUCTION</span>
-            <div id="dd-live-equation" class="dd-math-display" data-latex="u^\flat(0)=d(-U_bab)+(2U_ba)d b,qquad(a,b)=(x,y)">initial solid rotation Clebsch triple</div>
+            <div id="dd-live-equation" class="dd-math-display" data-latex="u^\flat(0)=d(-U_bab)+(2U_ba)d b,\qquad(a,b)=(x,y)">initial solid rotation Clebsch triple</div>
             <p id="dd-live-copy">At t = 0 the global Cartesian parameter labels give a seam-free Clebsch triple. As a and b are carried, φ must evolve to keep the same Euler velocity.</p>
           </section>
           <div class="dd-metrics">
@@ -75,14 +75,27 @@
           <p class="dd-eyebrow">Choose the domain</p>
           <div class="dd-mode-buttons" role="group" aria-label="Disk topology">
             <button class="active" data-dd-mode="smooth" aria-pressed="true"><span>01</span><strong>Smooth full disk</strong><small>circulation stored as vorticity</small></button>
-            <button data-dd-mode="punctured" aria-pressed="false"><span>02</span><strong>Punctured comparison</strong><small>curl-free away from the hole</small></button>
+            <button data-dd-mode="annulus" aria-pressed="false"><span>02</span><strong>Annulus</strong><small>independent inner and outer circulation</small></button>
           </div>
-          <label><span><strong>Boundary speed U<sub>b</sub></strong><small>signed tangential velocity at r = 1</small></span><output id="dd-speed-output">0.70</output><input id="dd-speed" type="range" min="-1.2" max="1.2" step="0.05" value="0.7" /></label>
+          <div id="dd-smooth-controls">
+            <label><span><strong>Boundary speed U<sub>b</sub></strong><small>signed tangential velocity at r = 1</small></span><output id="dd-speed-output">0.70</output><input id="dd-speed" type="range" min="-1.2" max="1.2" step="0.05" value="0.7" /></label>
+          </div>
+          <div id="dd-annulus-controls" hidden>
+            <label><span><strong>Inner circulation Γ<sub>in</sub></strong><small>counterclockwise integral around r = r<sub>in</sub></small></span><output id="dd-inner-output">2.20</output><input id="dd-inner" type="range" min="-6" max="6" step="0.1" value="2.2" /></label>
+            <label><span><strong>Outer circulation Γ<sub>out</sub></strong><small>counterclockwise integral around r = 1</small></span><output id="dd-outer-output">4.40</output><input id="dd-outer" type="range" min="-6" max="6" step="0.1" value="4.4" /></label>
+            <div class="dd-annulus-presets"><button id="dd-equal-circulation"><strong>Equal circulations</strong><small>pure harmonic flow · zero vorticity</small></button><button id="dd-different-circulation"><strong>Different circulations</strong><small>restore harmonic + vortical flow</small></button></div>
+          </div>
           <label><span><strong>Probe-loop radius ρ</strong><small>compare its circulation with enclosed vorticity</small></span><output id="dd-radius-output">0.68</output><input id="dd-radius" type="range" min="0.2" max="1" step="0.01" value="0.68" /></label>
           <section class="dd-boundary-card">
             <span>BOUNDARY AUDIT</span>
-            <div class="dd-math-display" data-latex="u\cdot n=0,qquad u\cdot t=U_b">impermeable circulating boundary</div>
-            <p>The normal component vanishes pointwise. The tangential value is imposed, so the outer circulation is always <span class="dd-math-inline" data-latex="2\pi U_b">two pi U b</span>.</p>
+            <div id="dd-boundary-equation" class="dd-math-display" data-latex="u\cdot n=0,\qquad u\cdot t=U_b">impermeable circulating boundary</div>
+            <p id="dd-boundary-copy">The normal component vanishes pointwise. The tangential value is imposed, so the outer circulation is always <span class="dd-math-inline" data-latex="2\pi U_b">two pi U b</span>.</p>
+          </section>
+          <section class="dd-decomposition-card" aria-live="polite" hidden>
+            <span>ANNULUS DECOMPOSITION</span>
+            <div id="dd-decomposition-equation" class="dd-math-display" data-latex="\eta=Ar^2d\theta+B d\theta">vortical plus harmonic pieces</div>
+            <div><p><small>constant vorticity 2A</small><b id="dd-vortical-coefficient">—</b></p><p><small>harmonic coefficient B</small><b id="dd-harmonic-coefficient">—</b></p></div>
+            <p>Changing Γ<sub>out</sub> − Γ<sub>in</sub> changes A. Adding the same amount to both sliders leaves A fixed and changes only B.</p>
           </section>
           <section class="dd-probe-card" aria-live="polite">
             <span id="dd-probe-kicker">WHY Γ SHRINKS WITH THE LOOP</span>
@@ -97,11 +110,20 @@
         <header><p class="dd-eyebrow">A complete smooth test case</p><h2>The Clebsch labels encode the same rotating one-form.</h2><p>For solid rotation, the parameter grid can be interpreted directly as two globally smooth label families. The exact term then completes the velocity without changing its vorticity.</p></header>
         <div class="dd-derivation">
           <article><span>01 · BOUNDARY CONDITION</span><h3>Choose solid rotation.</h3><div class="dd-math-display" data-latex="u=U_b(-y,x)=U_b r\,e_\theta">smooth tangent velocity</div><p>At the unit boundary, the tangential speed is exactly U<sub>b</sub>. The center is completely regular.</p></article>
-          <article><span>02 · GLOBAL LABELS</span><h3>Use Cartesian scalar fields.</h3><div class="dd-math-display" data-latex="\alpha=2U_ba,\qquad\beta=b,\qquad\phi=-U_bab">one Clebsch choice at the initial time</div><p>The displayed parameter grid carries a = x₀ and b = y₀. In the smooth test, rescaling a gives the Clebsch label α. In the punctured comparison the grid remains only a material-coordinate aid; it is not a Clebsch factorization of the curl-free field.</p></article>
+          <article><span>02 · GLOBAL LABELS</span><h3>Use Cartesian scalar fields.</h3><div class="dd-math-display" data-latex="\alpha=2U_ba,\qquad\beta=b,\qquad\phi=-U_bab">one Clebsch choice at the initial time</div><p>The displayed parameter grid carries a = x₀ and b = y₀. In the smooth test, rescaling a gives the Clebsch label α. In the annulus mode the same grid remains a material-coordinate aid; the live decomposition is written directly as a one-form.</p></article>
           <article><span>03 · ASSEMBLE VELOCITY</span><h3>The pieces cancel correctly.</h3><div class="dd-math-display" data-latex="d\phi_0+\alpha_0d\beta_0=-U_by\,dx+U_bx\,dy">initial Clebsch reconstruction</div><p>At t = 0, the extra dy term in dφ cancels half of αdβ. During animation the two labels stay material while φ changes.</p></article>
           <article><span>04 · TAKE d</span><h3>The crossing becomes vorticity.</h3><div class="dd-math-display" data-latex="d\alpha\wedge d\beta=2U_b\,dx\wedge dy">constant vorticity two-form</div><p>Integrating this two-form over the disk gives the prescribed outer circulation.</p></article>
         </div>
-        <aside class="dd-takeaway"><strong>The lesson</strong><p>A nonzero boundary circulation on the full disk is not a hidden harmonic degree of freedom. Either the interior carries the corresponding vorticity, or the field ceases to be smooth somewhere. Removing the center turns the disk into an annulus and creates the missing noncontractible loop.</p><a href="./flat-torus-cohomology.html">Compare with two genuine torus periods →</a></aside>
+        <aside class="dd-takeaway"><strong>The lesson</strong><p>A nonzero boundary circulation on the full disk is not a hidden harmonic degree of freedom. On an annulus, however, the circulation difference is fixed by vorticity while one common circulation remains harmonic. Removing the center creates exactly one noncontractible loop.</p><a href="./flat-torus-cohomology.html">Compare with two genuine torus periods →</a></aside>
+      </section>
+
+      <section class="dd-puzzle">
+        <header><p class="dd-eyebrow">The Jacobi-sn puzzle</p><h2>A slit chooses a branch.<br />A hole changes the domain.</h2><p>The attached Mathematica experiment maps a rectangle into a disk with two radial slits using <span class="dd-math-inline" data-latex="z=c\,\operatorname{sn}(u\mid c^4)">z equals c Jacobi sn of u</span>. Its vertical rectangle lines become curved coordinate lines in the slit disk.</p></header>
+        <div class="dd-puzzle-grid">
+          <article><span>01 · FUNDAMENTAL SHEET</span><h3>The slits make the inverse coordinate single-valued.</h3><div class="dd-math-display" data-latex="u(z)=\operatorname{sn}^{-1}(z/c\mid c^4)">inverse elliptic coordinate</div><p>On the chosen slit domain, one branch of u can be followed continuously. The red curves are level sets of Re u.</p></article>
+          <article><span>02 · MIRRORED SHEETS</span><h3>Crossing a slit continues to another branch.</h3><div class="dd-math-display" data-latex="u\longmapsto 2jK+(-1)^j u">schematic reflected continuation</div><p>The stacked surfaces in the notebook visualize analytic continuation, not additional layers of physical fluid.</p></article>
+          <article class="accent"><span>03 · THE ANSWER</span><h3>A branch cut is bookkeeping—not an annular hole.</h3><div class="dd-math-display" data-latex="H^1(D)=0,\qquad H^1(D\setminus\{0\})\cong\mathbb R">disk versus punctured disk cohomology</div><p>Glue the slit shores and u becomes multivalued on the original disk. Treat the slits as physical walls and the boundary-attached slit domain is still simply connected. Only removing a compact center creates the annulus and its genuine circulation degree of freedom.</p></article>
+        </div>
       </section>
     </main>
 

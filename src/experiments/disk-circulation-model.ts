@@ -14,6 +14,12 @@ export interface DiskFieldSample {
   phi: number | null;
 }
 
+export interface AnnulusCoefficients {
+  solidRotation: number;
+  harmonic: number;
+  vorticity: number;
+}
+
 export function sampleSmoothDisk(x: number, y: number, boundarySpeed: number): DiskFieldSample {
   return {
     velocity: { x: -boundarySpeed * y, y: boundarySpeed * x },
@@ -41,6 +47,75 @@ export function samplePuncturedDisk(x: number, y: number, boundarySpeed: number)
     alpha: null,
     beta: Math.atan2(y, x),
     phi: boundarySpeed * Math.atan2(y, x),
+  };
+}
+
+export function annulusCoefficients(
+  innerRadius: number,
+  innerCirculation: number,
+  outerCirculation: number,
+): AnnulusCoefficients {
+  if (!(innerRadius > 0 && innerRadius < 1)) throw new Error("innerRadius must lie in (0,1)");
+  const denominator = 2 * Math.PI * (1 - innerRadius * innerRadius);
+  const solidRotation = (outerCirculation - innerCirculation) / denominator;
+  const harmonic = (
+    innerCirculation - 2 * Math.PI * solidRotation * innerRadius * innerRadius
+  ) / (2 * Math.PI);
+  return { solidRotation, harmonic, vorticity: 2 * solidRotation };
+}
+
+export function annulusCirculation(
+  radius: number,
+  innerRadius: number,
+  innerCirculation: number,
+  outerCirculation: number,
+): number {
+  if (!(radius >= innerRadius && radius <= 1)) throw new Error("radius must lie in the annulus");
+  const coefficients = annulusCoefficients(innerRadius, innerCirculation, outerCirculation);
+  return 2 * Math.PI * (
+    coefficients.solidRotation * radius * radius + coefficients.harmonic
+  );
+}
+
+export function sampleAnnulus(
+  x: number,
+  y: number,
+  innerRadius: number,
+  innerCirculation: number,
+  outerCirculation: number,
+): DiskFieldSample {
+  const radiusSquared = x * x + y * y;
+  if (!(radiusSquared >= innerRadius * innerRadius && radiusSquared <= 1 + 1e-12)) {
+    throw new Error("sample point must lie in the annulus");
+  }
+  const coefficients = annulusCoefficients(innerRadius, innerCirculation, outerCirculation);
+  const angularSpeed = coefficients.solidRotation + coefficients.harmonic / radiusSquared;
+  return {
+    velocity: { x: -angularSpeed * y, y: angularSpeed * x },
+    oneForm: { x: -angularSpeed * y, y: angularSpeed * x },
+    vorticity: coefficients.vorticity,
+    alpha: null,
+    beta: Math.atan2(y, x),
+    phi: coefficients.harmonic * Math.atan2(y, x),
+  };
+}
+
+export function advectAnnulusPoint(
+  point: DiskPoint,
+  time: number,
+  innerRadius: number,
+  innerCirculation: number,
+  outerCirculation: number,
+): DiskPoint {
+  const radiusSquared = point.x * point.x + point.y * point.y;
+  if (!(radiusSquared >= innerRadius * innerRadius)) throw new Error("point lies inside the annulus hole");
+  const coefficients = annulusCoefficients(innerRadius, innerCirculation, outerCirculation);
+  const angle = (coefficients.solidRotation + coefficients.harmonic / radiusSquared) * time;
+  const cosine = Math.cos(angle);
+  const sine = Math.sin(angle);
+  return {
+    x: cosine * point.x - sine * point.y,
+    y: sine * point.x + cosine * point.y,
   };
 }
 
@@ -75,4 +150,3 @@ export function advectDiskPoint(
     y: sine * point.x + cosine * point.y,
   };
 }
-

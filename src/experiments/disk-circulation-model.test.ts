@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
+  advectAnnulusPoint,
   advectDiskPoint,
+  annulusCirculation,
+  annulusCoefficients,
   loopCirculation,
+  sampleAnnulus,
   samplePuncturedDisk,
   sampleSmoothDisk,
 } from "./disk-circulation-model";
@@ -44,5 +48,35 @@ describe("disk circulation model", () => {
       const moved = advectDiskPoint(point, 0.8, 0.7, mode);
       expect(Math.hypot(moved.x, moved.y)).toBeCloseTo(0.5, 12);
     }
+  });
+
+  it("matches independent annulus boundary circulations", () => {
+    const innerRadius = 0.24;
+    const inner = 1.7;
+    const outer = 4.2;
+    expect(annulusCirculation(innerRadius, innerRadius, inner, outer)).toBeCloseTo(inner, 12);
+    expect(annulusCirculation(1, innerRadius, inner, outer)).toBeCloseTo(outer, 12);
+    const coefficients = annulusCoefficients(innerRadius, inner, outer);
+    const integratedVorticity = coefficients.vorticity * Math.PI * (1 - innerRadius ** 2);
+    expect(integratedVorticity).toBeCloseTo(outer - inner, 12);
+  });
+
+  it("separates a common circulation shift from vorticity", () => {
+    const innerRadius = 0.3;
+    const original = annulusCoefficients(innerRadius, 1.1, 3.4);
+    const shifted = annulusCoefficients(innerRadius, 2.6, 4.9);
+    expect(shifted.vorticity).toBeCloseTo(original.vorticity, 12);
+    expect(shifted.harmonic - original.harmonic).toBeCloseTo(1.5 / (2 * Math.PI), 12);
+
+    const harmonicOnly = annulusCoefficients(innerRadius, 2.2, 2.2);
+    expect(harmonicOnly.vorticity).toBeCloseTo(0, 12);
+  });
+
+  it("samples and advects the annulus field without radial drift", () => {
+    const point = { x: 0.52, y: 0.21 };
+    const sample = sampleAnnulus(point.x, point.y, 0.24, 1.5, 4.1);
+    expect(sample.velocity.x * point.x + sample.velocity.y * point.y).toBeCloseTo(0, 12);
+    const moved = advectAnnulusPoint(point, 0.7, 0.24, 1.5, 4.1);
+    expect(Math.hypot(moved.x, moved.y)).toBeCloseTo(Math.hypot(point.x, point.y), 12);
   });
 });

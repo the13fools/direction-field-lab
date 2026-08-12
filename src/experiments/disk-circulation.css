@@ -110,19 +110,33 @@ button { cursor: pointer; }
 .dd-mode-buttons small { color: var(--muted); font-size: 8px; }
 .dd-mode-buttons button.active { color: white; border-color: var(--orange); background: linear-gradient(135deg, var(--indigo), #284e63); }
 .dd-mode-buttons button.active small { color: #d9e2e8; }
-.dd-controls > label { display: grid; grid-template-columns: 1fr auto; gap: 5px 10px; padding: 13px 0; border-bottom: 1px solid var(--line); }
+.dd-controls label { display: grid; grid-template-columns: 1fr auto; gap: 5px 10px; padding: 13px 0; border-bottom: 1px solid var(--line); }
 .dd-controls label span strong, .dd-controls label span small { display: block; }
 .dd-controls label span strong { color: var(--ink); font-size: 10px; }
 .dd-controls label span small { margin-top: 3px; color: var(--muted); font-size: 8px; }
 .dd-controls output { color: var(--indigo); font: 800 9px var(--mono); }
 .dd-controls input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--orange); }
-.dd-boundary-card, .dd-probe-card { margin-top: 17px; padding: 15px; border: 1px solid #aeb8c4; border-top: 5px solid var(--cyan); border-radius: 5px; background: linear-gradient(145deg, #f8fbff, #edf7f5); }
-.dd-boundary-card > span, .dd-probe-card > span { color: var(--indigo); font: 800 7px var(--mono); letter-spacing: .08em; }
+.dd-annulus-presets { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; padding: 10px 0 4px; }
+.dd-annulus-presets button { min-width: 0; padding: 9px; color: var(--ink); border: 1px solid var(--line); border-radius: 3px; background: white; text-align: left; }
+.dd-annulus-presets strong, .dd-annulus-presets small { display: block; }
+.dd-annulus-presets strong { font-size: 8px; line-height: 1.2; }
+.dd-annulus-presets small { margin-top: 4px; color: var(--muted); font-size: 7px; line-height: 1.35; }
+.dd-boundary-card, .dd-probe-card, .dd-decomposition-card { margin-top: 17px; padding: 15px; border: 1px solid #aeb8c4; border-top: 5px solid var(--cyan); border-radius: 5px; background: linear-gradient(145deg, #f8fbff, #edf7f5); }
+.dd-boundary-card > span, .dd-probe-card > span, .dd-decomposition-card > span { color: var(--indigo); font: 800 7px var(--mono); letter-spacing: .08em; }
 .dd-boundary-card .dd-math-display { margin-top: 10px; padding: 12px 7px; color: var(--cyan); border-radius: 4px; background: var(--night); }
 .dd-boundary-card p, .dd-probe-card p { margin: 11px 0 0; color: var(--muted); font-size: 8px; line-height: 1.6; }
 .dd-probe-card { border-top-color: var(--orange); background: white; }
 .dd-probe-card h3 { margin: 9px 0 12px; color: var(--ink); font-size: 18px; line-height: 1.04; }
 .dd-probe-card .dd-math-display { padding: 12px 7px; color: var(--gold); border-radius: 4px; background: var(--night); }
+.dd-decomposition-card { color: white; border-color: #506579; border-top-color: var(--gold); background: var(--night); }
+.dd-decomposition-card > span { color: var(--gold); }
+.dd-decomposition-card > .dd-math-display { margin-top: 10px; padding: 12px 7px; color: var(--cyan); border: 1px solid #3c5064; border-radius: 4px; background: #0e2236; }
+.dd-decomposition-card > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; margin-top: 9px; background: #405468; }
+.dd-decomposition-card > div p { margin: 0; padding: 9px; background: #0e1b2b; }
+.dd-decomposition-card small, .dd-decomposition-card b { display: block; }
+.dd-decomposition-card small { color: #8fa2b3; font: 7px var(--mono); }
+.dd-decomposition-card b { margin-top: 5px; color: var(--gold); font: 800 9px var(--mono); }
+.dd-decomposition-card > p { margin: 10px 0 0; color: #bdcbd6; font-size: 8px; line-height: 1.55; }
 
 .dd-explanation { padding: 78px max(24px, calc((100vw - 1280px) / 2)) 92px; }
 .dd-explanation > header { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(350px, .85fr); gap: 58px; align-items: end; }
@@ -143,17 +157,32 @@ button { cursor: pointer; }
 .dd-takeaway p { margin: 0; color: #c7d4de; font-size: 10px; line-height: 1.67; }
 .dd-takeaway a { padding: 12px 14px; color: var(--night); border-radius: 4px; background: var(--cyan); font-size: 9px; font-weight: 800; text-decoration: none; white-space: nowrap; }
 
+.dd-puzzle { padding: 78px max(24px, calc((100vw - 1280px) / 2)) 92px; color: white; border-top: 5px solid var(--orange); background: radial-gradient(circle at 84% 12%, rgba(105,239,242,.12), transparent 27rem), linear-gradient(145deg, #071421, #192a43 58%, #33203f); }
+.dd-puzzle > header { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(350px, .85fr); gap: 58px; align-items: end; }
+.dd-puzzle > header .dd-eyebrow { grid-column: 1 / -1; color: var(--cyan); }
+.dd-puzzle h2 { margin: 10px 0 0; color: white; font-size: clamp(3rem, 5.4vw, 6rem); line-height: .88; letter-spacing: -.065em; }
+.dd-puzzle > header > p:last-child { margin: 0; color: #c2d0db; font-size: 12px; line-height: 1.75; }
+.dd-puzzle .dd-math-inline { color: var(--gold); }
+.dd-puzzle-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 34px; }
+.dd-puzzle-grid article { min-width: 0; padding: 24px; color: var(--ink); border-top: 6px solid var(--indigo); border-radius: 6px; background: var(--paper); }
+.dd-puzzle-grid article:nth-child(2) { border-top-color: var(--cyan); }
+.dd-puzzle-grid article.accent { border-top-color: var(--orange); }
+.dd-puzzle-grid article > span { color: var(--indigo); font: 800 7px var(--mono); letter-spacing: .08em; }
+.dd-puzzle-grid h3 { margin: 10px 0 15px; font-size: 22px; line-height: 1.04; }
+.dd-puzzle-grid .dd-math-display { padding: 14px 8px; color: var(--cyan); border-radius: 4px; background: var(--night); }
+.dd-puzzle-grid p { margin: 15px 0 0; color: var(--muted); font-size: 9px; line-height: 1.65; }
+
 @media (max-width: 1180px) {
   .dd-lab { grid-template-columns: 230px minmax(0, 1fr); }
   .dd-controls { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 26px; border-top: 1px solid var(--line); border-left: 0; }
-  .dd-controls > .dd-eyebrow, .dd-controls > .dd-mode-buttons, .dd-controls > .dd-boundary-card, .dd-controls > .dd-probe-card { grid-column: 1 / -1; }
+  .dd-controls > .dd-eyebrow, .dd-controls > .dd-mode-buttons, .dd-controls > #dd-smooth-controls, .dd-controls > #dd-annulus-controls, .dd-controls > .dd-boundary-card, .dd-controls > .dd-decomposition-card, .dd-controls > .dd-probe-card { grid-column: 1 / -1; }
   .dd-derivation { grid-template-columns: repeat(2, 1fr); }
   .dd-takeaway { grid-template-columns: 120px 1fr; }
   .dd-takeaway a { grid-column: 1 / -1; justify-self: start; }
 }
 
 @media (max-width: 820px) {
-  .dd-header, .dd-hero, .dd-contrast, .dd-lab, .dd-explanation > header { grid-template-columns: 1fr; }
+  .dd-header, .dd-hero, .dd-contrast, .dd-lab, .dd-explanation > header, .dd-puzzle > header, .dd-puzzle-grid { grid-template-columns: 1fr; }
   .dd-header { position: relative; }
   .dd-header > div { display: none; }
   .dd-header nav { justify-content: flex-start; flex-wrap: wrap; }
@@ -161,13 +190,14 @@ button { cursor: pointer; }
   .dd-hero h1 { font-size: clamp(3.7rem, 15vw, 6rem); }
   .dd-guide { border-right: 0; border-bottom: 1px solid var(--line); }
   .dd-controls { grid-column: auto; grid-template-columns: 1fr; }
-  .dd-controls > .dd-eyebrow, .dd-controls > .dd-mode-buttons, .dd-controls > .dd-boundary-card, .dd-controls > .dd-probe-card { grid-column: auto; }
+  .dd-controls > .dd-eyebrow, .dd-controls > .dd-mode-buttons, .dd-controls > #dd-smooth-controls, .dd-controls > #dd-annulus-controls, .dd-controls > .dd-boundary-card, .dd-controls > .dd-decomposition-card, .dd-controls > .dd-probe-card { grid-column: auto; }
   #dd-canvas { height: 76vw; min-height: 450px; }
   .dd-explanation > header .dd-eyebrow { grid-column: auto; }
+  .dd-puzzle > header .dd-eyebrow { grid-column: auto; }
 }
 
 @media (max-width: 540px) {
-  .dd-hero, .dd-explanation { padding-inline: 16px; }
+  .dd-hero, .dd-explanation, .dd-puzzle { padding-inline: 16px; }
   .dd-contrast { padding-inline: 16px; }
   .dd-guide, .dd-stage, .dd-controls { padding-inline: 14px; }
   .dd-stage > header { align-items: flex-start; }

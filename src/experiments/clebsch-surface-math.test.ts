@@ -28,9 +28,14 @@ describe("Clebsch surface lesson math", () => {
     expect(diskCirculationPageSource).toContain("u\\cdot n=0");
     expect(diskCirculationPageSource).toContain("\\oint_{\\partial D}u^\\flat=\\int_D d(u^\\flat)=2\\pi U_b");
     expect(diskCirculationPageSource).toContain('data-dd-mode="smooth"');
-    expect(diskCirculationPageSource).toContain('data-dd-mode="punctured"');
+    expect(diskCirculationPageSource).toContain('data-dd-mode="annulus"');
+    expect(diskCirculationPageSource).toContain('id="dd-inner"');
+    expect(diskCirculationPageSource).toContain('id="dd-outer"');
+    expect(diskCirculationPageSource).toContain("The difference Γ<sub>out</sub> − Γ<sub>in</sub>");
     expect(diskCirculationPageSource).toContain('id="dd-canvas"');
-    expect(diskCirculationPageSource).toContain("The punctured comparison changes the topology");
+    expect(diskCirculationPageSource).toContain("Removing the center creates an annulus");
+    expect(diskCirculationPageSource).toContain("A branch cut is bookkeeping");
+    expect(diskCirculationPageSource).toContain("z=c\\,\\operatorname{sn}(u\\mid c^4)");
   });
 
   it("presents the torus obstruction, atlas repair, and global alternatives", () => {

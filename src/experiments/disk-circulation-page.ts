@@ -3,15 +3,18 @@ import "katex/dist/katex.min.css";
 
 import katex from "katex";
 import {
+  advectAnnulusPoint,
   advectDiskPoint,
+  annulusCirculation,
+  annulusCoefficients,
   loopCirculation,
-  samplePuncturedDisk,
+  sampleAnnulus,
   sampleSmoothDisk,
-  type DiskCirculationMode,
   type DiskPoint,
 } from "./disk-circulation-model";
 
 type GridView = "both" | "alpha" | "beta" | "none";
+type PageMode = "smooth" | "annulus";
 
 const TAU = 2 * Math.PI;
 const PUNCTURE_RADIUS = 0.24;
@@ -40,14 +43,18 @@ if (!canvasContext) throw new Error("Canvas 2D is unavailable");
 const context: CanvasRenderingContext2D = canvasContext;
 
 const speedInput = byId<HTMLInputElement>("dd-speed");
+const innerInput = byId<HTMLInputElement>("dd-inner");
+const outerInput = byId<HTMLInputElement>("dd-outer");
 const radiusInput = byId<HTMLInputElement>("dd-radius");
 const speedOutput = byId<HTMLOutputElement>("dd-speed-output");
+const innerOutput = byId<HTMLOutputElement>("dd-inner-output");
+const outerOutput = byId<HTMLOutputElement>("dd-outer-output");
 const radiusOutput = byId<HTMLOutputElement>("dd-radius-output");
 const playButton = byId<HTMLButtonElement>("dd-play");
 const modeButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-dd-mode]")];
 const gridButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-dd-grid]")];
 
-let mode: DiskCirculationMode = "smooth";
+let mode: PageMode = "smooth";
 let gridView: GridView = "both";
 let time = 0;
 let playing = false;
@@ -105,12 +112,44 @@ function drawArrow(start: DiskPoint, direction: DiskPoint, color: string, width:
   context.fill();
 }
 
+function drawBoundaryIndicator(
+  radius: number,
+  circulation: number,
+  label: string,
+  color: string,
+  centerX: number,
+  centerY: number,
+  scale: number,
+  angle: number,
+): void {
+  const physical = { x: radius * Math.cos(angle), y: radius * Math.sin(angle) };
+  const start = mapPoint(physical, centerX, centerY, scale);
+  const sign = circulation < 0 ? -1 : 1;
+  const length = 23 + 4 * Math.min(2, Math.abs(circulation));
+  if (Math.abs(circulation) > 0.01) {
+    drawArrow(start, {
+      x: -sign * length * Math.sin(angle),
+      y: -sign * length * Math.cos(angle),
+    }, color, 2.2);
+  }
+  context.fillStyle = color;
+  context.font = "700 9px SFMono-Regular, Consolas, monospace";
+  context.textAlign = Math.cos(angle) >= 0 ? "left" : "right";
+  context.fillText(
+    `${label} = ${format(circulation, 2)}`,
+    start.x + (Math.cos(angle) >= 0 ? 9 : -9),
+    start.y - 9,
+  );
+}
+
 function drawMaterialFamily(
   family: "alpha" | "beta",
   centerX: number,
   centerY: number,
   scale: number,
   boundarySpeed: number,
+  innerCirculation: number,
+  outerCirculation: number,
 ): void {
   const color = family === "alpha" ? "#69eff2" : "#ff7d45";
   const fixedValues = [-0.84, -0.63, -0.42, -0.21, 0, 0.21, 0.42, 0.63, 0.84];
@@ -127,12 +166,20 @@ function drawMaterialFamily(
       const free = -extent + 2 * extent * index / 220;
       const initial = family === "alpha" ? { x: fixed, y: free } : { x: free, y: fixed };
       const radius = Math.hypot(initial.x, initial.y);
-      if (mode === "punctured" && radius < PUNCTURE_RADIUS + 0.006) {
+      if (mode === "annulus" && radius < PUNCTURE_RADIUS + 0.006) {
         drawing = false;
         previous = null;
         continue;
       }
-      const advected = advectDiskPoint(initial, time, boundarySpeed, mode);
+      const advected = mode === "smooth"
+        ? advectDiskPoint(initial, time, boundarySpeed, "smooth")
+        : advectAnnulusPoint(
+            initial,
+            time,
+            PUNCTURE_RADIUS,
+            innerCirculation,
+            outerCirculation,
+          );
       const point = mapPoint(advected, centerX, centerY, scale);
       const jump = previous ? Math.hypot(point.x - previous.x, point.y - previous.y) : 0;
       if (!drawing || jump > 17) {
@@ -148,7 +195,14 @@ function drawMaterialFamily(
   context.globalAlpha = 1;
 }
 
-function drawVelocityArrows(centerX: number, centerY: number, scale: number, boundarySpeed: number): void {
+function drawVelocityArrows(
+  centerX: number,
+  centerY: number,
+  scale: number,
+  boundarySpeed: number,
+  innerCirculation: number,
+  outerCirculation: number,
+): void {
   const radii = mode === "smooth" ? [0.28, 0.52, 0.76] : [0.34, 0.55, 0.78];
   for (const radius of radii) {
     for (let index = 0; index < 12; index += 1) {
@@ -157,7 +211,7 @@ function drawVelocityArrows(centerX: number, centerY: number, scale: number, bou
       const y = radius * Math.sin(angle);
       const sample = mode === "smooth"
         ? sampleSmoothDisk(x, y, boundarySpeed)
-        : samplePuncturedDisk(x, y, boundarySpeed);
+        : sampleAnnulus(x, y, PUNCTURE_RADIUS, innerCirculation, outerCirculation);
       const magnitude = Math.hypot(sample.velocity.x, sample.velocity.y);
       const length = 11 + 15 * Math.min(1.5, magnitude);
       const start = mapPoint({ x, y }, centerX, centerY, scale);
@@ -172,6 +226,8 @@ function drawVelocityArrows(centerX: number, centerY: number, scale: number, bou
 function draw(): void {
   const { width, height } = resizeCanvas();
   const boundarySpeed = Number(speedInput.value);
+  const innerCirculation = Number(innerInput.value);
+  const outerCirculation = Number(outerInput.value);
   const probeRadius = Number(radiusInput.value);
   const centerX = width / 2;
   const centerY = height / 2;
@@ -188,16 +244,26 @@ function draw(): void {
   context.beginPath();
   context.arc(centerX, centerY, scale, 0, TAU);
   context.clip();
-  const signColor = boundarySpeed >= 0 ? "42,196,188" : "255,125,69";
+  const annulusVorticity = annulusCoefficients(
+    PUNCTURE_RADIUS,
+    innerCirculation,
+    outerCirculation,
+  ).vorticity;
+  const colorSign = mode === "smooth" ? boundarySpeed : annulusVorticity;
+  const signColor = colorSign >= 0 ? "42,196,188" : "255,125,69";
   const diskFill = context.createRadialGradient(centerX, centerY, 0, centerX, centerY, scale);
   diskFill.addColorStop(0, `rgba(${signColor},${mode === "smooth" ? 0.42 : 0.13})`);
   diskFill.addColorStop(1, `rgba(${signColor},${mode === "smooth" ? 0.22 : 0.08})`);
   context.fillStyle = diskFill;
   context.fillRect(centerX - scale, centerY - scale, 2 * scale, 2 * scale);
 
-  if (gridView === "both" || gridView === "alpha") drawMaterialFamily("alpha", centerX, centerY, scale, boundarySpeed);
-  if (gridView === "both" || gridView === "beta") drawMaterialFamily("beta", centerX, centerY, scale, boundarySpeed);
-  drawVelocityArrows(centerX, centerY, scale, boundarySpeed);
+  if (gridView === "both" || gridView === "alpha") {
+    drawMaterialFamily("alpha", centerX, centerY, scale, boundarySpeed, innerCirculation, outerCirculation);
+  }
+  if (gridView === "both" || gridView === "beta") {
+    drawMaterialFamily("beta", centerX, centerY, scale, boundarySpeed, innerCirculation, outerCirculation);
+  }
+  drawVelocityArrows(centerX, centerY, scale, boundarySpeed, innerCirculation, outerCirculation);
   context.restore();
 
   context.beginPath();
@@ -215,7 +281,7 @@ function draw(): void {
   context.stroke();
   context.setLineDash([]);
 
-  if (mode === "punctured") {
+  if (mode === "annulus") {
     context.beginPath();
     context.arc(centerX, centerY, PUNCTURE_RADIUS * scale, 0, TAU);
     context.fillStyle = "#071421";
@@ -227,11 +293,41 @@ function draw(): void {
     context.font = "700 10px SFMono-Regular, Consolas, monospace";
     context.textAlign = "center";
     context.fillText("CENTER REMOVED", centerX, centerY + 4);
+    drawBoundaryIndicator(
+      PUNCTURE_RADIUS,
+      innerCirculation,
+      "Γin",
+      "#ff9a68",
+      centerX,
+      centerY,
+      scale,
+      0.72 * Math.PI,
+    );
+    drawBoundaryIndicator(
+      1,
+      outerCirculation,
+      "Γout",
+      "#ffd56c",
+      centerX,
+      centerY,
+      scale,
+      -0.22 * Math.PI,
+    );
   } else {
     context.beginPath();
     context.arc(centerX, centerY, 4, 0, TAU);
     context.fillStyle = "#ffd56c";
     context.fill();
+    drawBoundaryIndicator(
+      1,
+      TAU * boundarySpeed,
+      "Γ∂D",
+      "#ffd56c",
+      centerX,
+      centerY,
+      scale,
+      -0.22 * Math.PI,
+    );
   }
 
   context.fillStyle = "#b9c8d4";
@@ -245,16 +341,35 @@ function draw(): void {
 
 function updateReadout(): void {
   const boundarySpeed = Number(speedInput.value);
+  const innerCirculation = Number(innerInput.value);
+  const outerCirculation = Number(outerInput.value);
+  if (mode === "annulus" && Number(radiusInput.value) < PUNCTURE_RADIUS + 0.01) {
+    radiusInput.value = (PUNCTURE_RADIUS + 0.01).toFixed(2);
+  }
   const probeRadius = Number(radiusInput.value);
-  const circulation = loopCirculation(probeRadius, boundarySpeed, mode);
-  const enclosedVorticity = mode === "smooth" ? 2 * boundarySpeed * Math.PI * probeRadius ** 2 : 0;
+  const coefficients = annulusCoefficients(PUNCTURE_RADIUS, innerCirculation, outerCirculation);
+  const circulation = mode === "smooth"
+    ? loopCirculation(probeRadius, boundarySpeed, mode)
+    : annulusCirculation(
+        probeRadius,
+        PUNCTURE_RADIUS,
+        innerCirculation,
+        outerCirculation,
+      );
+  const enclosedVorticity = mode === "smooth"
+    ? 2 * boundarySpeed * Math.PI * probeRadius ** 2
+    : coefficients.vorticity * Math.PI * (probeRadius ** 2 - PUNCTURE_RADIUS ** 2);
 
   speedOutput.value = format(boundarySpeed, 2);
+  innerOutput.value = format(innerCirculation, 2);
+  outerOutput.value = format(outerCirculation, 2);
   radiusOutput.value = format(probeRadius, 2);
   byId("dd-radius-metric").textContent = format(probeRadius, 2);
   byId("dd-loop-circulation").textContent = format(circulation);
-  byId("dd-area-vorticity").textContent = mode === "smooth" ? format(enclosedVorticity) : "0 on annulus";
-  byId("dd-stokes-defect").textContent = mode === "smooth" ? format(circulation - enclosedVorticity, 5) : "not a disk patch";
+  byId("dd-area-vorticity").textContent = format(enclosedVorticity);
+  byId("dd-stokes-defect").textContent = mode === "smooth"
+    ? format(circulation - enclosedVorticity, 5)
+    : format(circulation - innerCirculation - enclosedVorticity, 5);
 
   if (mode === "smooth") {
     byId("dd-stage-kicker").textContent = "SMOOTH FULL DISK";
@@ -274,25 +389,44 @@ function updateReadout(): void {
       true,
     );
     byId("dd-probe-copy").textContent = "Every probe circle bounds a smaller disk. Its circulation equals the constant vorticity 2U_b integrated over that disk.";
+    renderLatex(byId("dd-boundary-equation"), String.raw`u\cdot n=0,\qquad u\cdot t=${latexNumber(boundarySpeed)}\quad(r=1)`, true);
+    byId("dd-boundary-copy").textContent = "The normal component vanishes pointwise. The tangential value on the unit boundary fixes its single outer circulation.";
   } else {
-    byId("dd-stage-kicker").textContent = "PUNCTURED DISK · CONTROLLED COMPARISON";
-    byId("dd-stage-title").textContent = "potential vortex · the center is no longer part of the domain";
-    byId("dd-equation-kicker").textContent = "CURL-FREE ONLY ON THE PUNCTURED DOMAIN";
+    byId("dd-stage-kicker").textContent = "ANNULUS · TWO BOUNDARY COMPONENTS";
+    byId("dd-stage-title").textContent = "independent inner and outer circulations";
+    byId("dd-equation-kicker").textContent = "VORTICAL + HARMONIC DECOMPOSITION";
     renderLatex(
       byId("dd-live-equation"),
-      String.raw`u^\flat=${latexNumber(boundarySpeed)}\,d\theta,\qquad d(u^\flat)=0\quad(r>0)`,
+      String.raw`u^\flat=\left((${latexNumber(coefficients.solidRotation, 3)})r^2+(${latexNumber(coefficients.harmonic, 3)})\right)d\theta,\qquad \zeta=${latexNumber(coefficients.vorticity, 3)}`,
       true,
     );
-    byId("dd-live-copy").textContent = "The displayed a,b grid only visualizes the flow map in this mode. The angle θ is not a smooth global scalar at the removed center.";
-    byId("dd-probe-kicker").textContent = "WHY Γ NO LONGER SHRINKS";
-    byId("dd-probe-title").textContent = "Every probe loop surrounds the same hole.";
+    byId("dd-live-copy").textContent = "The Ar²dθ term carries constant vorticity. The Bdθ term is curl-free and harmonic. The a,b grid only visualizes the flow map in this mode.";
+    byId("dd-probe-kicker").textContent = "STOKES WITH AN INNER BOUNDARY";
+    byId("dd-probe-title").textContent = "Subtract the circulation already around the hole.";
     renderLatex(
       byId("dd-probe-equation"),
-      String.raw`\Gamma(${latexNumber(probeRadius)})=2\pi(${latexNumber(boundarySpeed)})=${latexNumber(circulation, 3)},\qquad d\eta=0`,
+      String.raw`\Gamma(${latexNumber(probeRadius)})-\Gamma_{\rm in}=${latexNumber(circulation, 3)}-(${latexNumber(innerCirculation, 3)})=${latexNumber(enclosedVorticity, 3)}`,
       true,
     );
-    byId("dd-probe-copy").textContent = "The loop is not the boundary of a patch contained in the punctured domain. Applying disk Stokes across the missing center would be illegal.";
+    byId("dd-probe-copy").textContent = "The annular patch between the inner ring and the gold loop has two oriented boundaries. Its vorticity integral equals Γ(ρ) − Γ_in.";
+    renderLatex(
+      byId("dd-boundary-equation"),
+      String.raw`\Gamma_{\rm out}-\Gamma_{\rm in}=${latexNumber(outerCirculation - innerCirculation, 3)}=\int_A\omega`,
+      true,
+    );
+    byId("dd-boundary-copy").textContent = "Both slider values use counterclockwise circle orientation. Stokes orients the inner boundary clockwise, which is why the two displayed circulations subtract.";
+    renderLatex(
+      byId("dd-decomposition-equation"),
+      String.raw`\eta=(${latexNumber(coefficients.solidRotation, 3)})r^2d\theta+(${latexNumber(coefficients.harmonic, 3)})d\theta`,
+      true,
+    );
+    byId("dd-vortical-coefficient").textContent = format(coefficients.vorticity, 4);
+    byId("dd-harmonic-coefficient").textContent = format(coefficients.harmonic, 4);
   }
+
+  byId("dd-smooth-controls").hidden = mode !== "smooth";
+  byId("dd-annulus-controls").hidden = mode !== "annulus";
+  document.querySelector<HTMLElement>(".dd-decomposition-card")!.hidden = mode !== "annulus";
 
   for (const button of modeButtons) {
     const active = button.dataset.ddMode === mode;
@@ -303,7 +437,7 @@ function updateReadout(): void {
     "aria-label",
     mode === "smooth"
       ? `Smooth disk in solid rotation with boundary speed ${boundarySpeed.toFixed(2)} and probe radius ${probeRadius.toFixed(2)}.`
-      : `Punctured disk with a potential vortex, boundary speed ${boundarySpeed.toFixed(2)}, and probe radius ${probeRadius.toFixed(2)}.`,
+      : `Annulus with inner circulation ${innerCirculation.toFixed(2)}, outer circulation ${outerCirculation.toFixed(2)}, and probe radius ${probeRadius.toFixed(2)}.`,
   );
   draw();
 }
@@ -341,9 +475,10 @@ function tick(timestamp: number): void {
 for (const button of modeButtons) {
   button.addEventListener("click", () => {
     setPlaying(false);
-    mode = button.dataset.ddMode as DiskCirculationMode;
+    mode = button.dataset.ddMode as PageMode;
     time = 0;
-    if (mode === "punctured" && Number(radiusInput.value) < PUNCTURE_RADIUS + 0.05) radiusInput.value = "0.4";
+    radiusInput.min = mode === "smooth" ? "0.2" : (PUNCTURE_RADIUS + 0.01).toFixed(2);
+    if (mode === "annulus" && Number(radiusInput.value) < PUNCTURE_RADIUS + 0.05) radiusInput.value = "0.4";
     updateReadout();
   });
 }
@@ -360,7 +495,19 @@ for (const button of gridButtons) {
   });
 }
 
-for (const input of [speedInput, radiusInput]) input.addEventListener("input", updateReadout);
+for (const input of [speedInput, innerInput, outerInput, radiusInput]) input.addEventListener("input", updateReadout);
+byId("dd-equal-circulation").addEventListener("click", () => {
+  innerInput.value = "3";
+  outerInput.value = "3";
+  time = 0;
+  updateReadout();
+});
+byId("dd-different-circulation").addEventListener("click", () => {
+  innerInput.value = "2.2";
+  outerInput.value = "4.4";
+  time = 0;
+  updateReadout();
+});
 byId("dd-reset").addEventListener("click", () => {
   setPlaying(false);
   time = 0;
