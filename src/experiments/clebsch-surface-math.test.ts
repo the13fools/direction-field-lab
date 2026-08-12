@@ -5,11 +5,12 @@ import introPageSource from "../../clebsch-surfaces.html?raw";
 import referencePageSource from "../../clebsch-surfaces-reference.html?raw";
 import shallowWaterPageSource from "../../clebsch-shallow-water.html?raw";
 import flatTorusPageSource from "../../flat-torus-cohomology.html?raw";
+import diskCirculationPageSource from "../../disk-circulation.html?raw";
 import randomFluidPageSource from "../../random-fluids.html?raw";
 
 describe("Clebsch surface lesson math", () => {
   it("renders every static LaTeX expression on both tutorial pages", () => {
-    const formulas = [introPageSource, actionPageSource, referencePageSource]
+    const formulas = [introPageSource, actionPageSource, referencePageSource, diskCirculationPageSource]
       .flatMap((source) => [...source.matchAll(/data-latex="([^"]*)"/g)])
       .map((match) => match[1]!);
 
@@ -20,6 +21,16 @@ describe("Clebsch surface lesson math", () => {
         throwOnError: true,
       }), formula).not.toThrow();
     }
+  });
+
+  it("connects disk boundary circulation to interior vorticity before puncturing the domain", () => {
+    expect(diskCirculationPageSource).toContain("Circulation has to");
+    expect(diskCirculationPageSource).toContain("u\\cdot n=0");
+    expect(diskCirculationPageSource).toContain("\\oint_{\\partial D}u^\\flat=\\int_D d(u^\\flat)=2\\pi U_b");
+    expect(diskCirculationPageSource).toContain('data-dd-mode="smooth"');
+    expect(diskCirculationPageSource).toContain('data-dd-mode="punctured"');
+    expect(diskCirculationPageSource).toContain('id="dd-canvas"');
+    expect(diskCirculationPageSource).toContain("The punctured comparison changes the topology");
   });
 
   it("presents the torus obstruction, atlas repair, and global alternatives", () => {

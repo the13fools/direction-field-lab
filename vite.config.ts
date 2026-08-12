@@ -18,6 +18,7 @@ export default defineConfig({
         "clebsch-surfaces-reference.html",
         "clebsch-shallow-water.html",
         "flat-torus-cohomology.html",
+        "disk-circulation.html",
         "random-fluids.html",
         "representations.html",
         "references.html",

@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#101d2d" />
+    <meta name="description" content="An interactive disk-domain lab connecting circulating boundary conditions, interior vorticity, Clebsch labels, and the punctured-disk obstruction." />
+    <title>Circulation on a disk · Direction Field Lab</title>
+  </head>
+  <body>
+    <header class="dd-header">
+      <a href="./clebsch-surfaces-action.html">← Clebsch surfaces</a>
+      <div><span>BOUNDARY CIRCULATION · DISK</span><strong>Stokes on a domain with boundary</strong></div>
+      <nav><a href="./flat-torus-cohomology.html">Flat torus</a><a href="./clebsch-shallow-water.html">Clebsch water</a></nav>
+    </header>
+
+    <main>
+      <section class="dd-hero">
+        <div>
+          <p class="dd-eyebrow">A contractible domain changes the story</p>
+          <h1>Circulation has to<br /><em>live somewhere.</em></h1>
+          <p>Prescribe a tangential velocity around the boundary of a smooth disk. Because that boundary encloses the disk, Stokes says its circulation must equal the total interior vorticity.</p>
+        </div>
+        <aside>
+          <span>THE BOUNDARY-VALUE TEST</span>
+          <div class="dd-math-display" data-latex="u\cdot n=0,\qquad u\cdot t=U_b\quad\text{on }\partial D">circulating tangential boundary condition</div>
+          <div class="dd-math-display accent" data-latex="\oint_{\partial D}u^\flat=\int_D d(u^\flat)=2\pi U_b">Stokes determines the total vorticity</div>
+          <p>Unlike a torus generator, <span class="dd-math-inline" data-latex="\partial D">the disk boundary</span> really is the boundary of a surface patch: the entire disk.</p>
+        </aside>
+      </section>
+
+      <section class="dd-contrast" aria-label="Disk and torus circulation comparison">
+        <article><span>FULL DISK</span><h2>The loop bounds a patch.</h2><div class="dd-math-display" data-latex="\Gamma(r)=\int_{D_r}\omega">circulation is accumulated vorticity</div><p>A smooth nonzero circulation at the outer boundary requires nonzero total vorticity inside.</p></article>
+        <article><span>FLAT TORUS</span><h2>A generator bounds no patch.</h2><div class="dd-math-display" data-latex="d\eta=0,\qquad\oint_\gamma\eta\ne0">closed form with nonzero period</div><p>The missing circulation can be a smooth harmonic degree of freedom because the loop is noncontractible.</p></article>
+        <article class="accent"><span>PUNCTURED DISK</span><h2>Removing the center creates a hole.</h2><div class="dd-math-display" data-latex="\eta=U_b\,d\theta,\qquad d\eta=0\ \text{away from }0">potential vortex on a punctured disk</div><p>The curl-free circulation returns only after the center is removed—or accepted as a singular vortex.</p></article>
+      </section>
+
+      <section class="dd-lab" aria-label="Interactive circulating disk lab">
+        <aside class="dd-guide">
+          <p class="dd-eyebrow">Read the experiment</p>
+          <ol>
+            <li><span>01</span><div><strong>Follow the parameter grid.</strong><p>Cyan and orange curves carry the initial coordinates a and b, drawn like the material grid in the torus lesson.</p></div></li>
+            <li><span>02</span><div><strong>Move the gold loop.</strong><p>Its circulation grows with enclosed area on the smooth disk.</p></div></li>
+            <li><span>03</span><div><strong>Check the boundary.</strong><p>The vector field is tangent and has the selected speed <span class="dd-math-inline" data-latex="U_b">U b</span> at radius one.</p></div></li>
+            <li><span>04</span><div><strong>Remove the center.</strong><p>The same boundary circulation can then be curl-free away from the new hole.</p></div></li>
+          </ol>
+          <section class="dd-guide-note"><span>KEY DISTINCTION</span><strong>Boundary data are not harmonic data.</strong><p>On a full disk, Stokes couples the outer circulation to interior curl. The punctured comparison changes the topology of the domain.</p></section>
+        </aside>
+
+        <section class="dd-stage">
+          <header><div><span id="dd-stage-kicker">SMOOTH FULL DISK</span><strong id="dd-stage-title">solid rotation · globally smooth Clebsch labels</strong></div><div class="dd-legend"><i></i> a grid <i></i> b grid <i></i> probe loop</div></header>
+          <canvas id="dd-canvas" role="img" aria-label="A disk with an advected parameter grid, tangent velocity arrows, and a movable circulation loop"></canvas>
+          <div class="dd-view-controls" role="group" aria-label="Parameter grid display">
+            <span>PARAMETER GRID</span>
+            <button class="active" data-dd-grid="both" aria-pressed="true">a + b</button>
+            <button data-dd-grid="alpha" aria-pressed="false">a only</button>
+            <button data-dd-grid="beta" aria-pressed="false">b only</button>
+            <button data-dd-grid="none" aria-pressed="false">off</button>
+          </div>
+          <div class="dd-actions"><button id="dd-reset">Reset labels</button><button id="dd-step">One step</button><button id="dd-play" class="primary">Play</button></div>
+          <section class="dd-live-equation">
+            <span id="dd-equation-kicker">SMOOTH CLEBSCH RECONSTRUCTION</span>
+            <div id="dd-live-equation" class="dd-math-display" data-latex="u^\flat(0)=d(-U_bab)+(2U_ba)d b,qquad(a,b)=(x,y)">initial solid rotation Clebsch triple</div>
+            <p id="dd-live-copy">At t = 0 the global Cartesian parameter labels give a seam-free Clebsch triple. As a and b are carried, φ must evolve to keep the same Euler velocity.</p>
+          </section>
+          <div class="dd-metrics">
+            <div><span>probe radius</span><strong id="dd-radius-metric">—</strong></div>
+            <div><span>loop circulation</span><strong id="dd-loop-circulation">—</strong></div>
+            <div><span>enclosed vorticity</span><strong id="dd-area-vorticity">—</strong></div>
+            <div><span>Stokes defect</span><strong id="dd-stokes-defect">—</strong></div>
+          </div>
+        </section>
+
+        <aside class="dd-controls">
+          <p class="dd-eyebrow">Choose the domain</p>
+          <div class="dd-mode-buttons" role="group" aria-label="Disk topology">
+            <button class="active" data-dd-mode="smooth" aria-pressed="true"><span>01</span><strong>Smooth full disk</strong><small>circulation stored as vorticity</small></button>
+            <button data-dd-mode="punctured" aria-pressed="false"><span>02</span><strong>Punctured comparison</strong><small>curl-free away from the hole</small></button>
+          </div>
+          <label><span><strong>Boundary speed U<sub>b</sub></strong><small>signed tangential velocity at r = 1</small></span><output id="dd-speed-output">0.70</output><input id="dd-speed" type="range" min="-1.2" max="1.2" step="0.05" value="0.7" /></label>
+          <label><span><strong>Probe-loop radius ρ</strong><small>compare its circulation with enclosed vorticity</small></span><output id="dd-radius-output">0.68</output><input id="dd-radius" type="range" min="0.2" max="1" step="0.01" value="0.68" /></label>
+          <section class="dd-boundary-card">
+            <span>BOUNDARY AUDIT</span>
+            <div class="dd-math-display" data-latex="u\cdot n=0,qquad u\cdot t=U_b">impermeable circulating boundary</div>
+            <p>The normal component vanishes pointwise. The tangential value is imposed, so the outer circulation is always <span class="dd-math-inline" data-latex="2\pi U_b">two pi U b</span>.</p>
+          </section>
+          <section class="dd-probe-card" aria-live="polite">
+            <span id="dd-probe-kicker">WHY Γ SHRINKS WITH THE LOOP</span>
+            <h3 id="dd-probe-title">The smaller loop encloses less vorticity.</h3>
+            <div id="dd-probe-equation" class="dd-math-display" data-latex="\Gamma(\rho)=2\pi U_b\rho^2=\int_{D_\rho}2U_b\,dA">smooth disk Stokes audit</div>
+            <p id="dd-probe-copy">Every probe circle bounds a smaller disk. Its circulation must equal the vorticity inside that smaller disk.</p>
+          </section>
+        </aside>
+      </section>
+
+      <section class="dd-explanation">
+        <header><p class="dd-eyebrow">A complete smooth test case</p><h2>The Clebsch labels encode the same rotating one-form.</h2><p>For solid rotation, the parameter grid can be interpreted directly as two globally smooth label families. The exact term then completes the velocity without changing its vorticity.</p></header>
+        <div class="dd-derivation">
+          <article><span>01 · BOUNDARY CONDITION</span><h3>Choose solid rotation.</h3><div class="dd-math-display" data-latex="u=U_b(-y,x)=U_b r\,e_\theta">smooth tangent velocity</div><p>At the unit boundary, the tangential speed is exactly U<sub>b</sub>. The center is completely regular.</p></article>
+          <article><span>02 · GLOBAL LABELS</span><h3>Use Cartesian scalar fields.</h3><div class="dd-math-display" data-latex="\alpha=2U_ba,\qquad\beta=b,\qquad\phi=-U_bab">one Clebsch choice at the initial time</div><p>The displayed parameter grid carries a = x₀ and b = y₀. In the smooth test, rescaling a gives the Clebsch label α. In the punctured comparison the grid remains only a material-coordinate aid; it is not a Clebsch factorization of the curl-free field.</p></article>
+          <article><span>03 · ASSEMBLE VELOCITY</span><h3>The pieces cancel correctly.</h3><div class="dd-math-display" data-latex="d\phi_0+\alpha_0d\beta_0=-U_by\,dx+U_bx\,dy">initial Clebsch reconstruction</div><p>At t = 0, the extra dy term in dφ cancels half of αdβ. During animation the two labels stay material while φ changes.</p></article>
+          <article><span>04 · TAKE d</span><h3>The crossing becomes vorticity.</h3><div class="dd-math-display" data-latex="d\alpha\wedge d\beta=2U_b\,dx\wedge dy">constant vorticity two-form</div><p>Integrating this two-form over the disk gives the prescribed outer circulation.</p></article>
+        </div>
+        <aside class="dd-takeaway"><strong>The lesson</strong><p>A nonzero boundary circulation on the full disk is not a hidden harmonic degree of freedom. Either the interior carries the corresponding vorticity, or the field ceases to be smooth somewhere. Removing the center turns the disk into an annulus and creates the missing noncontractible loop.</p><a href="./flat-torus-cohomology.html">Compare with two genuine torus periods →</a></aside>
+      </section>
+    </main>
+
+    <script type="module" src="/src/experiments/disk-circulation-page.ts"></script>
+  </body>
+</html>
