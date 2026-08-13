@@ -3,6 +3,11 @@ import "katex/dist/katex.min.css";
 
 import katex from "katex";
 import {
+  MobiusKelvinTracker,
+  type MobiusKelvinLoop,
+  type MobiusKelvinLoopKind,
+} from "./mobius-kelvin";
+import {
   MOBIUS_PERIOD,
   MobiusShallowWaterModel,
   mobiusCenterlineParallelFrame,
@@ -14,6 +19,7 @@ import {
 
 type DisplayField = "depth" | "vorticity" | "pv" | "speed";
 type DisplayView = "embedded" | "cover";
+type LoopVisibility = "both" | MobiusKelvinLoopKind | "none";
 type Vec3 = [number, number, number];
 
 interface ProjectedPoint {
@@ -59,12 +65,15 @@ const frameInput = byId<HTMLInputElement>("ms-frame");
 const playButton = byId<HTMLButtonElement>("ms-play");
 const viewButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-ms-view]")];
 const fieldButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-ms-field]")];
+const loopButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-ms-loop]")];
 const presetButtons = [...document.querySelectorAll<HTMLButtonElement>("[data-ms-preset]")];
 
 let preset: MobiusWaterPreset = "seam-pulse";
 let displayField: DisplayField = "depth";
 let displayView: DisplayView = "embedded";
 let model = new MobiusShallowWaterModel();
+let kelvinTracker = new MobiusKelvinTracker(model);
+let loopVisibility: LoopVisibility = "both";
 let playing = false;
 let animationFrame = 0;
 let previousFrame = 0;
@@ -112,6 +121,10 @@ const NEGATIVE = [255, 117, 64] as const;
 const NEUTRAL = [21, 48, 70] as const;
 const POSITIVE = [88, 224, 232] as const;
 const GOLD = [255, 210, 106] as const;
+
+function loopIsVisible(loop: MobiusKelvinLoop): boolean {
+  return loopVisibility === "both" || loopVisibility === loop.kind;
+}
 
 function percentileAbsolute(values: Float64Array, fraction: number): number {
   const sorted = Array.from(values, (value) => Math.abs(value)).sort((a, b) => a - b);
@@ -210,6 +223,54 @@ function drawScreenArrow(start: ProjectedPoint, end: ProjectedPoint, color: stri
   context.fill();
 }
 
+function drawEmbeddedKelvinLoop(
+  loop: MobiusKelvinLoop,
+  width: number,
+  height: number,
+): void {
+  if (!loopIsVisible(loop)) return;
+  const path = kelvinTracker.liftedPath(loop);
+  const projected = path.map((point) => project(
+    mobiusPosition(point.s, point.r, model.parameters.majorRadius),
+    width,
+    height,
+  ));
+  context.save();
+  context.beginPath();
+  context.moveTo(projected[0]!.x, projected[0]!.y);
+  for (let index = 1; index < projected.length; index += 1) {
+    context.lineTo(projected[index]!.x, projected[index]!.y);
+  }
+  if (loop.kind === "contractible") {
+    context.closePath();
+    context.fillStyle = "rgba(255,210,106,.11)";
+    context.fill();
+  }
+  context.shadowColor = loop.color;
+  context.shadowBlur = 9;
+  context.strokeStyle = loop.color;
+  context.lineWidth = loop.kind === "contractible" ? 3.2 : 2.7;
+  context.lineJoin = "round";
+  context.lineCap = "round";
+  context.stroke();
+  context.shadowBlur = 0;
+
+  const markerIndex = Math.floor(loop.points.length * (loop.kind === "contractible" ? 0.16 : 0.34));
+  const marker = projected[markerIndex]!;
+  const markerNext = projected[markerIndex + 1]!;
+  drawScreenArrow(marker, markerNext, loop.color, 2.2);
+  const labelPoint = projected[0]!;
+  context.fillStyle = loop.color;
+  context.font = "800 8px SFMono-Regular, Consolas, monospace";
+  context.textAlign = "left";
+  context.fillText(
+    loop.kind === "contractible" ? "material patch ∂Sₜ" : "one-sided material loop γₜ",
+    labelPoint.x + 9,
+    labelPoint.y - 8,
+  );
+  context.restore();
+}
+
 function drawEmbedded(width: number, height: number): void {
   const { values, scale, signed } = fieldData();
   const { columns, rows, halfWidth, majorRadius } = model.parameters;
@@ -296,6 +357,8 @@ function drawEmbedded(width: number, height: number): void {
       );
     }
   }
+
+  for (const loop of kelvinTracker.loops) drawEmbeddedKelvinLoop(loop, width, height);
 
   const turns = Number(frameInput.value);
   const frameS = turns * MOBIUS_PERIOD;
@@ -397,6 +460,94 @@ function drawCoverPanel(
   }
 }
 
+interface CoverPanelLayout {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+}
+
+function positiveModulo(value: number, period: number): number {
+  return ((value % period) + period) % period;
+}
+
+function coverScreenPoint(
+  point: { s: number; r: number },
+  layouts: readonly [CoverPanelLayout, CoverPanelLayout],
+): { point: ProjectedPoint; sheet: 0 | 1; localS: number } {
+  const coverS = positiveModulo(point.s, 2 * MOBIUS_PERIOD);
+  const sheet: 0 | 1 = coverS >= MOBIUS_PERIOD ? 1 : 0;
+  const localS = coverS - sheet * MOBIUS_PERIOD;
+  const panel = layouts[sheet];
+  return {
+    point: {
+      x: panel.left + localS / MOBIUS_PERIOD * panel.width,
+      y: panel.top + (model.parameters.halfWidth - point.r)
+        / (2 * model.parameters.halfWidth) * panel.height,
+      depth: 0,
+    },
+    sheet,
+    localS,
+  };
+}
+
+function drawCoverKelvinLoop(
+  loop: MobiusKelvinLoop,
+  layouts: readonly [CoverPanelLayout, CoverPanelLayout],
+): void {
+  if (!loopIsVisible(loop)) return;
+  const sourcePath = kelvinTracker.liftedPath(loop);
+  context.save();
+  context.strokeStyle = loop.color;
+  context.lineWidth = loop.kind === "contractible" ? 3 : 2.5;
+  context.lineJoin = "round";
+  context.lineCap = "round";
+  context.shadowColor = loop.color;
+  context.shadowBlur = 7;
+
+  // Every base loop has two lifts. The deck map is (s,r) -> (s+2π,-r).
+  for (const deckCopy of [0, 1] as const) {
+    let previous: ReturnType<typeof coverScreenPoint> | null = null;
+    for (let edge = 0; edge + 1 < sourcePath.length; edge += 1) {
+      const start = sourcePath[edge]!;
+      const end = sourcePath[edge + 1]!;
+      const subdivisions = 5;
+      for (let substep = 0; substep <= subdivisions; substep += 1) {
+        const amount = substep / subdivisions;
+        const sign = deckCopy === 0 ? 1 : -1;
+        const sample = {
+          s: start.s + amount * (end.s - start.s) + deckCopy * MOBIUS_PERIOD,
+          r: sign * (start.r + amount * (end.r - start.r)),
+        };
+        const current = coverScreenPoint(sample, layouts);
+        const isContinuous = previous
+          && previous.sheet === current.sheet
+          && Math.abs(previous.localS - current.localS) < 0.25 * MOBIUS_PERIOD;
+        if (isContinuous) {
+          context.beginPath();
+          context.moveTo(previous!.point.x, previous!.point.y);
+          context.lineTo(current.point.x, current.point.y);
+          context.stroke();
+        }
+        previous = current;
+      }
+    }
+  }
+  context.shadowBlur = 0;
+
+  if (loop.kind === "one-sided") {
+    const start = coverScreenPoint(sourcePath[0]!, layouts);
+    const end = coverScreenPoint(sourcePath[sourcePath.length - 1]!, layouts);
+    for (const marker of [start, end]) {
+      context.beginPath();
+      context.arc(marker.point.x, marker.point.y, 4.5, 0, 2 * Math.PI);
+      context.fillStyle = loop.color;
+      context.fill();
+    }
+  }
+  context.restore();
+}
+
 function drawCover(width: number, height: number): void {
   const { values, scale, signed, twisted } = fieldData();
   const sideBySide = width >= 720;
@@ -410,6 +561,11 @@ function drawCover(width: number, height: number): void {
 
   drawCoverPanel(firstLeft, firstTop, panelWidth, panelHeight, 0, values, scale, signed, twisted);
   drawCoverPanel(secondLeft, secondTop, panelWidth, panelHeight, 1, values, scale, signed, twisted);
+  const layouts: readonly [CoverPanelLayout, CoverPanelLayout] = [
+    { left: firstLeft, top: firstTop, width: panelWidth, height: panelHeight },
+    { left: secondLeft, top: secondTop, width: panelWidth, height: panelHeight },
+  ];
+  for (const loop of kelvinTracker.loops) drawCoverKelvinLoop(loop, layouts);
 
   context.fillStyle = "#ffd26a";
   context.font = "800 9px SFMono-Regular, Consolas, monospace";
@@ -470,12 +626,20 @@ function frameLabel(turns: number): string {
 
 function updateReadout(): void {
   const diagnostics = model.diagnostics();
+  const contractible = kelvinTracker.loop("contractible");
+  const oneSided = kelvinTracker.loop("one-sided");
   byId("ms-time").textContent = format(model.time, 3);
   byId("ms-mass").textContent = formatDrift(diagnostics.massDrift);
   byId("ms-energy").textContent = formatDrift(diagnostics.energyDrift);
   byId("ms-min-depth").textContent = format(diagnostics.minimumDepth, 4);
   byId("ms-circulation").textContent = format(diagnostics.boundaryCirculation, 4);
   byId("ms-circulation-drift").textContent = formatDrift(diagnostics.circulationDrift);
+  byId("ms-patch-circulation").textContent = format(contractible.circulation, 4);
+  byId("ms-patch-drift").textContent = formatDrift(contractible.drift);
+  byId("ms-patch-vorticity").textContent = format(contractible.enclosedVorticity, 4);
+  byId("ms-stokes-defect").textContent = formatDrift(contractible.stokesDefect);
+  byId("ms-one-sided-circulation").textContent = format(oneSided.circulation, 4);
+  byId("ms-one-sided-drift").textContent = formatDrift(oneSided.drift);
   byId("ms-vorticity").textContent = format(diagnostics.vorticityRms, 4);
   byId("ms-seam").textContent = diagnostics.seamConstraint === 0 ? "exact by construction" : format(diagnostics.seamConstraint, 4);
   byId<HTMLOutputElement>("ms-gravity-output").value = format(Number(gravityInput.value), 2);
@@ -493,6 +657,7 @@ function resetModel(): void {
     amplitude: Number(amplitudeInput.value),
     preset,
   });
+  kelvinTracker.reset(model);
   manualFrame = false;
   frameInput.value = "0";
   updateReadout();
@@ -515,7 +680,7 @@ function setPlaying(next: boolean): void {
 function tick(timestamp: number): void {
   if (!playing) return;
   if (previousFrame === 0 || timestamp - previousFrame >= 24) {
-    model.step(Number(stepsInput.value));
+    kelvinTracker.step(model, Number(stepsInput.value));
     if (!manualFrame) frameInput.value = ((0.18 * model.time) % 2).toFixed(2);
     updateReadout();
     draw();
@@ -544,6 +709,18 @@ for (const button of fieldButtons) {
   button.addEventListener("click", () => {
     displayField = button.dataset.msField as DisplayField;
     for (const candidate of fieldButtons) {
+      const active = candidate === button;
+      candidate.classList.toggle("active", active);
+      candidate.setAttribute("aria-pressed", String(active));
+    }
+    draw();
+  });
+}
+
+for (const button of loopButtons) {
+  button.addEventListener("click", () => {
+    loopVisibility = button.dataset.msLoop as LoopVisibility;
+    for (const candidate of loopButtons) {
       const active = candidate === button;
       candidate.classList.toggle("active", active);
       candidate.setAttribute("aria-pressed", String(active));
@@ -584,7 +761,7 @@ byId("ms-reset").addEventListener("click", () => {
 });
 byId("ms-step").addEventListener("click", () => {
   setPlaying(false);
-  model.step(1);
+  kelvinTracker.step(model, 1);
   if (!manualFrame) frameInput.value = ((0.18 * model.time) % 2).toFixed(2);
   updateReadout();
   draw();

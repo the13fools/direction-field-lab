@@ -58,7 +58,7 @@ button { cursor: pointer; }
 .ms-status-note strong { margin-top: 8px; font-size: 19px; }
 .ms-status-note p { margin: 8px 0 0; color: var(--ms-muted); font-size: 9px; line-height: 1.6; }
 
-.ms-lab { display: grid; grid-template-columns: minmax(650px, 1fr) 370px; min-height: 940px; border-block: 5px solid var(--ms-orange); background: var(--ms-paper); }
+.ms-lab { display: grid; grid-template-columns: minmax(650px, 1fr) 370px; min-height: 1080px; border-block: 5px solid var(--ms-orange); background: var(--ms-paper); }
 .ms-stage { min-width: 0; padding: 18px max(18px, calc((100vw - 1180px) / 3)); color: white; background: radial-gradient(circle at 46% 26%, rgba(88,224,232,.1), transparent 38%), linear-gradient(145deg, #071623, #182b44 58%, #352040); }
 .ms-stage > header { display: flex; justify-content: space-between; gap: 20px; align-items: center; padding: 2px 3px 13px; }
 .ms-stage > header span, .ms-stage > header strong { display: block; }
@@ -68,6 +68,7 @@ button { cursor: pointer; }
 .ms-legend i { display: inline-block; width: 7px; height: 7px; margin: 0 5px 0 11px; border-radius: 50%; background: var(--ms-cyan); }
 .ms-legend i:nth-of-type(2) { border-radius: 0; background: var(--ms-orange); }
 .ms-legend i:nth-of-type(3) { background: var(--ms-gold); }
+.ms-legend i:nth-of-type(4) { background: var(--ms-cyan); }
 #ms-canvas { display: block; width: 100%; height: clamp(590px, 66vw, 770px); max-height: 770px; border: 1px solid #4b5f74; border-radius: 6px; background: var(--ms-night); touch-action: none; }
 .ms-switch-row, .ms-actions { display: flex; flex-wrap: wrap; gap: 5px; }
 .ms-switch-row { align-items: center; padding-top: 9px; }
@@ -83,6 +84,8 @@ button { cursor: pointer; }
 .ms-metrics span, .ms-metrics strong { display: block; }
 .ms-metrics span { color: #8697aa; font: 700 7px var(--ms-mono); text-transform: uppercase; }
 .ms-metrics strong { margin-top: 5px; overflow-wrap: anywhere; color: var(--ms-gold); font: 800 8px var(--ms-mono); }
+.ms-metrics .patch strong { color: var(--ms-gold); }
+.ms-metrics .one-sided strong { color: var(--ms-cyan); }
 
 .ms-controls { padding: 22px; border-left: 1px solid var(--ms-line); background: linear-gradient(180deg, #fffdf8, #eff3f7); }
 .ms-presets { display: grid; gap: 6px; margin: 12px 0 10px; }
@@ -99,11 +102,35 @@ button { cursor: pointer; }
 .ms-controls label span small { margin-top: 3px; color: var(--ms-muted); font-size: 8px; }
 .ms-controls output { color: var(--ms-indigo); font: 800 9px var(--ms-mono); }
 .ms-controls input[type="range"] { grid-column: 1 / -1; width: 100%; accent-color: var(--ms-orange); }
-.ms-connection-card { margin-top: 18px; padding: 16px; color: white; border-top: 5px solid var(--ms-gold); border-radius: 5px; background: linear-gradient(145deg, #0b1928, #382444); }
-.ms-connection-card > span { color: var(--ms-gold); font: 800 7px var(--ms-mono); letter-spacing: .08em; }
-.ms-connection-card .ms-math-display { margin-top: 10px; padding: 12px 7px; color: var(--ms-cyan); border: 1px solid #46596d; border-radius: 4px; background: rgba(3,12,21,.46); }
-.ms-connection-card p { margin: 11px 0 0; color: #c4d0da; font-size: 8px; line-height: 1.6; }
+.ms-connection-card, .ms-kelvin-card { margin-top: 18px; padding: 16px; color: white; border-top: 5px solid var(--ms-gold); border-radius: 5px; background: linear-gradient(145deg, #0b1928, #382444); }
+.ms-kelvin-card { border-top-color: var(--ms-cyan); background: linear-gradient(145deg, #071a29, #164654); }
+.ms-connection-card > span, .ms-kelvin-card > span { color: var(--ms-gold); font: 800 7px var(--ms-mono); letter-spacing: .08em; }
+.ms-kelvin-card > span { color: var(--ms-cyan); }
+.ms-connection-card .ms-math-display, .ms-kelvin-card .ms-math-display { margin-top: 10px; padding: 12px 7px; color: var(--ms-cyan); border: 1px solid #46596d; border-radius: 4px; background: rgba(3,12,21,.46); }
+.ms-kelvin-card .ms-math-display { color: var(--ms-gold); }
+.ms-connection-card p, .ms-kelvin-card > p { margin: 11px 0 0; color: #c4d0da; font-size: 8px; line-height: 1.6; }
 .ms-connection-card .ms-math-inline { color: var(--ms-gold); }
+.ms-loop-key { display: grid; grid-template-columns: 42px 1fr; gap: 6px 9px; align-items: start; margin-top: 12px; }
+.ms-loop-key b { color: var(--ms-gold); font: 800 8px var(--ms-mono); text-transform: uppercase; }
+.ms-loop-key b:nth-of-type(2) { color: var(--ms-cyan); }
+.ms-loop-key p { margin: 0; color: #d0dce3; font-size: 8px; line-height: 1.45; }
+
+.ms-kelvin-lesson { display: grid; grid-template-columns: minmax(380px, .88fr) minmax(360px, 1.12fr); gap: 9px; padding: 72px max(24px, calc((100vw - 1300px) / 2)); background: radial-gradient(circle at 6% 10%, rgba(255,210,106,.13), transparent 28rem), #fffdf8; }
+.ms-kelvin-lesson > header { grid-row: 1 / span 2; align-self: center; padding-right: 54px; }
+.ms-kelvin-lesson h2 { margin: 12px 0 23px; color: var(--ms-ink); font-size: clamp(3.1rem, 5vw, 5.7rem); line-height: .88; letter-spacing: -.064em; }
+.ms-kelvin-lesson h2 em { color: var(--ms-orange); font-style: normal; }
+.ms-kelvin-lesson > header > p:last-child { max-width: 620px; margin: 0; color: var(--ms-muted); font-size: 11px; line-height: 1.72; }
+.ms-kelvin-equation { min-width: 0; padding: 24px; color: white; border-top: 6px solid var(--ms-cyan); border-radius: 6px; background: linear-gradient(135deg, #071623, #233a56); }
+.ms-kelvin-equation > span { color: var(--ms-cyan); font: 800 7px var(--ms-mono); letter-spacing: .09em; }
+.ms-kelvin-equation .ms-math-display { margin-top: 10px; padding: 13px 8px; color: var(--ms-gold); border: 1px solid #4d6073; border-radius: 4px; background: rgba(3,12,21,.42); }
+.ms-kelvin-equation p { margin: 13px 0 0; color: #c8d4dc; font-size: 9px; line-height: 1.6; }
+.ms-kelvin-lesson ol { display: grid; gap: 1px; margin: 0; padding: 1px; list-style: none; background: var(--ms-line); }
+.ms-kelvin-lesson li { display: grid; grid-template-columns: 38px 1fr; gap: 13px; align-items: start; padding: 17px; background: white; }
+.ms-kelvin-lesson li b { display: grid; place-items: center; width: 34px; height: 34px; color: var(--ms-night); border-radius: 50%; background: var(--ms-gold); font: 800 8px var(--ms-mono); }
+.ms-kelvin-lesson li:nth-child(2) b { background: var(--ms-cyan); }
+.ms-kelvin-lesson li:nth-child(3) b { color: white; background: var(--ms-indigo); }
+.ms-kelvin-lesson li strong { font-size: 12px; }
+.ms-kelvin-lesson li p { margin: 5px 0 0; color: var(--ms-muted); font-size: 9px; line-height: 1.55; }
 
 .ms-theory { padding: 82px max(24px, calc((100vw - 1300px) / 2)) 96px; }
 .ms-theory > header { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(360px, .85fr); gap: 60px; align-items: end; }
@@ -140,25 +167,26 @@ button { cursor: pointer; }
 @media (max-width: 1120px) {
   .ms-lab { grid-template-columns: 1fr; }
   .ms-controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 25px; border-top: 1px solid var(--ms-line); border-left: 0; }
-  .ms-controls > .ms-eyebrow, .ms-presets, .ms-connection-card { grid-column: 1 / -1; }
+  .ms-controls > .ms-eyebrow, .ms-presets, .ms-connection-card, .ms-kelvin-card { grid-column: 1 / -1; }
   .ms-equation-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 820px) {
-  .ms-header, .ms-hero, .ms-status-note, .ms-theory > header, .ms-cover-explanation, .ms-vakonomic-roadmap { grid-template-columns: 1fr; }
+  .ms-header, .ms-hero, .ms-status-note, .ms-kelvin-lesson, .ms-theory > header, .ms-cover-explanation, .ms-vakonomic-roadmap { grid-template-columns: 1fr; }
   .ms-header { position: relative; }
   .ms-header > div { display: none; }
   .ms-header nav { justify-content: flex-start; flex-wrap: wrap; }
   .ms-hero { gap: 30px; }
   .ms-hero h1 { font-size: clamp(3.7rem, 15vw, 6rem); }
   .ms-controls { grid-template-columns: 1fr; }
-  .ms-controls > .ms-eyebrow, .ms-presets, .ms-connection-card { grid-column: auto; }
+  .ms-controls > .ms-eyebrow, .ms-presets, .ms-connection-card, .ms-kelvin-card { grid-column: auto; }
   #ms-canvas { height: 72vw; min-height: 480px; }
   .ms-theory > header .ms-eyebrow { grid-column: auto; }
+  .ms-kelvin-lesson > header { grid-row: auto; padding: 0 0 25px; }
 }
 
 @media (max-width: 560px) {
-  .ms-hero, .ms-status-note, .ms-theory { padding-inline: 16px; }
+  .ms-hero, .ms-status-note, .ms-kelvin-lesson, .ms-theory { padding-inline: 16px; }
   .ms-stage, .ms-controls { padding-inline: 14px; }
   .ms-stage > header { align-items: flex-start; }
   .ms-legend { display: none; }

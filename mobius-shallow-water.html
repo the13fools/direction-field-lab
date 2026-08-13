@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#081927" />
-    <meta name="description" content="An interactive shallow-water prototype on a Möbius strip using its oriented double cover, twisted vorticity, an O(2) connection, and one global boundary circulation." />
+    <meta name="description" content="An interactive shallow-water prototype on a Möbius strip with material-loop Kelvin circulation, twisted vorticity, an oriented double cover, and O(2) frame transport." />
     <title>Möbius shallow water · Direction Field Lab</title>
   </head>
   <body>
@@ -30,13 +30,13 @@
       </section>
 
       <section class="ms-status-note">
-        <div><span>WHAT WORKS NOW</span><strong>Geometry-correct shallow-water baseline</strong><p>Curved metric, Levi–Civita source terms, conservative mass flux, reflective physical boundary, Möbius seam parity, twisted vorticity, and the single boundary circulation.</p></div>
-        <div><span>WHAT IS NOT CLAIMED YET</span><strong>Not yet the full vakonomic integrator</strong><p>The time update below is an RK2 finite-volume method with Rusanov flux. It is intentionally a validation target for the later low-rank semidirect-product Clebsch/Vakonomic update.</p></div>
+        <div><span>WHAT WORKS NOW</span><strong>Geometry-correct shallow-water baseline</strong><p>Curved metric, Levi–Civita source terms, conservative mass flux, reflective physical boundary, Möbius seam parity, twisted vorticity, two advected material loops, and the single boundary circulation.</p></div>
+        <div><span>WHAT THE KELVIN AUDIT REVEALS</span><strong>Not yet a variational integrator</strong><p>The RK2 finite-volume update uses dissipative Rusanov flux. Material-loop circulation is therefore a measured error, not an invariant imposed by the algorithm. That makes this a useful baseline for the later Clebsch/Vakonomic method.</p></div>
       </section>
 
       <section class="ms-lab" aria-label="Interactive Möbius shallow-water prototype">
         <section class="ms-stage">
-          <header><div><span id="ms-stage-kicker">EMBEDDED STRIP</span><strong id="ms-stage-title">depth is color · water is not displaced along a nonexistent global normal</strong></div><div class="ms-legend"><i></i> high / positive <i></i> low / negative <i></i> transported frame</div></header>
+          <header><div><span id="ms-stage-kicker">EMBEDDED STRIP</span><strong id="ms-stage-title">depth is color · water is not displaced along a nonexistent global normal</strong></div><div class="ms-legend"><i></i> positive <i></i> negative <i></i> patch loop <i></i> one-sided loop</div></header>
           <canvas id="ms-canvas" role="img" aria-label="Shallow water evolving on an embedded Möbius strip"></canvas>
           <div class="ms-switch-row">
             <span>VIEW</span>
@@ -50,14 +50,27 @@
             <button data-ms-field="pv" aria-pressed="false">potential vorticity q</button>
             <button data-ms-field="speed" aria-pressed="false">speed |u|</button>
           </div>
+          <div class="ms-switch-row">
+            <span>LOOPS</span>
+            <button class="active" data-ms-loop="both" aria-pressed="true">show both</button>
+            <button data-ms-loop="contractible" aria-pressed="false">patch boundary only</button>
+            <button data-ms-loop="one-sided" aria-pressed="false">one-sided only</button>
+            <button data-ms-loop="none" aria-pressed="false">hide</button>
+          </div>
           <div class="ms-actions"><button id="ms-reset">Reset</button><button id="ms-step">One step</button><button id="ms-play" class="primary" aria-pressed="false">Play</button></div>
           <div class="ms-metrics">
             <div><span>time</span><strong id="ms-time">0.000</strong></div>
             <div><span>mass drift</span><strong id="ms-mass">0</strong></div>
             <div><span>energy drift</span><strong id="ms-energy">0</strong></div>
             <div><span>minimum depth</span><strong id="ms-min-depth">—</strong></div>
-            <div><span>boundary circulation</span><strong id="ms-circulation">—</strong></div>
-            <div><span>circulation drift</span><strong id="ms-circulation-drift">—</strong></div>
+            <div class="patch"><span>patch-loop Γ</span><strong id="ms-patch-circulation">—</strong></div>
+            <div class="patch"><span>patch-loop ΔΓ</span><strong id="ms-patch-drift">—</strong></div>
+            <div class="patch"><span>enclosed ∫ω</span><strong id="ms-patch-vorticity">—</strong></div>
+            <div class="patch"><span>Stokes defect</span><strong id="ms-stokes-defect">—</strong></div>
+            <div class="one-sided"><span>one-sided Γ</span><strong id="ms-one-sided-circulation">—</strong></div>
+            <div class="one-sided"><span>one-sided ΔΓ</span><strong id="ms-one-sided-drift">—</strong></div>
+            <div><span>boundary Γ</span><strong id="ms-circulation">—</strong></div>
+            <div><span>boundary ΔΓ</span><strong id="ms-circulation-drift">—</strong></div>
             <div><span>vorticity RMS</span><strong id="ms-vorticity">—</strong></div>
             <div><span>seam constraint</span><strong id="ms-seam">exact</strong></div>
           </div>
@@ -76,12 +89,28 @@
           <label><span><strong>Initial amplitude</strong><small>height or velocity strength</small></span><output id="ms-amplitude-output">0.18</output><input id="ms-amplitude" type="range" min="0" max="0.38" step="0.01" value="0.18" /></label>
           <label><span><strong>Steps per frame</strong><small>simulation speed, not the CFL step</small></span><output id="ms-steps-output">2</output><input id="ms-steps" type="range" min="1" max="5" step="1" value="2" /></label>
           <label><span><strong>Transport the local frame</strong><small>one lap reflects e₂; two laps restore it</small></span><output id="ms-frame-output">0.00 laps</output><input id="ms-frame" type="range" min="0" max="2" step="0.01" value="0" /></label>
+          <section class="ms-kelvin-card">
+            <span>KELVIN CIRCULATION AUDIT</span>
+            <div class="ms-math-display" data-latex="\Gamma(t)=\oint_{\gamma_t}u^\flat,\qquad \dot\Gamma=0">Kelvin circulation theorem</div>
+            <div class="ms-loop-key"><b>gold</b><p>bounds a material patch; the readout independently compares Γ with the enclosed vorticity two-form ∫ω</p><b>cyan</b><p>winds once around the Möbius strip and has no globally oriented interior</p></div>
+            <p>The curves move with the computed velocity. In the exact inviscid equations both circulations remain fixed; here their drift measures the baseline solver’s numerical dissipation.</p>
+          </section>
           <section class="ms-connection-card">
             <span>O(2) HOLONOMY AUDIT</span>
             <div class="ms-math-display" data-latex="Q_\gamma\in O(2),\qquad\det Q_\gamma=-1">orientation reversing holonomy</div>
             <p>The cyan arrow is the longitudinal frame vector. The orange arrow is transverse. Follow them for one lap: the orange vector returns reversed, so a global <span class="ms-math-inline" data-latex="J">ninety-degree rotation J</span> cannot be chosen.</p>
           </section>
         </aside>
+      </section>
+
+      <section class="ms-kelvin-lesson">
+        <header><p class="ms-eyebrow">Kelvin’s theorem, made operational</p><h2>Follow the loop.<br /><em>Integrate the covector.</em></h2><p>A fixed curve samples whatever fluid happens to pass through it. Kelvin’s theorem instead follows the same particles, which is why both colored curves deform as the simulation advances.</p></header>
+        <div class="ms-kelvin-equation"><span>MATERIAL LOOP</span><div class="ms-math-display" data-latex="\frac{d}{dt}\oint_{\gamma_t}u^\flat=\oint_{\gamma_t}d\!\left(\tfrac12|u|^2-gh\right)=0">material-loop circulation is conserved</div><p>Pressure and gravity change the local velocity through an exact differential. A closed loop cannot detect that exact part.</p></div>
+        <ol>
+          <li><b>01</b><div><strong>Gold bounds a patch.</strong><p>It is contractible. In an oriented local chart, Stokes gives <span class="ms-math-inline" data-latex="\oint_{\partial S_t}u^\flat=\int_{S_t}du^\flat">circulation equals integrated vorticity</span>.</p></div></li>
+          <li><b>02</b><div><strong>Cyan detects topology.</strong><p>It is one-sided. Its lift starts on sheet A and ends on sheet B, so there is no ordinary oriented patch whose boundary is this loop.</p></div></li>
+          <li><b>03</b><div><strong>ΔΓ grades the integrator.</strong><p>The continuum theorem predicts zero. Rusanov dissipation and interpolation create the displayed drift; a Kelvin–Noether method should reduce it substantially.</p></div></li>
+        </ol>
       </section>
 
       <section class="ms-theory">

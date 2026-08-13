@@ -26,6 +26,13 @@ export interface MobiusPrimitiveSample {
   speed: number;
 }
 
+export interface MobiusMaterialPoint {
+  /** Unwrapped longitudinal coordinate on the oriented cover. */
+  s: number;
+  /** Transverse coordinate in the same continuously transported chart. */
+  r: number;
+}
+
 type Vec3 = [number, number, number];
 
 export interface MobiusWaterDiagnostics {
@@ -341,6 +348,49 @@ export class MobiusShallowWaterModel {
     };
   }
 
+  /**
+   * Bilinearly samples the velocity in a continuously transported chart.
+   * Keeping s unwrapped lets a material point cross the Möbius seam without
+   * introducing a discontinuous coordinate jump; every odd wrap reverses r.
+   */
+  sampleAt(point: MobiusMaterialPoint): MobiusPrimitiveSample {
+    const wrap = Math.floor(point.s / MOBIUS_PERIOD);
+    const localS = point.s - wrap * MOBIUS_PERIOD;
+    const reflected = Math.abs(wrap % 2) === 1;
+    const localR = reflected ? -point.r : point.r;
+    const transverseSign = reflected ? -1 : 1;
+    const coordinateS = localS / this.ds - 0.5;
+    const coordinateR = (localR + this.parameters.halfWidth) / this.dr - 0.5;
+    const column0 = Math.floor(coordinateS);
+    const row0 = Math.floor(coordinateR);
+    const fractionS = coordinateS - column0;
+    const fractionR = coordinateR - row0;
+    let depth = 0;
+    let velocityS = 0;
+    let velocityR = 0;
+
+    for (let rowOffset = 0; rowOffset <= 1; rowOffset += 1) {
+      const weightR = rowOffset === 0 ? 1 - fractionR : fractionR;
+      for (let columnOffset = 0; columnOffset <= 1; columnOffset += 1) {
+        const weightS = columnOffset === 0 ? 1 - fractionS : fractionS;
+        const weight = weightS * weightR;
+        const sample = this.primitiveFrom(this.state, column0 + columnOffset, row0 + rowOffset);
+        depth += weight * sample.depth;
+        velocityS += weight * sample.velocityS;
+        velocityR += weight * sample.velocityR;
+      }
+    }
+
+    velocityR *= transverseSign;
+    const metric = this.metricAt(point.s, point.r).metricSS;
+    return {
+      depth,
+      velocityS,
+      velocityR,
+      speed: Math.sqrt(metric * velocityS ** 2 + velocityR ** 2),
+    };
+  }
+
   private metricAt(s: number, r: number): MobiusGeometrySample {
     return mobiusGeometry(s, r, this.parameters.majorRadius);
   }
@@ -504,7 +554,8 @@ export class MobiusShallowWaterModel {
     return Math.min(this.parameters.timeStep, 0.32 * this.ds / maximumS, 0.32 * this.dr / maximumR);
   }
 
-  step(iterations = 1): void {
+  step(iterations = 1): number {
+    let elapsed = 0;
     for (let iteration = 0; iteration < iterations; iteration += 1) {
       const dt = this.stableTimeStep();
       const firstDerivative = this.rightHandSide(this.state);
@@ -518,8 +569,10 @@ export class MobiusShallowWaterModel {
       }
       this.enforcePositiveDepth(this.state);
       this.time += dt;
+      elapsed += dt;
       this.steps += 1;
     }
+    return elapsed;
   }
 
   depthField(): Float64Array {
