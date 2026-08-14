@@ -20,6 +20,7 @@ export default defineConfig({
         "clebsch-shallow-water.html",
         "mobius-shallow-water.html",
         "projective-clebsch.html",
+        "symmetric-clebsch.html",
         "bernoulli-clebsch.html",
         "flat-torus-cohomology.html",
         "disk-circulation.html",

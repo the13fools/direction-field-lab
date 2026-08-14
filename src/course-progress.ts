@@ -22,6 +22,7 @@ const LESSONS: readonly CourseLesson[] = [
 const SUPPLEMENTS: Record<string, { kind: string; title: string }> = {
   "clebsch-surfaces-reference.html": { kind: "REFERENCE", title: "Exterior calculus + DEC lookup" },
   "projective-clebsch.html": { kind: "ELECTIVE", title: "Projective Clebsch fields" },
+  "symmetric-clebsch.html": { kind: "ELECTIVE", title: "Symmetry and Clebsch gauge" },
 };
 
 const currentPath = window.location.pathname.split("/").pop() || "index.html";
