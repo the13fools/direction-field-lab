@@ -16,75 +16,98 @@
 
     <main>
       <section class="sc-hero">
-        <div><p class="sc-eyebrow">A representation can hide the symmetry it carries</p><h1>Which object must<br /><em>look symmetric?</em></h1><p>The domain, the Clebsch labels, the velocity one-form, and the scalar used to color vorticity transform differently. This lab changes one parity choice at a time, then uses gauge freedom to make symmetric physics from asymmetric-looking labels.</p></div>
-        <aside><span>THE PHYSICAL TEST</span><div class="sc-math-display" data-latex="R^*u^\flat=u^\flat,qquad R(x,y)=(x,-y)">reflection-invariant velocity one-form</div><div class="sc-math-display accent" data-latex="u_x(x,-y)=u_x(x,y),qquad u_y(x,-y)=-u_y(x,y)">component parity</div><p>Test the assembled one-form—not the appearance of α or β in isolation.</p></aside>
+        <div><p class="sc-eyebrow">One physical question · several possible encodings</p><h1>Same flow.<br /><em>Different labels.</em></h1><p>Suppose a channel is reflected across its centerline. The fluid should obey the same reflection. But Clebsch variables are only a nonunique encoding of that fluid, so their contour pictures do not have to look symmetric. This lab teaches which picture to trust.</p></div>
+        <aside><span>THE ANSWER IN ONE LINE</span><div class="sc-math-display" data-latex="m:=u^\flat=h+d\phi+\alpha\,d\beta">assemble the physical momentum one-form</div><div class="sc-math-display accent" data-latex="R^*m=m,\qquad R(x,y)=(x,-y)">test the assembled object</div><p><b>Symmetry belongs to the physical one-form m</b> (or equivalently the velocity u), not to one particular choice of α, β, and φ.</p></aside>
+      </section>
+
+      <section class="sc-orientation">
+        <header><p class="sc-eyebrow">Before touching the controls</p><h2>Follow the decoder<br />from left to right.</h2><p>The same point of the surface carries three scalar numbers. Differentiation turns two of them into covectors; addition assembles one physical covector; the metric finally turns that covector into the arrow that moves a particle.</p></header>
+        <div class="sc-decoder" aria-label="Clebsch variables to physical velocity">
+          <article><span>ENCODING · NOT UNIQUE</span><strong>Three scalar fields</strong><div class="sc-math-display" data-latex="\phi,\;\alpha,\;\beta">Clebsch scalars</div><p>Cyan and orange curves in the lab are level sets of α and β. They are label ink, not velocity streamlines.</p></article>
+          <i aria-hidden="true">→</i>
+          <article><span>ASSEMBLY · PHYSICAL</span><strong>One momentum covector</strong><div class="sc-math-display" data-latex="m=h+d\phi+\alpha\,d\beta">Clebsch assembly</div><p><b>dβ</b> measures change across β-contours; <b>α</b> weights that measurement; <b>dφ</b> supplies an exact correction; <b>h</b> carries harmonic through-flow.</p></article>
+          <i aria-hidden="true">→</i>
+          <article><span>METRIC · PHYSICAL</span><strong>One velocity vector</strong><div class="sc-math-display" data-latex="u=m^\sharp">raise the index</div><p>This is the arrow used to advect particles. On the flat strip, raising the index leaves the two displayed components numerically unchanged.</p></article>
+        </div>
+        <aside><strong>The rule for this page</strong><p>Look at the <b>right-hand physical panel first</b>. If the thin cyan arrow and thick gold mirror-arrow coincide, the flow is symmetric. Only then look left to ask how the Clebsch labels managed to encode it.</p></aside>
+      </section>
+
+      <section class="sc-lab-brief">
+        <div><b>1</b><span><strong>Compare a mirror pair.</strong><small>Gold shows the arrow below the centerline reflected back to the point above it.</small></span></div>
+        <div><b>2</b><span><strong>Run the four cases in order.</strong><small>The first three establish the rule; the fourth reveals the gauge freedom.</small></span></div>
+        <div><b>3</b><span><strong>Trust the physical verdict.</strong><small>Label parity is a shortcut. Arrow overlap is the actual symmetry test.</small></span></div>
       </section>
 
       <section class="sc-lab" aria-label="Interactive symmetric Clebsch field lab">
         <section class="sc-stage">
-          <header><div><span id="sc-stage-kicker">SAME PARITY · EVEN × EVEN</span><strong id="sc-stage-title">simple label parity makes the physical symmetry manifest</strong></div><div class="sc-legend"><i></i> α contours <i></i> β contours <i></i> original / reflected velocity</div></header>
-          <canvas id="sc-canvas" role="img" aria-label="Clebsch label contours beside original and reflected velocity fields"></canvas>
-          <div class="sc-actions"><button id="sc-reset-probe">Reset probe</button><button id="sc-toggle-mirror" class="active" aria-pressed="true">Mirror overlay on</button></div>
+          <header><div><span id="sc-stage-kicker">CASE 1 · OBVIOUS SYMMETRY</span><strong id="sc-stage-title">both label pictures and the decoded velocity respect the mirror</strong></div><div class="sc-legend"><i></i> α contours <i></i> β contours <i></i> actual / mirrored arrow</div></header>
+          <canvas id="sc-canvas" role="img" aria-label="Clebsch label contours beside the decoded physical velocity field"></canvas>
+          <div class="sc-actions"><button id="sc-reset-probe">Reset mirror pair</button><button id="sc-toggle-mirror" class="active" aria-pressed="true">Gold mirror-arrows on</button></div>
+          <section id="sc-verdict" class="sc-verdict symmetric" aria-live="polite"><span>PHYSICAL VERDICT</span><strong id="sc-physical-verdict">✓ symmetric flow</strong><p id="sc-verdict-copy">The actual arrows coincide with the reflected arrows.</p></section>
           <div class="sc-metrics">
-            <div><span>velocity symmetry defect</span><strong id="sc-velocity-defect">—</strong></div>
-            <div><span>vorticity-form defect</span><strong id="sc-vorticity-defect">—</strong></div>
-            <div><span>α parity</span><strong id="sc-alpha-parity">—</strong></div>
-            <div><span>β parity</span><strong id="sc-beta-parity">—</strong></div>
-            <div><span>gauge reconstruction defect</span><strong id="sc-gauge-defect">—</strong></div>
-            <div><span>vorticity RMS</span><strong id="sc-vorticity-rms">—</strong></div>
+            <div><span>arrow-overlap error</span><strong id="sc-velocity-defect">—</strong></div>
+            <div><span>α under reflection</span><strong id="sc-alpha-parity">—</strong></div>
+            <div><span>β under reflection</span><strong id="sc-beta-parity">—</strong></div>
+            <div><span>same-flow gauge error</span><strong id="sc-gauge-defect">—</strong></div>
           </div>
+          <details class="sc-secondary-diagnostics"><summary>Advanced two-form diagnostics</summary><div><p><span>vorticity-form defect</span><strong id="sc-vorticity-defect">—</strong></p><p><span>vorticity RMS</span><strong id="sc-vorticity-rms">—</strong></p></div></details>
         </section>
 
         <aside class="sc-controls">
-          <p class="sc-eyebrow">Choose the representation</p>
-          <div class="sc-presets" role="group" aria-label="Clebsch symmetry preset">
-            <button class="active" data-sc-preset="even-even" aria-pressed="true"><b>01</b><span><strong>Even × even</strong><small>manifestly symmetric</small></span></button>
-            <button data-sc-preset="odd-odd" aria-pressed="false"><b>02</b><span><strong>Odd × odd</strong><small>two signs cancel</small></span></button>
-            <button data-sc-preset="mixed" aria-pressed="false"><b>03</b><span><strong>Mixed parity</strong><small>physically breaks symmetry</small></span></button>
-            <button data-sc-preset="gauge" aria-pressed="false"><b>04</b><span><strong>Gauge disguise</strong><small>labels look mixed; u♭ is unchanged</small></span></button>
+          <p class="sc-eyebrow">Run this four-step argument</p>
+          <div class="sc-presets" role="group" aria-label="Four Clebsch symmetry cases">
+            <button class="active" data-sc-preset="even-even" aria-pressed="true"><b>01</b><span><strong>Start obvious</strong><small>both labels are mirror-even</small></span></button>
+            <button data-sc-preset="odd-odd" aria-pressed="false"><b>02</b><span><strong>Flip both signs</strong><small>the physical flow stays symmetric</small></span></button>
+            <button data-sc-preset="mixed" aria-pressed="false"><b>03</b><span><strong>Break one rule</strong><small>now the physical arrows separate</small></span></button>
+            <button data-sc-preset="gauge" aria-pressed="false"><b>04</b><span><strong>Scramble the labels</strong><small>φ compensates; the same flow returns</small></span></button>
           </div>
-          <label><span><strong>Clebsch amplitude</strong><small>scales α and the vortical contribution</small></span><output id="sc-amplitude-output">0.72</output><input id="sc-amplitude" type="range" min="0" max="1.25" step="0.01" value="0.72" /></label>
-          <label><span><strong>Gauge mixing s</strong><small>used by the gauge-disguise preset</small></span><output id="sc-gauge-output">0.80</output><input id="sc-gauge" type="range" min="0" max="1.8" step="0.02" value="0.8" /></label>
-          <label><span><strong>Longitudinal phase</strong><small>slides the pattern without breaking mirror symmetry</small></span><output id="sc-phase-output">0°</output><input id="sc-phase" type="range" min="0" max="6.283185" step="0.02" value="0" /></label>
-          <label><span><strong>Harmonic through-flow</strong><small>constant dx period; symmetric across the centerline</small></span><output id="sc-flow-output">0.56</output><input id="sc-flow" type="range" min="0" max="1.1" step="0.01" value="0.56" /></label>
-          <section class="sc-live-card" aria-live="polite"><span id="sc-card-kicker">PARITY RULE</span><h2 id="sc-card-title">Even times an even differential.</h2><div id="sc-card-equation" class="sc-math-display" data-latex="R^*\alpha=\alpha,\quad R^*\beta=\beta\quad\Longrightarrow\quad R^*(\alpha\,d\beta)=\alpha\,d\beta">even-even labels</div><p id="sc-card-copy">The exact term uses an even φ. Every contribution to the velocity one-form is therefore reflection invariant.</p></section>
-          <section class="sc-probe-card"><span>CLICK EITHER PANEL TO MOVE THE PROBE</span><div><p><small>point</small><b id="sc-probe-point">—</b></p><p><small>labels</small><b id="sc-probe-labels">—</b></p><p><small>velocity</small><b id="sc-probe-velocity">—</b></p><p><small>vorticity coefficient</small><b id="sc-probe-vorticity">—</b></p></div></section>
+          <section class="sc-live-card" aria-live="polite"><span id="sc-card-kicker">WHAT HAPPENED?</span><h2 id="sc-card-title">The encoding and the flow both look symmetric.</h2><div id="sc-card-equation" class="sc-math-display" data-latex="R^*\alpha=\alpha,\quad R^*\beta=\beta\quad\Longrightarrow\quad R^*(\alpha\,d\beta)=\alpha\,d\beta">even-even labels</div><p id="sc-card-copy">Because φ and the harmonic through-flow are also symmetric, every term in the assembled one-form passes the mirror test.</p></section>
+          <section class="sc-probe-card"><span>THE SELECTED MIRROR PAIR · CLICK EITHER PANEL TO MOVE IT</span><div><p><small>point p</small><b id="sc-probe-point">—</b></p><p><small>mirror R(p)</small><b id="sc-probe-mirror-point">—</b></p><p><small>actual u(p)</small><b id="sc-probe-velocity">—</b></p><p><small>u(Rp), reflected back</small><b id="sc-probe-mirror-velocity">—</b></p><p class="wide"><small>Clebsch labels at p / R(p)</small><b id="sc-probe-labels">—</b></p><p class="wide"><small>local comparison</small><b id="sc-probe-match">—</b></p></div></section>
+          <details class="sc-advanced-controls"><summary>Optional field parameters</summary>
+            <label><span><strong>Clebsch amplitude</strong><small>scales α and the vortical contribution</small></span><output id="sc-amplitude-output">0.72</output><input id="sc-amplitude" type="range" min="0.1" max="1.25" step="0.01" value="0.72" /></label>
+            <label><span><strong>Gauge mixing s</strong><small>only affects case 4</small></span><output id="sc-gauge-output">0.80</output><input id="sc-gauge" type="range" min="0" max="1.8" step="0.02" value="0.8" /></label>
+            <label><span><strong>Longitudinal phase</strong><small>slides the pattern without changing its symmetry class</small></span><output id="sc-phase-output">0°</output><input id="sc-phase" type="range" min="0" max="6.283185" step="0.02" value="0" /></label>
+            <label><span><strong>Harmonic through-flow</strong><small>constant dx period, symmetric across the centerline</small></span><output id="sc-flow-output">0.56</output><input id="sc-flow" type="range" min="0" max="1.1" step="0.01" value="0.56" /></label>
+          </details>
         </aside>
       </section>
 
-      <section class="sc-levels">
-        <header><p class="sc-eyebrow">Four different symmetry questions</p><h2>Do not ask them all<br />with the same picture.</h2></header>
+      <section class="sc-method">
+        <header><p class="sc-eyebrow">A representation-first lesson</p><h2>Ask the hard question<br />in the right space.</h2><p>Nicole Feng, Mark Gillespie, and Keenan Crane use this strategy in their work on winding numbers on surfaces: turn difficult curve data into a differential one-form, use Hodge decomposition to expose the topological component, and then translate back. This lab borrows that <em>problem-solving pattern</em>; their paper is not a Clebsch-fluid paper.</p></header>
         <div>
-          <article><span>01 · DOMAIN</span><strong>Does R map the domain to itself?</strong><div class="sc-math-display" data-latex="R:\Omega\to\Omega">geometric symmetry</div><p>The flat periodic strip and its centerline are mirror symmetric.</p></article>
-          <article><span>02 · LABELS</span><strong>How do the scalars transform?</strong><div class="sc-math-display" data-latex="R^*\alpha=\pm\alpha,qquad R^*\beta=\pm\beta">label parity</div><p>Simple parity is sufficient, but gauge freedom means it is not necessary.</p></article>
-          <article><span>03 · VELOCITY</span><strong>Does the assembled one-form agree?</strong><div class="sc-math-display" data-latex="R^*(d\phi+\alpha d\beta)=d\phi+\alpha d\beta">physical test</div><p>This is the symmetry the particle dynamics actually see.</p></article>
-          <article><span>04 · DISCRETIZATION</span><strong>Does the numerical operator commute with R?</strong><div class="sc-math-display" data-latex="P_hR^*=R^*P_h">equivariant projection</div><p>A biased mesh, quadrature rule, boundary treatment, or linear solve can break a symmetry preserved by the equations.</p></article>
+          <article><b>01</b><span><strong>State the physical problem.</strong><p>Does the velocity obey the channel’s mirror symmetry?</p></span></article>
+          <article><b>02</b><span><strong>Move to the right representation.</strong><p>Assemble the one-form m instead of inspecting three nonunique scalar plots.</p></span></article>
+          <article><b>03</b><span><strong>Separate the components.</strong><p>Read h, dφ, and αdβ as harmonic, exact, and vorticity-carrying contributions.</p></span></article>
+          <article><b>04</b><span><strong>Audit, then interpret.</strong><p>Measure R* m − m. Only after that ask which label parity or gauge produced the result.</p></span></article>
         </div>
+        <aside><strong>Related geometry-processing example</strong><p>Feng–Gillespie–Crane transform a hard “which curves bound regions?” question into a one-form decomposition, because topology is easier to isolate there.</p><a href="https://nzfeng.github.io/research/WNoDS/index.html" target="_blank" rel="noreferrer">Read Winding Numbers on Discrete Surfaces ↗</a></aside>
       </section>
 
       <section class="sc-parity">
-        <div><p class="sc-eyebrow">A sufficient parity recipe</p><h2>Match the signs.</h2><p>Assume φ is even. The product αdβ is invariant when α and β have the same reflection parity. If their signs differ, the product is anti-invariant and generally breaks the velocity symmetry.</p></div>
+        <div><p class="sc-eyebrow">The shortcut learned from cases 1–3</p><h2>Same sign behavior<br />is sufficient.</h2><p>Assume φ and h already respect the mirror. Then αdβ is invariant when α and β have the same parity. This is a convenient recipe for constructing symmetric data—not the definition of physical symmetry.</p></div>
         <div class="sc-parity-table" role="table" aria-label="Clebsch reflection parity table">
-          <div role="row"><b role="columnheader">α</b><b role="columnheader">β</b><b role="columnheader">αdβ</b><b role="columnheader">result</b></div>
-          <div role="row"><span>even</span><span>even</span><span>invariant</span><strong>✓ symmetric</strong></div>
-          <div role="row"><span>odd</span><span>odd</span><span>invariant</span><strong>✓ symmetric</strong></div>
-          <div role="row"><span>even</span><span>odd</span><span>anti-invariant</span><em>breaks</em></div>
-          <div role="row"><span>mixed</span><span>mixed</span><span>must assemble first</span><i>audit u<sup>♭</sup></i></div>
+          <div role="row"><b role="columnheader">α</b><b role="columnheader">β</b><b role="columnheader">α dβ</b><b role="columnheader">conclusion</b></div>
+          <div role="row"><span>even</span><span>even</span><span>unchanged</span><strong>✓ sufficient</strong></div>
+          <div role="row"><span>odd</span><span>odd</span><span>two signs cancel</span><strong>✓ sufficient</strong></div>
+          <div role="row"><span>even</span><span>odd</span><span>changes sign</span><em>usually breaks</em></div>
+          <div role="row"><span>mixed</span><span>mixed</span><span>unknown from labels</span><i>assemble m</i></div>
         </div>
       </section>
 
       <section class="sc-gauge">
-        <header><p class="sc-eyebrow">Why label parity is not the final answer</p><h2>Gauge freedom can<br /><em>disguise the symmetry.</em></h2><p>Start from the odd × odd preset. The following transformation adds an even piece to β, making its contours look mixed, while φ cancels the added exact one-form.</p></header>
-        <div class="sc-gauge-equations"><div class="sc-math-display" data-latex="\widetilde\alpha=\alpha,qquad \widetilde\beta=\beta+s\alpha^2,qquad \widetilde\phi=\phi-\tfrac{2s}{3}\alpha^3">gauge-disguised triple</div><div class="sc-math-display accent" data-latex="d\widetilde\phi+\widetilde\alpha\,d\widetilde\beta=d\phi+\alpha\,d\beta">the physical one-form is identical</div></div>
-        <aside><strong>The conclusion</strong><p>Symmetric labels are a convenient gauge choice, not the definition of a symmetric Clebsch field. If the labels look asymmetric, assemble the one-form before declaring that the physics broke symmetry.</p></aside>
+        <header><p class="sc-eyebrow">Case 4 · why the shortcut is not necessary</p><h2>Move ink between β and φ.<br /><em>Keep m fixed.</em></h2><p>Start from the odd–odd encoding. Adding an even piece to β makes its orange contour picture lose definite parity. The compensating change to φ cancels the new exact contribution point by point.</p></header>
+        <div class="sc-gauge-equations"><div><span>CHANGE THE ENCODING</span><div class="sc-math-display" data-latex="\widetilde\alpha=\alpha,\qquad \widetilde\beta=\beta+s\alpha^2,\qquad \widetilde\phi=\phi-\tfrac{2s}{3}\alpha^3">gauge-disguised triple</div></div><div><span>KEEP THE PHYSICS</span><div class="sc-math-display accent" data-latex="d\widetilde\phi+\widetilde\alpha\,d\widetilde\beta=d\phi+\alpha\,d\beta">the physical one-form is identical</div></div></div>
+        <aside><strong>This is the degree of freedom.</strong><p>Clebsch variables are like a factorization with gauge freedom: several triples (φ, α, β) decode to the same one-form m. A canonical-looking choice can help with initialization or symmetry reduction, but the solver must preserve the decoded field—not a preferred contour picture.</p></aside>
       </section>
 
       <section class="sc-vorticity">
-        <div><p class="sc-eyebrow">Orientation-reversing symmetry</p><h2>The vorticity color<br />should change sign.</h2><p>The vorticity itself is the two-form <span class="sc-math-inline" data-latex="\omega=du^\flat">omega equals d u flat</span>. A mirror reverses the planar area form, so the scalar coefficient used to color that two-form is odd even when the physical two-form is invariant.</p></div>
-        <div><div class="sc-math-display" data-latex="\omega=\zeta(x,y)\,dx\wedge dy,qquad R^*(dx\wedge dy)=-dx\wedge dy">orientation reversal</div><div class="sc-math-display accent" data-latex="R^*\omega=\omega\quad\Longleftrightarrow\quad \zeta(x,-y)=-\zeta(x,y)">odd scalar coefficient</div><p>Teal above and orange below can therefore be evidence of symmetry—not a symmetry defect.</p></div>
+        <div><p class="sc-eyebrow">One final sign that often looks like a bug</p><h2>Mirror-symmetric vorticity<br />uses opposite colors.</h2><p>The physical vorticity is a two-form, <span class="sc-math-inline" data-latex="\omega=dm">omega equals d m</span>. Reflection reverses the oriented area element. Therefore its scalar color coefficient must change sign for the two-form itself to remain invariant.</p></div>
+        <div><div class="sc-math-display" data-latex="\omega=\zeta(x,y)\,dx\wedge dy,\qquad R^*(dx\wedge dy)=-dx\wedge dy">orientation reversal</div><div class="sc-math-display accent" data-latex="R^*\omega=\omega\quad\Longleftrightarrow\quad \zeta(x,-y)=-\zeta(x,y)">odd scalar coefficient</div><p>So teal above and orange below the centerline can certify symmetry. This is why the lab reports a <b>vorticity-form defect</b>, not a same-color defect.</p></div>
       </section>
 
-      <section class="sc-handoff"><div><p class="sc-eyebrow">Return to the nozzle</p><h2>Now diagnose the three sources separately.</h2><p>The Bernoulli lab’s default labels mix parity, the positive circulation chooses a time direction, and the triangulation and particle sampling add smaller numerical or visual biases. Use this lab’s defect measures to decide which layer changed.</p></div><a href="./bernoulli-clebsch.html">Return to Bernoulli + Clebsch transport →</a></section>
+      <section class="sc-practical"><header><p class="sc-eyebrow">Why a simulator should care</p><h2>Symmetry is a debugging instrument.</h2></header><div><article><span>MODEL</span><strong>Check the equations.</strong><p>Symmetric geometry, boundary data, and initial physical velocity should produce a symmetric solution until an instability truly breaks it.</p></article><article><span>REPRESENTATION</span><strong>Do not overconstrain the labels.</strong><p>Demanding symmetric α, β, and φ separately can reject perfectly valid encodings of a symmetric flow.</p></article><article><span>DISCRETIZATION</span><strong>Find numerical bias.</strong><p>If m is symmetric analytically but the computed field is not, inspect the mesh, quadrature, boundary treatment, projection, and solver tolerance.</p></article></div></section>
+
+      <section class="sc-handoff"><div><p class="sc-eyebrow">Return to the nozzle</p><h2>Now separate physical and representational asymmetry.</h2><p>In the Bernoulli lab, ask first whether the decoded velocity obeys reflection. Then decide whether any remaining asymmetry comes from circulation direction, the Clebsch gauge, or numerical sampling.</p></div><a href="./bernoulli-clebsch.html">Return to Bernoulli + Clebsch transport →</a></section>
     </main>
 
     <script type="module" src="/src/course-progress.ts"></script>
