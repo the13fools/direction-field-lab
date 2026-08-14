@@ -41,6 +41,11 @@ const SUPPLEMENTS: Record<string, CourseSupplement> = {
     title: "Symmetry and Clebsch gauge",
     description: "Label parity versus physical invariance.",
   },
+  "reversible-line-fluid.html": {
+    kind: "ELECTIVE",
+    title: "Reversible line fluids",
+    description: "Co-integrable projection versus Euler time reversal.",
+  },
 };
 
 const currentPath = window.location.pathname.split("/").pop() || "index.html";

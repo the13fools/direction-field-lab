@@ -21,6 +21,7 @@ export default defineConfig({
         "mobius-shallow-water.html",
         "projective-clebsch.html",
         "symmetric-clebsch.html",
+        "reversible-line-fluid.html",
         "bernoulli-clebsch.html",
         "flat-torus-cohomology.html",
         "disk-circulation.html",

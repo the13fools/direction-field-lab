@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071623" />
+    <meta name="description" content="An interactive lab separating divergence-free line fields, branchwise pressure projection, and genuine time reversal of Euler flow." />
+    <title>Reversible line fluids · Direction Field Lab</title>
+  </head>
+  <body>
+    <header class="rlf-header">
+      <a href="./projective-clebsch.html">← Projective Clebsch fields</a>
+      <div><span>LINE FIELDS · PROJECTION · TIME REVERSAL</span><strong>Reversible line fluids</strong></div>
+      <nav><a href="./symmetric-clebsch.html">Symmetry lab</a><a href="./bernoulli-clebsch.html">Euler transport</a></nav>
+    </header>
+
+    <main>
+      <section class="rlf-hero">
+        <div>
+          <p class="rlf-eyebrow">The tempting idea, tested carefully</p>
+          <h1>Project the line.<br /><em>Then ask what moves.</em></h1>
+          <p>An unoriented line has two local roots, <b>u</b> and <b>−u</b>. We can make both roots divergence-free with one symmetric Hodge projection. That is valid geometry. The harder question is whether both roots are simultaneous fluid velocities. This lab uses one exact, time-dependent Euler solution to locate the dividing line.</p>
+        </div>
+        <aside>
+          <span>THREE DIFFERENT STATEMENTS</span>
+          <div class="rlf-math-display" data-latex="[u]=\{u,-u\}">an unoriented line state</div>
+          <div class="rlf-math-display accent" data-latex="P(-u^*)=-P(u^*)">symmetric pressure projection</div>
+          <div class="rlf-math-display" data-latex="u^R(x,t)=-u(x,-t)">Euler time reversal</div>
+          <p>The first is a representation, the second is a constraint, and the third is a spacetime symmetry. They are related—but they are not interchangeable.</p>
+        </aside>
+      </section>
+
+      <section class="rlf-question-ladder" aria-label="Three questions answered by the lab">
+        <article><b>01</b><span><strong>Can an unordered line be projected?</strong><small>Yes. Opposite roots receive opposite pressure potentials and remain opposite.</small></span></article>
+        <article><b>02</b><span><strong>Does branchwise div = 0 imply Euler?</strong><small>No. Incompressibility is one constraint; momentum evolution is another equation.</small></span></article>
+        <article><b>03</b><span><strong>What is the true reverse branch?</strong><small>It is −u evaluated at reversed time, not merely −u at the current time.</small></span></article>
+      </section>
+
+      <section class="rlf-lab" aria-label="Interactive reversible line-fluid lab">
+        <section class="rlf-stage">
+          <header>
+            <div><span id="rlf-stage-kicker">STEP 1 · SYMMETRIC HODGE PROJECTION</span><strong id="rlf-stage-title">remove the divergent gradient without selecting a preferred root</strong></div>
+            <div class="rlf-legend"><i></i> first root / forward <i></i> opposite root <i></i> particle history</div>
+          </header>
+          <canvas id="rlf-canvas" role="img" aria-label="Two periodic-domain panels comparing projected line-field branches and Euler time reversal"></canvas>
+          <div class="rlf-actions">
+            <button id="rlf-reset">Reset time</button>
+            <button id="rlf-step">One step</button>
+            <button id="rlf-play" class="primary">Play</button>
+          </div>
+          <section id="rlf-verdict" class="rlf-verdict" aria-live="polite">
+            <span>WHAT THIS STEP PROVES</span>
+            <strong id="rlf-verdict-title">✓ a symmetric divergence-free projection exists</strong>
+            <p id="rlf-verdict-copy">The right panel has zero divergence on both roots, and the line itself never chooses an orientation.</p>
+          </section>
+          <div class="rlf-metrics">
+            <div><span id="rlf-metric-one-label">div RMS · tentative</span><strong id="rlf-metric-one">—</strong></div>
+            <div><span id="rlf-metric-two-label">div RMS · projected</span><strong id="rlf-metric-two">—</strong></div>
+            <div><span id="rlf-metric-three-label">root symmetry defect</span><strong id="rlf-metric-three">—</strong></div>
+            <div><span id="rlf-metric-four-label">rotated integrability defect</span><strong id="rlf-metric-four">—</strong></div>
+          </div>
+        </section>
+
+        <aside class="rlf-controls">
+          <p class="rlf-eyebrow">Run the argument in order</p>
+          <div class="rlf-mode-buttons" role="group" aria-label="Line-fluid comparison step">
+            <button class="active" data-rlf-mode="projection" aria-pressed="true"><b>01</b><span><strong>Project the line</strong><small>kinematic constraint</small></span></button>
+            <button data-rlf-mode="same-time" aria-pressed="false"><b>02</b><span><strong>Try ±u at one time</strong><small>one branch fails Euler</small></span></button>
+            <button data-rlf-mode="time-reversal" aria-pressed="false"><b>03</b><span><strong>Reverse time too</strong><small>both sheets solve Euler</small></span></button>
+          </div>
+
+          <section class="rlf-live-card">
+            <span id="rlf-card-kicker">CO-INTEGRABLE LINE FIELD</span>
+            <h2 id="rlf-card-title">Rotate, integrate, rotate back.</h2>
+            <div id="rlf-card-equation" class="rlf-math-display" data-latex="\operatorname{div}u=0\iff d(*u^\flat)=0">divergence-free iff the rotated one-form is closed</div>
+            <p id="rlf-card-copy">On an oriented surface, rotate every polyvector root by 90°. An integrable-polyvector solve on those rotated roots becomes a branchwise divergence-free solve after rotating back.</p>
+          </section>
+
+          <label><span><strong>Comparison time</strong><small>the same value is used in both panels</small></span><output id="rlf-time-output">0.00</output><input id="rlf-time" type="range" min="0" max="4.5" step="0.01" value="0" /></label>
+          <label><span><strong>Vortex amplitude A</strong><small>Taylor–Green part of the exact flow</small></span><output id="rlf-amplitude-output">0.72</output><input id="rlf-amplitude" type="range" min="0.15" max="1.15" step="0.01" value="0.72" /></label>
+          <label><span><strong>Pattern drift U</strong><small>zero reveals the steady exception</small></span><output id="rlf-drift-output">0.46</output><input id="rlf-drift" type="range" min="0" max="0.9" step="0.01" value="0.46" /></label>
+          <label id="rlf-contamination-label"><span><strong>Gradient contamination ε</strong><small>the exact part removed by projection</small></span><output id="rlf-contamination-output">0.48</output><input id="rlf-contamination" type="range" min="0" max="0.9" step="0.01" value="0.48" /></label>
+
+          <details class="rlf-field-definition">
+            <summary>The exact test field</summary>
+            <div class="rlf-math-display" data-latex="u=(U+A\sin\xi\cos y,;-A\cos\xi\sin y),\quad \xi=x-Ut">traveling Taylor-Green flow</div>
+            <p>It is a Galilean translate of a steady Euler vortex. The uniform term <b>U dx</b> is the harmonic part on the flat torus.</p>
+          </details>
+        </aside>
+      </section>
+
+      <section class="rlf-projection">
+        <header><p class="rlf-eyebrow">The straightforward extension</p><h2>Co-integrability is real.<br /><em>It is not yet dynamics.</em></h2><p>The left panel starts with the unordered roots of a contaminated field. The same exact one-form is added with opposite signs. Hodge projection removes it branchwise and commutes with the sign symmetry.</p></header>
+        <div class="rlf-projection-chain" aria-label="Co-integrable polyvector construction">
+          <article><span>UNORDERED INPUT</span><div class="rlf-math-display" data-latex="\{u^*,-u^*\}">two roots, one line</div><p>A polynomial coefficient such as <b>z²</b> stores the pair without naming either root.</p></article>
+          <i>→</i>
+          <article><span>SYMMETRIC PRESSURE SOLVE</span><div class="rlf-math-display" data-latex="\Delta p=\operatorname{div}u^*,\qquad p_-=-p_+">opposite scalar potentials</div><p>The linear Poisson solve respects root sign and any compatible deck transformation.</p></article>
+          <i>→</i>
+          <article><span>CO-INTEGRABLE OUTPUT</span><div class="rlf-math-display" data-latex="\{Pu^*,-Pu^*\},\qquad * (Pu^*)^\flat=d\psi">divergence-free roots</div><p>Rotate by the Hodge star and each branch becomes a locally integrable stream-function gradient.</p></article>
+        </div>
+        <aside><strong>For a line field, one branch is enough computationally.</strong><p>Because the other is its negative, its divergence residual and pressure correction are automatically the negatives of the first. The difficulty is global branch matching near defects—not the Poisson equation itself.</p></aside>
+      </section>
+
+      <section class="rlf-euler-audit">
+        <div>
+          <p class="rlf-eyebrow">The nonlinear obstruction</p>
+          <h2>Euler does not identify<br />u with −u at one time.</h2>
+          <p>The advective term is even under a sign flip, while the time derivative is odd. Requiring opposite branches to obey the same-time Euler equation with one pressure forces the time derivative to vanish.</p>
+        </div>
+        <div class="rlf-audit-equations">
+          <div class="rlf-math-display" data-latex="\partial_tu+\nabla_u u=-dp">forward branch</div>
+          <div class="rlf-math-display" data-latex="-\partial_tu+\nabla_u u=-dp">same-time negative branch</div>
+          <div class="rlf-math-display accent" data-latex="\Longrightarrow\quad \partial_tu=0">only the steady exception survives</div>
+          <p>Move the <b>pattern drift U</b> slider to zero in step 2. The residual vanishes because the chosen Taylor–Green field becomes steady—not because every line field secretly carries two Euler velocities.</p>
+        </div>
+      </section>
+
+      <section class="rlf-time">
+        <header><p class="rlf-eyebrow">What time symmetry actually says</p><h2>The second sheet lives<br />at the opposite time.</h2><p>Euler is reversible because the backward movie is another solution. The map exchanges both velocity sign and temporal direction. In step 3, identical seed particles on the second panel trace the original solution backward from time zero.</p></header>
+        <div>
+          <article><span>WRONG SAME-TIME IDENTIFICATION</span><div class="rlf-math-display" data-latex="u_-(x,t)=-u_+(x,t)">opposite arrows now</div><p>Both branches are divergence-free. Unless the flow is steady, the orange branch has a nonzero Euler momentum residual.</p></article>
+          <article><span>GENUINE REVERSIBLE PAIR</span><div class="rlf-math-display" data-latex="u_-(x,t)=-u_+(x,-t),\qquad p_-(x,t)=p_+(x,-t)">exchange sign and time</div><p>Both sheets solve Euler. Their flow maps satisfy <b>Φ<sup>−</sup><sub>t</sub> = Φ<sup>+</sup><sub>−t</sub></b>.</p></article>
+        </div>
+      </section>
+
+      <section class="rlf-meaning">
+        <header><p class="rlf-eyebrow">Choose the physical interpretation before coding</p><h2>What does the line represent?</h2></header>
+        <div>
+          <article><b>01</b><span><strong>Streamline geometry</strong><p>Use the projected line to visualize unoriented trajectories or guide a parameterization. No mass direction has been specified.</p></span></article>
+          <article><b>02</b><span><strong>Ordinary Euler fluid</strong><p>Select a globally consistent oriented lift—or a velocity that descends from the cover—and evolve that one signed field.</p></span></article>
+          <article><b>03</b><span><strong>Reversible history pair</strong><p>Store forward and backward solutions related by time reversal. The sheets are paired across time, not independent fluids at one instant.</p></span></article>
+          <article><b>04</b><span><strong>Two-stream or nematic fluid</strong><p>Give the two directions separate densities. Net flux depends on their difference while the sign-free stress depends on their sum.</p></span></article>
+        </div>
+      </section>
+
+      <section class="rlf-clebsch">
+        <div><p class="rlf-eyebrow">A projective Clebsch state on the cover</p><h2>Clebsch still helps—<br />but name the state honestly.</h2><p>On the oriented double cover, a local Clebsch one-form can be odd under the sheet exchange. An odd pressure potential preserves that parity during the branchwise projection. This constructs a coherent projective momentum line. It does not by itself make the nonlinear Euler equation descend to an unoriented velocity downstairs.</p></div>
+        <div>
+          <div class="rlf-math-display" data-latex="\widetilde m=d\widetilde\phi+\widetilde\alpha,d\widetilde\beta+\widetilde h,\qquad \tau^*\widetilde m=-\widetilde m">odd lifted momentum</div>
+          <div class="rlf-math-display accent" data-latex="\Delta\widetilde p=\delta\widetilde m,\qquad \tau^*\widetilde p=-\widetilde p">parity-preserving projection</div>
+          <p>For genuine time reversal, extend the involution to spacetime: <b>(x,t,+) ↔ (x,−t,−)</b>.</p>
+        </div>
+      </section>
+
+      <section class="rlf-handoff">
+        <div><p class="rlf-eyebrow">Continue the branch story</p><h2>Next: defects, monodromy,<br />and boundary topology.</h2><p>The projective Clebsch lab shows why a signed root can fail to close around a hole. Return there to study the spatial double cover; keep this page’s distinction between a projected line and a time-reversed Euler trajectory.</p></div>
+        <a href="./projective-clebsch.html">Open projective Clebsch fields →</a>
+      </section>
+    </main>
+
+    <script type="module" src="/src/course-progress.ts"></script>
+    <script type="module" src="/src/experiments/reversible-line-fluid-page.ts"></script>
+  </body>
+</html>
