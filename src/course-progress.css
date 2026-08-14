@@ -1,0 +1,15 @@
+.course-progress { --course-night:#071623; --course-cyan:#58e0e8; --course-orange:#ff7540; --course-gold:#ffd26a; --course-line:#526579; --course-mono:"SFMono-Regular",Consolas,"Liberation Mono",ui-monospace,monospace; position:relative; z-index:18; display:grid; grid-template-columns:minmax(180px,.72fr) minmax(260px,1.1fr) minmax(330px,1fr); min-height:62px; color:white; border-bottom:1px solid var(--course-line); background:linear-gradient(90deg,#071623,#172d43 60%,#302244); box-shadow:0 8px 24px rgba(7,22,35,.12); }
+.course-progress a { color:inherit; text-decoration:none; }
+.course-progress-map,.course-progress-current,.course-progress-routes>a { display:flex; flex-direction:column; justify-content:center; min-width:0; padding:10px 18px; }
+.course-progress-map { border-right:1px solid var(--course-line); }
+.course-progress span { overflow:hidden; color:var(--course-cyan); font:850 7px var(--course-mono); letter-spacing:.09em; text-overflow:ellipsis; white-space:nowrap; }
+.course-progress strong { display:block; margin-top:4px; overflow:hidden; font-size:10px; text-overflow:ellipsis; white-space:nowrap; }
+.course-progress-current { position:relative; border-right:1px solid var(--course-line); }
+.course-progress-current i { position:absolute; right:0; bottom:0; left:0; height:3px; background:linear-gradient(90deg,var(--course-orange) 0 var(--course-progress),rgba(255,255,255,.1) var(--course-progress) 100%); }
+.course-progress-routes { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); min-width:0; }
+.course-progress-routes>a { transition:background .15s ease; }
+.course-progress-routes>a+a { border-left:1px solid var(--course-line); text-align:right; }
+.course-progress-routes>a:hover,.course-progress-map:hover { background:rgba(88,224,232,.1); }
+.course-progress-routes>a span { color:var(--course-gold); }
+@media (max-width:880px) { .course-progress { grid-template-columns:150px minmax(210px,1fr); } .course-progress-routes { grid-column:1/-1; border-top:1px solid var(--course-line); } }
+@media (max-width:560px) { .course-progress { grid-template-columns:1fr; } .course-progress-map { display:none; } .course-progress-current { border-right:0; } .course-progress-routes>a { padding:9px 12px; } .course-progress strong { font-size:9px; } }

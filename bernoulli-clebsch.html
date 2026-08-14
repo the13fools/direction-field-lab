@@ -73,11 +73,11 @@
       </section>
 
       <section class="bc-story">
-        <header><p class="bc-eyebrow">The problem, then the representation</p><h2>Pressure fixes divergence.<br /><em>Labels remember vorticity.</em></h2><p>These are different jobs. The exact term is the elliptic correction that enforces the constraint; the label term carries the part whose exterior derivative can be nonzero.</p></header>
+        <header><p class="bc-eyebrow">The problem, then the representation</p><h2>The constraint chooses φ.<br /><em>Labels remember vorticity.</em></h2><p>These are different jobs. Pressure enforces incompressibility in the Euler evolution; the spatial Clebsch reconstruction solves for a velocity potential φ. They are related by the constrained equations, but they are not the same scalar.</p></header>
         <div class="bc-story-grid">
           <article><span>01 · POTENTIAL EULER BASE</span><h3>The constriction chooses a harmonic representative.</h3><div class="bc-math-display" data-latex="d u^\flat_H=0,\qquad \delta u^\flat_H=0,\qquad u_H\cdot n=0">closed, divergence-free, wall tangent</div><p>The solver begins with the closed one-form <b>dx</b>, Hodge-projects it against the curved walls, and keeps its period around the identified pipe. This is the two-dimensional potential-flow answer—not a resampled one-dimensional arrow field.</p></article>
           <article><span>02 · BERNOULLI</span><h3>Speed trades with pressure.</h3><div class="bc-math-display" data-latex="p+\tfrac12\rho|u_H|^2=B">steady irrotational Euler</div><p>Pressure falls where the harmonic field accelerates and recovers when the channel widens. Because the model is inviscid, there is no permanent head loss.</p></article>
-          <article><span>03 · CLEBSCH RECONSTRUCTION</span><h3>One global term, one exact term, two labels.</h3><div class="bc-math-display" data-latex="u^\flat=c_H(t)h+d\phi+\alpha\,d\beta">velocity one-form</div><p>At each time, the lab solves for φ so the reconstructed velocity is divergence-free and tangent to the wall. The coefficient c<sub>H</sub> is adjusted so the total harmonic period stays fixed; a single-valued φ cannot control that period.</p></article>
+          <article><span>03 · CLEBSCH RECONSTRUCTION</span><h3>One global term, one exact term, two labels.</h3><div class="bc-math-display" data-latex="u^\flat=c_H(t)\eta_H+d\phi+\alpha\,d\beta">velocity one-form</div><p>At each time, the lab solves for φ so the reconstructed velocity is divergence-free and tangent to the wall. The coefficient c<sub>H</sub> is adjusted so the total harmonic period stays fixed; a single-valued φ cannot control that period.</p></article>
           <article><span>04 · VORTICITY</span><h3>Take one exterior derivative.</h3><div class="bc-math-display" data-latex="d u^\flat=d\alpha\wedge d\beta">vorticity two-form</div><p>Both <b>du<sup>♭</sup></b> and <b>dα ∧ dβ</b> are two-forms on this planar surface. Relative to the chosen area form they can be displayed as a signed scalar density; as an ambient picture, the associated vorticity vector points normal to the plane.</p></article>
         </div>
       </section>
@@ -97,7 +97,7 @@
           <li><b>01</b><div><strong>Advect the scalar labels.</strong><div class="bc-math-display" data-latex="(\partial_t+\mathcal L_u)\alpha=0,\qquad(\partial_t+\mathcal L_u)\beta=0">material transport</div></div></li>
           <li><b>02</b><div><strong>Build the vortical candidate.</strong><div class="bc-math-display" data-latex="w^\flat=\alpha\,d\beta">label one-form</div></div></li>
           <li><b>03</b><div><strong>Solve the incompressibility constraint.</strong><div class="bc-math-display" data-latex="\Delta\phi=-\delta w^\flat,\qquad \partial_n\phi=-w\cdot n">Neumann Hodge solve</div></div></li>
-          <li><b>04</b><div><strong>Restore the prescribed global period.</strong><div class="bc-math-display" data-latex="u^\flat=c_H(t)h+d\phi+w^\flat">harmonic + exact + label pieces</div></div></li>
+          <li><b>04</b><div><strong>Restore the prescribed global period.</strong><div class="bc-math-display" data-latex="u^\flat=c_H(t)\eta_H+d\phi+w^\flat">harmonic + exact + label pieces</div></div></li>
         </ol>
         <aside><strong>Numerical honesty</strong><p>This is an inviscid educational prototype: piecewise-linear finite elements for the projection and semi-Lagrangian scalar transport. The projection residual is measured live, but semi-Lagrangian interpolation diffuses fine-scale label structure. It is not yet a conservative production Euler solver.</p></aside>
       </section>
@@ -109,6 +109,7 @@
       </section>
     </main>
 
+    <script type="module" src="/src/course-progress.ts"></script>
     <script type="module" src="/src/experiments/bernoulli-clebsch-page.ts"></script>
   </body>
 </html>

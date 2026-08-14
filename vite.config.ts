@@ -12,6 +12,7 @@ export default defineConfig({
         "energy-playground.html",
         "dec-playground.html",
         "getting-started.html",
+        "course.html",
         "shallow-water.html",
         "clebsch-surfaces.html",
         "clebsch-surfaces-action.html",

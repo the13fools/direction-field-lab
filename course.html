@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#071623" />
+    <meta name="description" content="A guided advanced-undergraduate course from differential forms and circulation to Clebsch transport and shallow water on surfaces." />
+    <title>Clebsch fluids on surfaces · Course map</title>
+  </head>
+  <body>
+    <header class="course-header">
+      <a href="./index.html">← Direction Field Lab</a>
+      <div><span>ADVANCED UNDERGRADUATE PATH</span><strong>Clebsch fluids on surfaces</strong></div>
+      <nav><a href="./clebsch-surfaces-reference.html">Forms reference</a><a href="./references.html#flow">Reading map</a></nav>
+    </header>
+
+    <main>
+      <section class="course-hero">
+        <div>
+          <p class="course-eyebrow">Ten lessons · four conceptual turns</p>
+          <h1>Learn the language.<br />Find the topology.<br /><em>Then evolve the fluid.</em></h1>
+          <p>This path is for students building toward shallow water on curved surfaces with Clebsch variables. Each lesson asks one question, introduces one new burden, and preserves the audits established earlier.</p>
+          <div class="course-actions"><a class="primary" href="./dec-playground.html">Begin lesson 1</a><a href="#course-units">See the complete path</a></div>
+        </div>
+        <aside>
+          <span>THE CENTRAL REPRESENTATION</span>
+          <div class="course-math-display" data-latex="u^\flat=\sum_k c_H^k\eta_k+d\phi+\alpha\,d\beta">Clebsch plus harmonic velocity one-form</div>
+          <p>The course explains every symbol separately before asking it to evolve.</p>
+          <ul><li><b>u</b> moves particles</li><li><b>u<sup>♭</sup></b> measures circulation</li><li><b>α, β</b> carry vorticity</li><li><b>φ</b> enforces the local constraint</li><li><b>c<sub>H</sub><sup>k</sup></b> restores global periods</li></ul>
+        </aside>
+      </section>
+
+      <section class="course-contract">
+        <article><span>ASSUMED</span><strong>Vector calculus, linear algebra, and ODEs</strong><p>No prior differential geometry is required. The first unit builds the necessary exterior-calculus language from measurements.</p></article>
+        <article><span>NOT ASSUMED</span><strong>That Clebsch variables are coordinates</strong><p>They are nonunique scalar fields used to factor a velocity one-form. They become local coordinates only where their differentials are independent.</p></article>
+        <article><span>ENDPOINT</span><strong>A solver architecture, not one magic formula</strong><p>Students should know which state is transported, which elliptic problem is solved, and which harmonic data topology leaves undetermined.</p></article>
+      </section>
+
+      <section class="course-notation" aria-label="Notation guardrail">
+        <span>NOTATION GUARDRAIL</span>
+        <div><b>φ</b><p>Clebsch velocity potential. It is not the pressure.</p></div>
+        <div><b>p</b><p>Euler pressure or a constraint multiplier.</p></div>
+        <div><b>η<sub>k</sub></b><p>Harmonic basis one-forms carrying global periods.</p></div>
+        <div><b>h</b><p>Water-column depth in the shallow-water unit.</p></div>
+      </section>
+
+      <nav class="course-unit-nav" aria-label="Course units"><a href="#unit-one">I · Language</a><a href="#unit-two">II · Topology</a><a href="#unit-three">III · Dynamics</a><a href="#unit-four">IV · Surfaces</a><a href="#electives">References</a></nav>
+
+      <section id="course-units" class="course-units">
+        <section id="unit-one" class="course-unit">
+          <header><span>UNIT I · READ THE FIELD</span><div><h2>From arrows to circulation.</h2><p>Do not begin with three mysterious potentials. First learn what a velocity vector does, what its metric-dual one-form measures, and what exterior differentiation extracts.</p></div><div class="course-unit-equation course-math-display" data-latex="u\xrightarrow{\;\flat_g\;}u^\flat\xrightarrow{\;d\;}\omega">vector to covector to vorticity</div></header>
+          <ol class="course-lessons">
+            <li><a href="./dec-playground.html"><b>01</b><div><span>FORMS, d, AND THE HODGE STAR</span><h3>What kind of object lives where?</h3><p>Distinguish vertex scalars, edge-integrated one-forms, face-integrated two-forms, and metric-dependent conversions.</p><strong>Exit test: identify the type and integration domain of every variable.</strong></div><em>OPEN LAB →</em></a></li>
+            <li><a href="./clebsch-surfaces.html"><b>02</b><div><span>THE PHYSICAL PROBLEM</span><h3>What must a fluid representation remember?</h3><p>Separate velocity, circulation, vorticity, and incompressibility before comparing velocity, vorticity, and Clebsch states.</p><strong>Exit test: explain why circulation is not the same datum as pointwise vorticity.</strong></div><em>OPEN LESSON →</em></a></li>
+            <li><a href="./clebsch-surfaces-action.html"><b>03</b><div><span>CLEBSCH IN ACTION</span><h3>How do α, β, and φ share the work?</h3><p>Carry material labels, make the covector visible, assemble the one-form, and inspect the first chart obstruction.</p><strong>Exit test: derive du<sup>♭</sup> = dα ∧ dβ and state what dφ cannot change.</strong></div><em>OPEN LAB →</em></a></li>
+          </ol>
+          <aside><strong>Unit I checkpoint</strong><p>Given scalar fields φ, α, β and a metric, construct the velocity vector in the correct order: differentiate, assemble the one-form, then raise the index.</p></aside>
+        </section>
+
+        <section id="unit-two" class="course-unit dark">
+          <header><span>UNIT II · FIND WHAT LOCAL VORTICITY MISSES</span><div><h2>Boundaries, holes, and periods.</h2><p>Stokes determines circulation around patch boundaries. It does not determine circulation around loops that bound no patch. That distinction becomes solver state.</p></div><div class="course-unit-equation course-math-display" data-latex="u^\flat=d\chi+\star d\psi+\sum_{k=1}^{b_1}c_H^k\eta_k">Hodge decomposition with topology</div></header>
+          <ol class="course-lessons">
+            <li><a href="./disk-circulation.html"><b>04</b><div><span>DISK → ANNULUS</span><h3>When does circulation have to be vorticity?</h3><p>Use a movable Stokes loop, then remove the center and separate vortical circulation from one harmonic degree of freedom.</p><strong>Exit test: predict which combination of inner and outer circulation changes curl.</strong></div><em>OPEN LAB →</em></a></li>
+            <li><a href="./flat-torus-cohomology.html"><b>05</b><div><span>FLAT TORUS</span><h3>Which two numbers does vorticity forget?</h3><p>Hold local vorticity fixed while changing the two real harmonic periods and the resulting particle winding.</p><strong>Exit test: explain why pressure projection cannot erase a harmonic period.</strong></div><em>OPEN LAB →</em></a></li>
+          </ol>
+          <aside><strong>Unit II checkpoint</strong><p>Reconstruct a velocity one-form from vorticity only after adding boundary conditions, gauge conditions, and one coefficient for each harmonic basis field.</p></aside>
+        </section>
+
+        <section id="unit-three" class="course-unit">
+          <header><span>UNIT III · SEPARATE KINEMATICS FROM DYNAMICS</span><div><h2>Prescribe, project, then transport.</h2><p>A beautiful moving field is not automatically a fluid solution. First inspect random kinematic fields; then let Euler transport the representation that generates vorticity.</p></div><div class="course-unit-equation course-math-display" data-latex="D_t\alpha=D_t\beta=0,\qquad \delta u^\flat=0">material labels plus constraint</div></header>
+          <ol class="course-lessons">
+            <li><a href="./random-fluids.html"><b>06</b><div><span>RANDOM SURFACE FIELDS</span><h3>What can we learn without claiming dynamics?</h3><p>Combine intrinsic Laplace–Beltrami modes with temporal Perlin coefficients; compare exact, coexact, raw Clebsch, and projected Clebsch families.</p><strong>Exit test: distinguish a prescribed time-dependent velocity from a field evolved by Euler.</strong></div><em>OPEN LAB →</em></a></li>
+            <li><a href="./bernoulli-clebsch.html"><b>07</b><div><span>BERNOULLI → CLEBSCH TRANSPORT</span><h3>How do pressure, topology, and labels coexist?</h3><p>Start with periodic potential flow through a narrowing channel, recover Bernoulli pressure, add label vorticity, and re-solve φ after transport.</p><strong>Exit test: write one time step as transport, candidate construction, Hodge solve, and period restoration.</strong></div><em>OPEN LAB →</em></a></li>
+          </ol>
+          <aside><strong>Unit III checkpoint</strong><p>Audit a Clebsch transport step using divergence residual, vorticity identity, material-label drift, and conserved harmonic circulation.</p></aside>
+        </section>
+
+        <section id="unit-four" class="course-unit dark">
+          <header><span>UNIT IV · LET DEPTH AND GEOMETRY EVOLVE THE STORY</span><div><h2>From incompressible flow to shallow water.</h2><p>Do not project horizontal divergence to zero once it is responsible for changing layer depth. Preserve the representation lessons while replacing the constraint.</p></div><div class="course-unit-equation course-math-display" data-latex="\partial_t h+\operatorname{div}(h u)=0">depth-weighted continuity</div></header>
+          <ol class="course-lessons">
+            <li><a href="./shallow-water.html"><b>08</b><div><span>CONSERVATIVE BASELINE</span><h3>Which audits survive a change of variables?</h3><p>Test a linear pressure-wave model, its gradient/divergence adjoint pair, mass, energy, CFL behavior, and a deliberately separate passive dye.</p><strong>Exit test: explain why shallow-water divergence changes h instead of being projected away.</strong></div><em>OPEN LAB →</em></a></li>
+            <li><a href="./clebsch-shallow-water.html"><b>09</b><div><span>CLEBSCH SHALLOW WATER</span><h3>How do label transport and height flux couple?</h3><p>Follow the scalar → covector → vector → flux pipeline and keep the Clebsch and continuity equations conceptually distinct.</p><strong>Exit test: identify which variables are material, which are diagnostic, and which elliptic solve remains.</strong></div><em>OPEN LAB →</em></a></li>
+            <li><a href="./mobius-shallow-water.html"><b>10</b><div><span>NON-ORIENTABLE EXTENSION</span><h3>What changes when no global normal exists?</h3><p>Carry water through a reflected seam, distinguish twisted vorticity from ordinary scalars, use an O(2) frame, and audit material Kelvin loops.</p><strong>Exit test: separate local connection terms from global orientation holonomy.</strong></div><em>OPEN LAB →</em></a></li>
+          </ol>
+          <aside><strong>Course endpoint</strong><p>Students can now specify a surface shallow-water state, transport its Clebsch labels, reconstruct velocity with harmonic data, and name the geometric changes required on a non-orientable mesh.</p></aside>
+        </section>
+      </section>
+
+      <section id="electives" class="course-electives">
+        <header><p class="course-eyebrow">References and branches</p><h2>Useful, but not prerequisites for the spine.</h2></header>
+        <div>
+          <a href="./clebsch-surfaces-reference.html"><span>REFERENCE</span><strong>Exterior calculus + DEC lookup</strong><p>Return when a type, discrete storage location, sign convention, or gauge becomes ambiguous.</p></a>
+          <a href="./projective-clebsch.html"><span>ELECTIVE</span><strong>Line and polyvector Clebsch fields</strong><p>Study unordered branches and monodromy after ordinary signed velocity fields are secure.</p></a>
+          <a href="./energy-playground.html"><span>IMPLEMENTATION</span><strong>Editable sparse energies</strong><p>Explore the optimization and differentiation infrastructure used elsewhere in the lab.</p></a>
+          <a href="./getting-started.html"><span>WORKFLOW</span><strong>Run, fork, and publish</strong><p>Use this when moving from a browser lesson to a student code project.</p></a>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="/src/experiments/course-page.ts"></script>
+  </body>
+</html>
