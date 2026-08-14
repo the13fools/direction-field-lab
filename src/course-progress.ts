@@ -6,6 +6,12 @@ interface CourseLesson {
   title: string;
 }
 
+interface CourseSupplement {
+  kind: string;
+  title: string;
+  description: string;
+}
+
 const LESSONS: readonly CourseLesson[] = [
   { path: "dec-playground.html", unit: "UNIT I · READ THE FIELD", title: "Forms, d, and the Hodge star" },
   { path: "clebsch-surfaces.html", unit: "UNIT I · READ THE FIELD", title: "The physical representation problem" },
@@ -19,10 +25,22 @@ const LESSONS: readonly CourseLesson[] = [
   { path: "mobius-shallow-water.html", unit: "UNIT IV · SHALLOW WATER", title: "Water on a Möbius strip" },
 ];
 
-const SUPPLEMENTS: Record<string, { kind: string; title: string }> = {
-  "clebsch-surfaces-reference.html": { kind: "REFERENCE", title: "Exterior calculus + DEC lookup" },
-  "projective-clebsch.html": { kind: "ELECTIVE", title: "Projective Clebsch fields" },
-  "symmetric-clebsch.html": { kind: "ELECTIVE", title: "Symmetry and Clebsch gauge" },
+const SUPPLEMENTS: Record<string, CourseSupplement> = {
+  "clebsch-surfaces-reference.html": {
+    kind: "REFERENCE",
+    title: "Exterior calculus + DEC lookup",
+    description: "Types, storage locations, signs, and gauges.",
+  },
+  "projective-clebsch.html": {
+    kind: "ELECTIVE",
+    title: "Projective Clebsch fields",
+    description: "Line fields, branches, and monodromy.",
+  },
+  "symmetric-clebsch.html": {
+    kind: "ELECTIVE",
+    title: "Symmetry and Clebsch gauge",
+    description: "Label parity versus physical invariance.",
+  },
 };
 
 const currentPath = window.location.pathname.split("/").pop() || "index.html";
@@ -44,16 +62,124 @@ function lessonLink(lesson: CourseLesson | undefined, direction: "previous" | "n
   return anchor;
 }
 
+function createMenuIcon(): HTMLSpanElement {
+  const icon = document.createElement("span");
+  icon.className = "course-progress-menu-icon";
+  icon.setAttribute("aria-hidden", "true");
+  icon.append(document.createElement("i"), document.createElement("i"), document.createElement("i"));
+  return icon;
+}
+
+function createDrawer(): {
+  drawer: HTMLElement;
+  scrim: HTMLButtonElement;
+  closeButton: HTMLButtonElement;
+  currentLink?: HTMLAnchorElement;
+} {
+  const scrim = document.createElement("button");
+  scrim.type = "button";
+  scrim.className = "course-drawer-scrim";
+  scrim.tabIndex = -1;
+  scrim.setAttribute("aria-label", "Close course navigation");
+
+  const drawer = document.createElement("aside");
+  drawer.id = "course-drawer";
+  drawer.className = "course-drawer";
+  drawer.setAttribute("role", "dialog");
+  drawer.setAttribute("aria-modal", "true");
+  drawer.setAttribute("aria-labelledby", "course-drawer-title");
+  drawer.setAttribute("aria-hidden", "true");
+
+  const header = document.createElement("header");
+  const heading = document.createElement("div");
+  heading.innerHTML = '<span>COURSE NAVIGATION</span><strong id="course-drawer-title">Clebsch fluids on surfaces</strong>';
+  const closeButton = document.createElement("button");
+  closeButton.type = "button";
+  closeButton.className = "course-drawer-close";
+  closeButton.setAttribute("aria-label", "Close course navigation");
+  closeButton.textContent = "×";
+  header.append(heading, closeButton);
+
+  const overview = document.createElement("a");
+  overview.className = "course-drawer-overview";
+  overview.href = "./course.html";
+  overview.innerHTML = "<span>START HERE</span><strong>Open the complete course map</strong><i>Four units · ten core lessons →</i>";
+
+  const navigation = document.createElement("nav");
+  navigation.className = "course-drawer-lessons";
+  navigation.setAttribute("aria-label", "All course lessons");
+
+  let currentLink: HTMLAnchorElement | undefined;
+  let lastUnit = "";
+  let unitList: HTMLOListElement | undefined;
+  LESSONS.forEach((lesson, index) => {
+    if (lesson.unit !== lastUnit) {
+      const section = document.createElement("section");
+      const unitTitle = document.createElement("h2");
+      unitTitle.textContent = lesson.unit;
+      unitList = document.createElement("ol");
+      section.append(unitTitle, unitList);
+      navigation.append(section);
+      lastUnit = lesson.unit;
+    }
+
+    const item = document.createElement("li");
+    const anchor = document.createElement("a");
+    anchor.href = `./${lesson.path}`;
+    anchor.innerHTML = `<b>${String(index + 1).padStart(2, "0")}</b><span>${lesson.title}</span><i>→</i>`;
+    if (lesson.path === currentPath) {
+      anchor.classList.add("current");
+      anchor.setAttribute("aria-current", "page");
+      currentLink = anchor;
+    }
+    item.append(anchor);
+    unitList!.append(item);
+  });
+
+  const branches = document.createElement("section");
+  branches.className = "course-drawer-branches";
+  const branchTitle = document.createElement("h2");
+  branchTitle.textContent = "REFERENCES + ELECTIVES";
+  const branchList = document.createElement("ul");
+  Object.entries(SUPPLEMENTS).forEach(([path, item]) => {
+    const listItem = document.createElement("li");
+    const anchor = document.createElement("a");
+    anchor.href = `./${path}`;
+    anchor.innerHTML = `<span><b>${item.kind}</b><strong>${item.title}</strong><small>${item.description}</small></span><i>→</i>`;
+    if (path === currentPath) {
+      anchor.classList.add("current");
+      anchor.setAttribute("aria-current", "page");
+      currentLink = anchor;
+    }
+    listItem.append(anchor);
+    branchList.append(listItem);
+  });
+  branches.append(branchTitle, branchList);
+  navigation.append(branches);
+
+  const footer = document.createElement("footer");
+  footer.innerHTML = '<a href="./index.html">← Direction Field Lab</a><a href="./references.html#flow">Reading map →</a>';
+
+  drawer.append(header, overview, navigation, footer);
+  document.body.append(scrim, drawer);
+  return { drawer, scrim, closeButton, currentLink };
+}
+
 if (lessonIndex >= 0 || supplement) {
   const progress = document.createElement("nav");
   progress.className = "course-progress";
   progress.setAttribute("aria-label", "Course progress");
 
-  const mapLink = document.createElement("a");
-  mapLink.className = "course-progress-map";
-  mapLink.href = "./course.html";
-  mapLink.innerHTML = "<span>COURSE</span><strong>Clebsch fluids on surfaces</strong>";
-  progress.append(mapLink);
+  const menuButton = document.createElement("button");
+  menuButton.type = "button";
+  menuButton.className = "course-progress-menu";
+  menuButton.setAttribute("aria-controls", "course-drawer");
+  menuButton.setAttribute("aria-expanded", "false");
+  const menuCopy = document.createElement("span");
+  menuCopy.className = "course-progress-menu-copy";
+  menuCopy.innerHTML = "<span>COURSE MENU</span><strong>See every lesson</strong>";
+  menuButton.append(createMenuIcon(), menuCopy);
+  progress.append(menuButton);
 
   const current = document.createElement("div");
   current.className = "course-progress-current";
@@ -80,4 +206,54 @@ if (lessonIndex >= 0 || supplement) {
   const pageHeader = document.body.querySelector(":scope > header");
   if (pageHeader) pageHeader.insertAdjacentElement("afterend", progress);
   else document.body.prepend(progress);
+
+  const { drawer, scrim, closeButton, currentLink } = createDrawer();
+  let previouslyFocused: HTMLElement | null = null;
+
+  const focusableElements = (): HTMLElement[] => Array.from(
+    drawer.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+  );
+
+  const openDrawer = (): void => {
+    previouslyFocused = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    document.body.classList.add("course-drawer-open");
+    drawer.classList.add("open");
+    scrim.classList.add("open");
+    drawer.setAttribute("aria-hidden", "false");
+    menuButton.setAttribute("aria-expanded", "true");
+    closeButton.focus();
+    currentLink?.scrollIntoView({ block: "center" });
+  };
+
+  const closeDrawer = (): void => {
+    document.body.classList.remove("course-drawer-open");
+    drawer.classList.remove("open");
+    scrim.classList.remove("open");
+    drawer.setAttribute("aria-hidden", "true");
+    menuButton.setAttribute("aria-expanded", "false");
+    previouslyFocused?.focus();
+  };
+
+  menuButton.addEventListener("click", openDrawer);
+  closeButton.addEventListener("click", closeDrawer);
+  scrim.addEventListener("click", closeDrawer);
+  drawer.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+      event.preventDefault();
+      closeDrawer();
+      return;
+    }
+    if (event.key !== "Tab") return;
+    const focusable = focusableElements();
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (!first || !last) return;
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
+  });
 }
