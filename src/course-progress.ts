@@ -18,11 +18,9 @@ const LESSONS: readonly CourseLesson[] = [
   { path: "clebsch-surfaces-action.html", unit: "UNIT I · READ THE FIELD", title: "Clebsch variables in action" },
   { path: "disk-circulation.html", unit: "UNIT II · CIRCULATION + TOPOLOGY", title: "From a disk to an annulus" },
   { path: "flat-torus-cohomology.html", unit: "UNIT II · CIRCULATION + TOPOLOGY", title: "Two harmonic periods on a torus" },
-  { path: "random-fluids.html", unit: "UNIT III · KINEMATICS → DYNAMICS", title: "Random kinematic surface fields" },
-  { path: "bernoulli-clebsch.html", unit: "UNIT III · KINEMATICS → DYNAMICS", title: "Bernoulli to Clebsch transport" },
-  { path: "shallow-water.html", unit: "UNIT IV · SHALLOW WATER", title: "Conservative shallow-water baseline" },
-  { path: "clebsch-shallow-water.html", unit: "UNIT IV · SHALLOW WATER", title: "Clebsch shallow water" },
-  { path: "mobius-shallow-water.html", unit: "UNIT IV · SHALLOW WATER", title: "Water on a Möbius strip" },
+  { path: "random-fluids.html", unit: "UNIT III · KINEMATICS", title: "Random fields and pressure projection" },
+  { path: "shallow-water.html", unit: "UNIT IV · DYNAMICS", title: "Conservative shallow-water baseline" },
+  { path: "clebsch-shallow-water.html", unit: "UNIT IV · DYNAMICS", title: "Clebsch shallow water" },
 ];
 
 const SUPPLEMENTS: Record<string, CourseSupplement> = {
@@ -31,28 +29,9 @@ const SUPPLEMENTS: Record<string, CourseSupplement> = {
     title: "Exterior calculus + DEC lookup",
     description: "Types, storage locations, signs, and gauges.",
   },
-  "projective-clebsch.html": {
-    kind: "DEEP DIVE",
-    title: "Roots, branches, and monodromy",
-    description: "Specialized spatial-cover details.",
-  },
-  "symmetric-clebsch.html": {
-    kind: "DEEP DIVE",
-    title: "Symmetry and Clebsch gauge",
-    description: "Specialized gauge and reflection details.",
-  },
-  "reversible-line-fluid.html": {
-    kind: "ELECTIVE PATH",
-    title: "Topological polyvector fluids",
-    description: "Unified guide to 4-RoSy projection, covers, and time reversal.",
-  },
 };
 
-const UNIFIED_TOPOLOGY_DEEP_DIVES = new Set([
-  "projective-clebsch.html",
-  "symmetric-clebsch.html",
-  "mobius-shallow-water.html",
-]);
+const DRAWER_SUPPLEMENTS = ["clebsch-surfaces-reference.html"] as const;
 
 const currentPath = window.location.pathname.split("/").pop() || "index.html";
 const lessonIndex = LESSONS.findIndex((lesson) => lesson.path === currentPath);
@@ -103,7 +82,7 @@ function createDrawer(): {
 
   const header = document.createElement("header");
   const heading = document.createElement("div");
-  heading.innerHTML = '<span>COURSE NAVIGATION</span><strong id="course-drawer-title">Clebsch fluids on surfaces</strong>';
+  heading.innerHTML = '<span>SITE NAVIGATION</span><strong id="course-drawer-title">Direction fields + shallow water</strong>';
   const closeButton = document.createElement("button");
   closeButton.type = "button";
   closeButton.className = "course-drawer-close";
@@ -114,7 +93,12 @@ function createDrawer(): {
   const overview = document.createElement("a");
   overview.className = "course-drawer-overview";
   overview.href = "./course.html";
-  overview.innerHTML = "<span>START HERE</span><strong>Open the complete course map</strong><i>Four units · ten core lessons →</i>";
+  overview.innerHTML = "<span>GUIDED ROUTE</span><strong>Open the shallow-water course</strong><i>Four units · eight lessons →</i>";
+
+  const gallery = document.createElement("a");
+  gallery.className = "course-drawer-gallery";
+  gallery.href = "./index.html";
+  gallery.innerHTML = "<span>OPEN EXPLORATION</span><strong>Browse the Direction Field Lab</strong><i>Independent geometry-processing experiments →</i>";
 
   const navigation = document.createElement("nav");
   navigation.className = "course-drawer-lessons";
@@ -150,9 +134,10 @@ function createDrawer(): {
   const branches = document.createElement("section");
   branches.className = "course-drawer-branches";
   const branchTitle = document.createElement("h2");
-  branchTitle.textContent = "REFERENCES + ELECTIVES";
+  branchTitle.textContent = "COURSE REFERENCE";
   const branchList = document.createElement("ul");
-  Object.entries(SUPPLEMENTS).forEach(([path, item]) => {
+  DRAWER_SUPPLEMENTS.forEach((path) => {
+    const item = SUPPLEMENTS[path]!;
     const listItem = document.createElement("li");
     const anchor = document.createElement("a");
     anchor.href = `./${path}`;
@@ -169,9 +154,9 @@ function createDrawer(): {
   navigation.append(branches);
 
   const footer = document.createElement("footer");
-  footer.innerHTML = '<a href="./index.html">← Direction Field Lab</a><a href="./references.html#flow">Reading map →</a>';
+  footer.innerHTML = '<a href="./index.html">← Lab gallery</a><a href="./references.html#flow">Reading map →</a>';
 
-  drawer.append(header, overview, navigation, footer);
+  drawer.append(header, overview, gallery, navigation, footer);
   document.body.append(scrim, drawer);
   return { drawer, scrim, closeButton, currentLink };
 }
@@ -188,7 +173,7 @@ if (lessonIndex >= 0 || supplement) {
   menuButton.setAttribute("aria-expanded", "false");
   const menuCopy = document.createElement("span");
   menuCopy.className = "course-progress-menu-copy";
-  menuCopy.innerHTML = "<span>COURSE MENU</span><strong>See every lesson</strong>";
+  menuCopy.innerHTML = "<span>SITE MAP</span><strong>Course or gallery</strong>";
   menuButton.append(createMenuIcon(), menuCopy);
   progress.append(menuButton);
 
@@ -198,7 +183,7 @@ if (lessonIndex >= 0 || supplement) {
     const lesson = LESSONS[lessonIndex]!;
     current.innerHTML = `<span>LESSON ${lessonIndex + 1} OF ${LESSONS.length} · ${lesson.unit}</span><strong>${lesson.title}</strong><i style="--course-progress:${100 * (lessonIndex + 1) / LESSONS.length}%"></i>`;
   } else {
-    current.innerHTML = `<span>${supplement!.kind} · OFF THE CORE SPINE</span><strong>${supplement!.title}</strong><i style="--course-progress:0%"></i>`;
+    current.innerHTML = `<span>${supplement!.kind}</span><strong>${supplement!.title}</strong><i style="--course-progress:0%"></i>`;
   }
   progress.append(current);
 
@@ -217,13 +202,6 @@ if (lessonIndex >= 0 || supplement) {
   const pageHeader = document.body.querySelector(":scope > header");
   if (pageHeader) pageHeader.insertAdjacentElement("afterend", progress);
   else document.body.prepend(progress);
-
-  if (UNIFIED_TOPOLOGY_DEEP_DIVES.has(currentPath)) {
-    const guide = document.createElement("aside");
-    guide.className = "course-topic-guide";
-    guide.innerHTML = '<span>NEW TO THESE IDEAS?</span><strong>Start with the unified topology guide.</strong><p>It separates root symmetry, spatial monodromy, Möbius reflection, pressure projection, and Euler time reversal before this specialized page.</p><a href="./reversible-line-fluid.html">OPEN THE FOUR-QUESTION GUIDE →</a>';
-    progress.insertAdjacentElement("afterend", guide);
-  }
 
   const { drawer, scrim, closeButton, currentLink } = createDrawer();
   let previouslyFocused: HTMLElement | null = null;

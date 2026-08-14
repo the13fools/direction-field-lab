@@ -301,6 +301,10 @@ function drawGlyphs(context: CanvasRenderingContext2D, left: number, top: number
   const cell = side / n;
   const stride = Math.max(1, Math.ceil(n / 12));
   const maximum = Math.max(1e-12, ...field.vectors.map((value) => Math.hypot(value.x, value.y)));
+  context.save();
+  context.beginPath();
+  context.rect(left, top, side, side);
+  context.clip();
   context.strokeStyle = field.color;
   context.lineWidth = field.covectors ? 1.15 : 1.35;
   for (let row = 0; row < n; row += stride) {
@@ -316,6 +320,7 @@ function drawGlyphs(context: CanvasRenderingContext2D, left: number, top: number
       }
     }
   }
+  context.restore();
 }
 
 function drawField(): void {

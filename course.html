@@ -17,9 +17,9 @@
     <main>
       <section class="course-hero">
         <div>
-          <p class="course-eyebrow">Ten lessons · four conceptual turns</p>
+          <p class="course-eyebrow">Eight lessons · four conceptual turns</p>
           <h1>Learn the language.<br />Find the topology.<br /><em>Then evolve the fluid.</em></h1>
-          <p>This path is for students building toward shallow water on curved surfaces with Clebsch variables. Each lesson asks one question, introduces one new burden, and preserves the audits established earlier.</p>
+          <p>This is the guided path for students building toward shallow water on curved surfaces with Clebsch variables. It is deliberately shorter than the surrounding Direction Field Lab gallery: each lesson asks one question, introduces one new burden, and preserves the audits established earlier.</p>
           <div class="course-actions"><a class="primary" href="./dec-playground.html">Begin lesson 1</a><a href="#course-units">See the complete path</a></div>
         </div>
         <aside>
@@ -52,7 +52,7 @@
           <ol class="course-lessons">
             <li><a href="./dec-playground.html"><b>01</b><div><span>FORMS, d, AND THE HODGE STAR</span><h3>What kind of object lives where?</h3><p>Distinguish vertex scalars, edge-integrated one-forms, face-integrated two-forms, and metric-dependent conversions.</p><strong>Exit test: identify the type and integration domain of every variable.</strong></div><em>OPEN LAB →</em></a></li>
             <li><a href="./clebsch-surfaces.html"><b>02</b><div><span>THE PHYSICAL PROBLEM</span><h3>What must a fluid representation remember?</h3><p>Separate velocity, circulation, vorticity, and incompressibility before comparing velocity, vorticity, and Clebsch states.</p><strong>Exit test: explain why circulation is not the same datum as pointwise vorticity.</strong></div><em>OPEN LESSON →</em></a></li>
-            <li><a href="./clebsch-surfaces-action.html"><b>03</b><div><span>CLEBSCH IN ACTION</span><h3>How do α, β, and φ share the work?</h3><p>Carry material labels, make the covector visible, assemble the one-form, and inspect the first chart obstruction.</p><strong>Exit test: derive du<sup>♭</sup> = dα ∧ dβ and state what dφ cannot change.</strong></div><em>OPEN LAB →</em></a></li>
+            <li><a href="./clebsch-surfaces-action.html"><b>03</b><div><span>CLEBSCH IN ACTION</span><h3>How do α, β, and φ share the work?</h3><p>Carry material labels, make the covector visible, and assemble the local velocity one-form. Leave the global obstruction for the topology unit.</p><strong>Exit test: derive du<sup>♭</sup> = dα ∧ dβ and state what dφ cannot change.</strong></div><em>OPEN LAB →</em></a></li>
           </ol>
           <aside><strong>Unit I checkpoint</strong><p>Given scalar fields φ, α, β and a metric, construct the velocity vector in the correct order: differentiate, assemble the one-form, then raise the index.</p></aside>
         </section>
@@ -67,32 +67,27 @@
         </section>
 
         <section id="unit-three" class="course-unit">
-          <header><span>UNIT III · SEPARATE KINEMATICS FROM DYNAMICS</span><div><h2>Prescribe, project, then transport.</h2><p>A beautiful moving field is not automatically a fluid solution. First inspect random kinematic fields; then let Euler transport the representation that generates vorticity.</p></div><div class="course-unit-equation course-math-display" data-latex="D_t\alpha=D_t\beta=0,\qquad \delta u^\flat=0">material labels plus constraint</div></header>
+          <header><span>UNIT III · SEPARATE KINEMATICS FROM DYNAMICS</span><div><h2>Prescribe and project before evolving.</h2><p>A beautiful moving field is not automatically a fluid solution. The random-field lab isolates representation and pressure projection so the next unit can introduce physical time evolution without mixing the two ideas.</p></div><div class="course-unit-equation course-math-display" data-latex="u^\flat_{\mathrm{projected}}=u^\flat_{\mathrm{candidate}}-dp">candidate minus exact correction</div></header>
           <ol class="course-lessons">
-            <li><a href="./random-fluids.html"><b>06</b><div><span>RANDOM SURFACE FIELDS</span><h3>What can we learn without claiming dynamics?</h3><p>Combine intrinsic Laplace–Beltrami modes with temporal Perlin coefficients; compare exact, coexact, raw Clebsch, and projected Clebsch families.</p><strong>Exit test: distinguish a prescribed time-dependent velocity from a field evolved by Euler.</strong></div><em>OPEN LAB →</em></a></li>
-            <li><a href="./bernoulli-clebsch.html"><b>07</b><div><span>BERNOULLI → CLEBSCH TRANSPORT</span><h3>How do pressure, topology, and labels coexist?</h3><p>Start with periodic potential flow through a narrowing channel, recover Bernoulli pressure, add label vorticity, and re-solve φ after transport.</p><strong>Exit test: write one time step as transport, candidate construction, Hodge solve, and period restoration.</strong></div><em>OPEN LAB →</em></a></li>
+            <li><a href="./random-fluids.html"><b>06</b><div><span>RANDOM SURFACE FIELDS</span><h3>What can we learn without claiming dynamics?</h3><p>Combine intrinsic Laplace–Beltrami modes with temporal Perlin coefficients; compare raw and projected Clebsch fields on several surfaces.</p><strong>Exit test: explain what projection changes, what it preserves, and why this is still a kinematic experiment.</strong></div><em>OPEN LAB →</em></a></li>
           </ol>
-          <aside><strong>Unit III checkpoint</strong><p>Audit a Clebsch transport step using divergence residual, vorticity identity, material-label drift, and conserved harmonic circulation.</p></aside>
+          <aside><strong>Unit III checkpoint</strong><p>Given a time-dependent candidate one-form, identify its vorticity, divergence, and harmonic periods—and say which of those an exact pressure correction can change.</p></aside>
         </section>
 
         <section id="unit-four" class="course-unit dark">
           <header><span>UNIT IV · LET DEPTH AND GEOMETRY EVOLVE THE STORY</span><div><h2>From incompressible flow to shallow water.</h2><p>Do not project horizontal divergence to zero once it is responsible for changing layer depth. Preserve the representation lessons while replacing the constraint.</p></div><div class="course-unit-equation course-math-display" data-latex="\partial_t h+\operatorname{div}(h u)=0">depth-weighted continuity</div></header>
           <ol class="course-lessons">
-            <li><a href="./shallow-water.html"><b>08</b><div><span>CONSERVATIVE BASELINE</span><h3>Which audits survive a change of variables?</h3><p>Test a linear pressure-wave model, its gradient/divergence adjoint pair, mass, energy, CFL behavior, and a deliberately separate passive dye.</p><strong>Exit test: explain why shallow-water divergence changes h instead of being projected away.</strong></div><em>OPEN LAB →</em></a></li>
-            <li><a href="./clebsch-shallow-water.html"><b>09</b><div><span>CLEBSCH SHALLOW WATER</span><h3>How do label transport and height flux couple?</h3><p>Follow the scalar → covector → vector → flux pipeline and keep the Clebsch and continuity equations conceptually distinct.</p><strong>Exit test: identify which variables are material, which are diagnostic, and which elliptic solve remains.</strong></div><em>OPEN LAB →</em></a></li>
-            <li><a href="./mobius-shallow-water.html"><b>10</b><div><span>NON-ORIENTABLE EXTENSION</span><h3>What changes when no global normal exists?</h3><p>Carry water through a reflected seam, distinguish twisted vorticity from ordinary scalars, use an O(2) frame, and audit material Kelvin loops.</p><strong>Exit test: separate local connection terms from global orientation holonomy.</strong></div><em>OPEN LAB →</em></a></li>
+            <li><a href="./shallow-water.html"><b>07</b><div><span>CONSERVATIVE BASELINE</span><h3>Which audits survive a change of variables?</h3><p>Test a linear pressure-wave model, its gradient/divergence adjoint pair, mass, energy, CFL behavior, and a deliberately separate passive dye.</p><strong>Exit test: explain why shallow-water divergence changes h instead of being projected away.</strong></div><em>OPEN LAB →</em></a></li>
+            <li><a href="./clebsch-shallow-water.html"><b>08</b><div><span>CLEBSCH SHALLOW WATER</span><h3>How do label transport and height flux couple?</h3><p>Follow the scalar → covector → vector → flux pipeline and keep the Clebsch and continuity equations conceptually distinct.</p><strong>Exit test: identify which variables are material, which are diagnostic, and which elliptic solve remains.</strong></div><em>OPEN LAB →</em></a></li>
           </ol>
-          <aside><strong>Course endpoint</strong><p>Students can now specify a surface shallow-water state, transport its Clebsch labels, reconstruct velocity with harmonic data, and name the geometric changes required on a non-orientable mesh.</p></aside>
+          <aside><strong>Course endpoint</strong><p>Students can now specify a surface shallow-water state, transport its Clebsch labels, reconstruct velocity with harmonic data, and audit mass, energy, and representation identities.</p></aside>
         </section>
       </section>
 
       <section id="electives" class="course-electives">
-        <header><p class="course-eyebrow">References and branches</p><h2>Useful, but not prerequisites for the spine.</h2></header>
+        <header><p class="course-eyebrow">Reference and implementation</p><h2>Three supporting tools. No parallel curriculum.</h2></header>
         <div>
           <a href="./clebsch-surfaces-reference.html"><span>REFERENCE</span><strong>Exterior calculus + DEC lookup</strong><p>Return when a type, discrete storage location, sign convention, or gauge becomes ambiguous.</p></a>
-          <a href="./reversible-line-fluid.html"><span>ELECTIVE PATH · START HERE</span><strong>Topological polyvector fluids</strong><p>One guided lab separates 4‑RoSy projection, root monodromy, Möbius reflection, Clebsch gauge, and Euler time reversal.</p></a>
-          <a href="./projective-clebsch.html"><span>DEEP DIVE</span><strong>Roots, branches, and monodromy</strong><p>After the unified guide, inspect one- and two-hole spatial covers in detail.</p></a>
-          <a href="./symmetric-clebsch.html"><span>DEEP DIVE</span><strong>Symmetry and Clebsch gauge</strong><p>After the unified guide, isolate label parity from physical reflection symmetry.</p></a>
           <a href="./energy-playground.html"><span>IMPLEMENTATION</span><strong>Editable sparse energies</strong><p>Explore the optimization and differentiation infrastructure used elsewhere in the lab.</p></a>
           <a href="./getting-started.html"><span>WORKFLOW</span><strong>Run, fork, and publish</strong><p>Use this when moving from a browser lesson to a student code project.</p></a>
         </div>

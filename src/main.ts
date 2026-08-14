@@ -46,6 +46,7 @@ import {
   updateProblemControl,
 } from "./ui/problem-controls";
 import { WebViewer } from "./viewer/web-viewer";
+import { initializeHomeFlowPreview } from "./ui/home-flow-preview";
 
 function element<T extends HTMLElement>(selector: string): T {
   const value = document.querySelector<T>(selector);
@@ -93,6 +94,8 @@ const connectedNote = element("#connected-note");
 const sourceExplainer = element("#source-explainer");
 const codeFocusButton = element<HTMLButtonElement>("#code-focus");
 const sparsityGuide = element<HTMLElement>("#sparsity-guide");
+
+initializeHomeFlowPreview();
 
 const requestedTutorialId = new URLSearchParams(location.search).get("lesson");
 const requestedTutorial = TUTORIALS.find((tutorial) => tutorial.id === requestedTutorialId);

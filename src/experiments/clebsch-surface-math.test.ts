@@ -38,32 +38,23 @@ describe("Clebsch surface lesson math", () => {
     expect(diskCirculationPageSource).toContain("z=c\\,\\operatorname{sn}(u\\mid c^4)");
   });
 
-  it("presents the torus obstruction, atlas repair, and global alternatives", () => {
-    for (const mode of ["single", "atlas", "pair", "harmonic"]) {
-      expect(actionPageSource).toContain(`data-cs-torus-mode="${mode}"`);
-    }
-    expect(actionPageSource).toContain("Exact forms have zero period");
-    expect(actionPageSource).toContain("HOW THE EXTRA CHART FIXES IT");
-    expect(actionPageSource).toContain("A CLEBSCH WORKAROUND");
-    expect(actionPageSource).toContain("\\dim\\mathcal H^1(T^2)=2");
-    expect(actionPageSource).toContain("They become local coordinates only where");
-    expect(actionPageSource).toContain('id="cs-torus-pair-anatomy"');
-    expect(actionPageSource).toContain('data-cs-harmonic-preset="zero"');
-    expect(actionPageSource).toContain('data-cs-harmonic-preset="nonzero"');
+  it("hands topology to the dedicated disk and torus lessons", () => {
+    expect(actionPageSource).toContain('href="./disk-circulation.html"');
     expect(actionPageSource).toContain('href="./flat-torus-cohomology.html"');
-    expect(actionPageSource).toContain("d(d\\phi)=0");
+    expect(actionPageSource).toContain("The next conceptual burden is global circulation");
+    expect(actionPageSource).not.toContain('data-cs-torus-mode=');
+    expect(actionPageSource).not.toContain('id="cs-torus-chart-canvas"');
   });
 
-  it("orders the action tutorial from transport to pairing to construction to topology", () => {
+  it("orders the distilled action tutorial from transport to pairing to construction", () => {
     const material = actionPageSource.indexOf('id="cs-material-title"');
     const pairing = actionPageSource.indexOf('id="cs-pairing-title"');
     const construction = actionPageSource.indexOf('id="cs-field-lab"');
-    const topology = actionPageSource.indexOf('id="cs-roadmap-title"');
 
     expect(material).toBeGreaterThan(-1);
     expect(material).toBeLessThan(pairing);
     expect(pairing).toBeLessThan(construction);
-    expect(construction).toBeLessThan(topology);
+    expect(actionPageSource).not.toContain('id="cs-roadmap-title"');
     expect(actionPageSource).toContain('class="cs-material-torus-link" href="./flat-torus-cohomology.html"');
   });
 
@@ -72,7 +63,7 @@ describe("Clebsch surface lesson math", () => {
     expect(actionPageSource).toContain('href="./clebsch-surfaces.html"');
     expect(actionPageSource).toContain('href="./clebsch-surfaces-reference.html"');
     expect(referencePageSource).toContain('href="./clebsch-surfaces-action.html"');
-    expect(actionPageSource).toContain('<template id="cs-reference-content-moved">');
+    expect(actionPageSource).not.toContain('<template');
     expect(referencePageSource).toContain('id="cs-reference-dec"');
   });
 
@@ -113,9 +104,8 @@ describe("Clebsch surface lesson math", () => {
   });
 
   it("treats both torus harmonic periods as physical velocity state", () => {
-    expect(actionPageSource).toContain("There are two harmonic numbers");
-    expect(actionPageSource).toContain("\\dim\\mathcal H^1(T^2)=2");
-    expect(actionPageSource).toContain("pressure projection subtracts an exact form and therefore cannot remove them");
+    expect(referencePageSource).toContain("\\dim\\mathcal H^1(S)=2g");
+    expect(referencePageSource).toContain("For a torus, store or evolve two coefficients");
     expect(flatTorusPageSource).toContain("Two noncontractible periods remain");
     expect(flatTorusPageSource).toContain("\\Gamma_x=\\oint_{\\gamma_x}\\eta=c_x");
     expect(flatTorusPageSource).toContain("These two numbers are independent velocity data");

@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f1ede1" />
-    <meta name="description" content="A local-first browser lab for inspectable geometry-processing solvers." />
+    <meta name="description" content="An open gallery of inspectable direction-field and geometry-processing experiments, with a separate guided course toward Clebsch shallow water." />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Direction Field Lab" />
     <meta property="og:description" content="Live energies, sparse Hessians, vector-field discretizations, and a path into TinyAD." />
@@ -17,10 +17,10 @@
     <header class="app-header">
       <div class="identity">
         <div class="mark">DFL</div>
-        <div><h1>Direction Field Lab</h1><p>vertex fields · integrable projection · research-ready experiments</p></div>
+        <div><h1>Direction Field Lab</h1><p>open experiment gallery · direction fields · surface fluids</p></div>
       </div>
       <div class="header-actions">
-        <a href="./course.html" class="button primary">Clebsch fluids course</a>
+        <a href="./course.html" class="button primary">Shallow-water course</a>
         <a href="./references.html" class="button dark">Reading map</a>
         <span id="persistence-state" class="persistence-state">local draft ready</span>
         <button id="import-file" class="button dark">Import problem</button>
@@ -35,52 +35,29 @@
     </div>
     <main class="workspace">
       <aside class="sidebar">
-        <details class="first-visit-guide" open>
-          <summary><span>NEW HERE?</span><strong>Choose the course or project path</strong></summary>
-          <ol>
-            <li><a href="./course.html"><b>Study</b><small>Follow the ten-lesson path from forms to Clebsch shallow water.</small></a></li>
-            <li><a href="./getting-started.html"><b>Orient</b><small>See what runs in a browser, locally, and in C++.</small></a></li>
-            <li><a href="./index.html?lesson=hodge-one-form"><b>Decompose</b><small>Start with one Hodge decomposition.</small></a></li>
-            <li><a href="./energy-playground.html"><b>Experiment</b><small>Edit an energy with browser sparse AD.</small></a></li>
-            <li><a href="https://github.com/the13fools/direction-field-lab"><b>Clone</b><small>Continue with TinyAD, Polyscope, and the starter kit.</small></a></li>
-          </ol>
-        </details>
-        <p class="section-label">Vector field tour</p>
-        <p class="sidebar-intro">A compact path from local energies to discrete Hodge theory, integrable projection, and surface flow. Open one chapter at a time.</p>
+        <section class="home-route-map" aria-labelledby="home-route-title">
+          <span>YOU ARE IN THE OPEN LAB</span>
+          <h2 id="home-route-title">Explore freely—or follow the course.</h2>
+          <p>The gallery contains independent geometry-processing experiments. The course is a smaller, ordered path toward a shallow-water solver.</p>
+          <a class="home-route-card fluid" href="./random-fluids.html">
+            <canvas id="home-flow-preview" aria-hidden="true"></canvas>
+            <span>FEATURED GALLERY LAB</span><strong>Random fluids on surfaces</strong><small>Explore Clebsch fields and pressure projection without committing to a physical evolution law.</small>
+          </a>
+          <a class="home-route-card course" href="./course.html"><span>GUIDED ROUTE · 8 LESSONS</span><strong>Build toward shallow water</strong><small>Forms → circulation → topology → projection → dynamics.</small></a>
+        </section>
+        <p class="section-label">Direction-field experiments</p>
+        <p class="sidebar-intro">These chapters are a browseable research gallery. Open whichever representation or numerical question you want to inspect.</p>
         <div id="tutorials" class="tutorial-sections"></div>
         <details class="tour-section roadmap-section" name="tour-sections">
-          <summary class="tour-summary"><span class="tour-marker">D</span><span><strong>Toward shallow water</strong><small>Turn the operators into a conservative surface dynamics stack.</small></span></summary>
+          <summary class="tour-summary"><span class="tour-marker">C</span><span><strong>Guided shallow-water course</strong><small>A separate prerequisite-ordered route through the gallery.</small></span></summary>
           <ol class="roadmap-list">
-            <li><strong>State</strong><span>Vertex height h + vertex tangent velocity u.</span></li>
-            <li><strong>Flux audit</strong><span>Derive an edge 1-form α from u; never hide the transfer.</span></li>
-            <li><strong>Pressure</strong><span>Pair G and D = −Mₕ⁻¹GᵀMᵤ before time integration.</span></li>
-            <li><strong>Linear wave</strong><span>Benchmark mass and energy before adding advection.</span></li>
+            <li><strong>Language</strong><span>Vectors, one-forms, circulation, and vorticity.</span></li>
+            <li><strong>Topology</strong><span>Boundary loops and the harmonic periods vorticity forgets.</span></li>
+            <li><strong>Kinematics</strong><span>Clebsch assembly and pressure projection.</span></li>
+            <li><strong>Dynamics</strong><span>Height flux, label transport, and solver audits.</span></li>
           </ol>
-          <a class="roadmap-launch" href="./shallow-water.html"><strong>Open the runnable starter →</strong><span>Advance a vertex height + tangent velocity pulse, audit mass and energy, then compare a future vorticity state.</span></a>
-          <a class="roadmap-launch" href="./course.html#unit-four"><strong>Follow the shallow-water unit →</strong><span>Take the baseline, Clebsch, and Möbius lessons in prerequisite order.</span></a>
-          <a class="roadmap-launch" href="./clebsch-shallow-water.html"><strong>Open the Clebsch-variable lab →</strong><span>See φ, α, β, and h on a periodic plane; compare vector arrows with covector kernel bars.</span></a>
-          <a class="roadmap-launch" href="./mobius-shallow-water.html"><strong>Open Möbius shallow water →</strong><span>Follow depth, twisted vorticity, and an O(2) frame through a non-orientable seam.</span></a>
-          <a class="roadmap-launch" href="./bernoulli-clebsch.html"><strong>Open Bernoulli to Clebsch transport →</strong><span>Begin with a periodic Venturi pipe, recover pressure, then advect Clebsch labels through an incompressible Hodge reconstruction.</span></a>
-        </details>
-        <details class="tour-section roadmap-section" name="tour-sections">
-          <summary class="tour-summary"><span class="tour-marker">E</span><span><strong>Surface flow fields</strong><small>Move from loop circulation to Clebsch labels, projection, and topology.</small></span></summary>
-          <ol class="roadmap-list">
-            <li><strong>Loop vs. patch</strong><span>Separate circulation ∮u♭ from vorticity du♭ before choosing a representation.</span></li>
-            <li><strong>Kinematic playground</strong><span>Use intrinsic Laplace–Beltrami modes and temporal Perlin noise without pretending they are fluid dynamics.</span></li>
-            <li><strong>Clebsch + projection</strong><span>Build dφ + αdβ, then see exactly what an incompressible Hodge projection removes and preserves.</span></li>
-            <li><strong>Disk boundary</strong><span>Use Stokes to connect prescribed boundary circulation with the vorticity inside a contractible domain.</span></li>
-            <li><strong>Nozzle transport</strong><span>Separate harmonic through-flow, exact pressure reconstruction, and the transported Clebsch vorticity term.</span></li>
-            <li><strong>Two torus periods</strong><span>Restore the harmonic circulations that local vorticity cannot determine.</span></li>
-            <li><strong>Shallow-water handoff</strong><span>Let divergence evolve height instead of projecting it away.</span></li>
-          </ol>
-          <a class="roadmap-launch" href="./course.html"><strong>Follow the complete Clebsch fluids course →</strong><span>Ten ordered lessons with one question, exit test, and handoff at each stage.</span></a>
-          <a class="roadmap-launch" href="./clebsch-surfaces.html"><strong>Start with circulation and vorticity →</strong><span>Begin gently, build the Clebsch one-form, then expose the two harmonic degrees of freedom on a torus.</span></a>
-          <a class="roadmap-launch" href="./projective-clebsch.html"><strong>Open projective Clebsch fields →</strong><span>Carry a local line or polyvector branch around one or two holes and watch its monodromy accumulate.</span></a>
-          <a class="roadmap-launch" href="./symmetric-clebsch.html"><strong>Open the symmetry + gauge lab →</strong><span>Compare symmetric labels, a genuine parity break, and asymmetric-looking gauge-equivalent triples.</span></a>
-          <a class="roadmap-launch" href="./random-fluids.html"><strong>Open the random kinematic lab →</strong><span>Switch geometry and Hodge family, reveal vorticity, and audit the differential identities live.</span></a>
-          <a class="roadmap-launch" href="./disk-circulation.html"><strong>Open the circulating-disk lab →</strong><span>Advect a parameter grid and compare a smooth disk with the punctured-domain obstruction.</span></a>
-          <a class="roadmap-launch" href="./bernoulli-clebsch.html"><strong>Open the periodic-nozzle lab →</strong><span>Work from the area law and Bernoulli pressure all the way to transported α and β labels.</span></a>
-          <a class="roadmap-launch" href="./flat-torus-cohomology.html"><strong>Open the two-period torus lab →</strong><span>Hold vorticity fixed while changing harmonic circulation and particle winding.</span></a>
+          <a class="roadmap-launch" href="./course.html"><strong>Open the eight-lesson course map →</strong><span>Use this route when you want the experiments in a deliberate teaching order.</span></a>
+          <a class="roadmap-launch" href="./shallow-water.html"><strong>Jump to the conservative baseline →</strong><span>Advance height and velocity and audit mass and energy.</span></a>
         </details>
         <div class="local-area">
           <p class="section-label">This browser</p>
