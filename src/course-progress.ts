@@ -32,21 +32,27 @@ const SUPPLEMENTS: Record<string, CourseSupplement> = {
     description: "Types, storage locations, signs, and gauges.",
   },
   "projective-clebsch.html": {
-    kind: "ELECTIVE",
-    title: "Projective Clebsch fields",
-    description: "Line fields, branches, and monodromy.",
+    kind: "DEEP DIVE",
+    title: "Roots, branches, and monodromy",
+    description: "Specialized spatial-cover details.",
   },
   "symmetric-clebsch.html": {
-    kind: "ELECTIVE",
+    kind: "DEEP DIVE",
     title: "Symmetry and Clebsch gauge",
-    description: "Label parity versus physical invariance.",
+    description: "Specialized gauge and reflection details.",
   },
   "reversible-line-fluid.html": {
-    kind: "ELECTIVE",
-    title: "Reversible line fluids",
-    description: "Co-integrable projection versus Euler time reversal.",
+    kind: "ELECTIVE PATH",
+    title: "Topological polyvector fluids",
+    description: "Unified guide to 4-RoSy projection, covers, and time reversal.",
   },
 };
+
+const UNIFIED_TOPOLOGY_DEEP_DIVES = new Set([
+  "projective-clebsch.html",
+  "symmetric-clebsch.html",
+  "mobius-shallow-water.html",
+]);
 
 const currentPath = window.location.pathname.split("/").pop() || "index.html";
 const lessonIndex = LESSONS.findIndex((lesson) => lesson.path === currentPath);
@@ -211,6 +217,13 @@ if (lessonIndex >= 0 || supplement) {
   const pageHeader = document.body.querySelector(":scope > header");
   if (pageHeader) pageHeader.insertAdjacentElement("afterend", progress);
   else document.body.prepend(progress);
+
+  if (UNIFIED_TOPOLOGY_DEEP_DIVES.has(currentPath)) {
+    const guide = document.createElement("aside");
+    guide.className = "course-topic-guide";
+    guide.innerHTML = '<span>NEW TO THESE IDEAS?</span><strong>Start with the unified topology guide.</strong><p>It separates root symmetry, spatial monodromy, Möbius reflection, pressure projection, and Euler time reversal before this specialized page.</p><a href="./reversible-line-fluid.html">OPEN THE FOUR-QUESTION GUIDE →</a>';
+    progress.insertAdjacentElement("afterend", guide);
+  }
 
   const { drawer, scrim, closeButton, currentLink } = createDrawer();
   let previouslyFocused: HTMLElement | null = null;
