@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#17102f" />
-    <meta name="description" content="An annotated source trail for the Direction Field Lab: DEC, vector fields, integrable projection, stripes, automatic differentiation, and surface flow." />
+    <meta name="description" content="A curated reading path for the Direction Field Lab: exterior calculus, field representations, structure-preserving fluids, topology, Clebsch variables, and shallow water on surfaces." />
     <meta property="og:title" content="Direction Field Lab · Reading map" />
     <meta property="og:description" content="Canonical papers, course notes, and reference implementations behind the interactive vector-field tour." />
     <meta property="og:image" content="./og.png" />
@@ -14,7 +14,7 @@
     <header class="reference-header">
       <a href="./index.html">← Direction Field Lab</a>
       <div><span>ANNOTATED SOURCE TRAIL</span><strong>Reading map</strong></div>
-      <a href="./getting-started.html">Student setup →</a>
+      <a href="./course.html">Course map →</a>
     </header>
 
     <main>
@@ -22,7 +22,7 @@
         <div>
           <p class="eyebrow">PAPER ↔ OPERATOR ↔ EXPERIMENT</p>
           <h1>Follow the idea<br /><em>back to its source.</em></h1>
-          <p>This is a selective reading path, not an exhaustive bibliography. Each work earns its place by defining an operator used in the lab, comparing a representation choice, or showing where the student experiment can grow.</p>
+          <p>This is a selective reading path, not an exhaustive bibliography. Start with the notes beside the lesson you are studying; follow the research papers when you need to distinguish a teaching model from a solver architecture.</p>
         </div>
         <nav class="reference-index" aria-label="Reading map sections">
           <a href="#dec"><span>01</span><strong>DEC + Hodge</strong></a>
@@ -30,7 +30,7 @@
           <a href="#integrability"><span>03</span><strong>Integrable fields</strong></a>
           <a href="#stripes"><span>04</span><strong>Stripe realization</strong></a>
           <a href="#optimization"><span>05</span><strong>Sparse differentiation</strong></a>
-          <a href="#flow"><span>06</span><strong>Surface flow + pedagogy</strong></a>
+          <a href="#flow"><span>06</span><strong>Fluids on surfaces</strong></a>
         </nav>
       </section>
 
@@ -40,14 +40,24 @@
           <article data-kind="course"><div><span>COURSE NOTES · 2013</span><b>Crane, de Goes, Desbrun & Schröder</b></div><h3>Digital Geometry Processing with Discrete Exterior Calculus</h3><p>The canonical computational path from cochains and incidence matrices through metric Hodge stars and geometry-processing algorithms.</p><nav><a href="https://www.cs.cmu.edu/~kmcrane/Projects/DDG/" target="_blank" rel="noreferrer">Course + notes ↗</a><a href="./dec-playground.html">Lab companion →</a></nav></article>
           <article data-kind="survey"><div><span>COURSE NOTES · 2016</span><b>de Goes, Desbrun & Tong</b></div><h3>Vector Field Processing on Triangle Meshes</h3><p>A representation-aware account of face-, edge-, and vertex-based fields, with their differential operators and Hodge decompositions.</p><nav><a href="https://www.geometry.caltech.edu/pubs/dGDT15.pdf" target="_blank" rel="noreferrer">Read the notes ↗</a><a href="./representations.html">Representation audit →</a></nav></article>
         </div>
+        <div class="reference-subsection">
+          <div><span>READ THESE BESIDE LESSON 1</span><h3>Two gentler entries—and the design principle behind this site.</h3></div>
+          <p>The course notes explain the smooth language; the browser tutorial makes the discrete matrices concrete; the essay explains why the calculation should remain manipulable.</p>
+        </div>
+        <div class="reference-grid three compact">
+          <article data-kind="course"><div><span>SIGGRAPH COURSE · 2023</span><b>Wang, Nabizadeh & Chern</b></div><h3>Exterior Calculus in Graphics</h3><p>An advanced-undergraduate bridge from vectors and covectors to differential forms, continuum mechanics, and fluid dynamics. This is the conceptual reference for the early Clebsch lessons.</p><nav><a href="https://stephaniewang.page/ExteriorCalculusInGraphics/" target="_blank" rel="noreferrer">Course + lecture notes ↗</a><a href="./clebsch-surfaces-reference.html">Notation companion →</a></nav></article>
+          <article data-kind="course"><div><span>INTERACTIVE TUTORIAL</span><b>Geometry Collective</b></div><h3>Discrete Exterior Calculus</h3><p>A focused implementation exercise for building incidence matrices, Hodge stars, and the Laplace–Beltrami operator on a triangle mesh.</p><nav><a href="https://geometrycollective.github.io/geometry-processing-js/projects/discrete-exterior-calculus/index.html" target="_blank" rel="noreferrer">Open the DEC tutorial ↗</a><a href="./dec-playground.html">Compare with this lab →</a></nav></article>
+          <article data-kind="essay"><div><span>DESIGN ESSAY · 2011/2024</span><b>Bret Victor</b></div><h3>Explorable Explanations</h3><p>The pedagogical north star: a mathematical claim should be accompanied by a model whose assumptions, state, and consequences can be inspected.</p><nav><a href="https://worrydream.com/ExplorableExplanations/" target="_blank" rel="noreferrer">Read the essay ↗</a></nav></article>
+        </div>
       </section>
 
       <section id="fields" class="reference-section alternate">
         <header><span>02 · TANGENT DATA</span><h2>Representations, connections, and field design</h2><p>These works separate where a field is stored from how vectors in different tangent planes are compared.</p></header>
-        <div class="reference-grid three">
+        <div class="reference-grid">
           <article data-kind="paper"><div><span>CGF · 2010</span><b>Crane, Desbrun & Schröder</b></div><h3>Trivial Connections on Discrete Surfaces</h3><p>Builds smooth discrete connections with controlled singularities—the intrinsic reference behind connection-based field comparison.</p><nav><a href="https://doi.org/10.1111/j.1467-8659.2010.01761.x" target="_blank" rel="noreferrer">Publisher page ↗</a><a href="./vertex-curl.html">Connection microscope →</a></nav></article>
           <article data-kind="paper"><div><span>ACM TOG · 2013</span><b>Knöppel, Crane, Pinkall & Schröder</b></div><h3>Globally Optimal Direction Fields</h3><p>Turns smooth direction-field design and singularity placement into a sparse global eigenproblem.</p><nav><a href="https://doi.org/10.1145/2461912.2462005" target="_blank" rel="noreferrer">DOI ↗</a></nav></article>
           <article data-kind="software"><div><span>REFERENCE LIBRARY</span><b>Vaxman et al.</b></div><h3>Directional tutorial</h3><p>A practical taxonomy and C++ implementation of tangent bundles, symmetries, representations, matching, and field processing.</p><nav><a href="https://avaxman.github.io/Directional/tutorial/" target="_blank" rel="noreferrer">Open tutorial ↗</a></nav></article>
+          <article data-kind="paper"><div><span>ACM TOG · 2023</span><b>Feng, Gillespie & Crane</b></div><h3>Winding Numbers on Discrete Surfaces</h3><p>A clean representation-first example: encode difficult curve data by differential one-forms, use Hodge decomposition to isolate topology, then reconstruct the geometric answer.</p><nav><a href="https://nzfeng.github.io/research/WNoDS/index.html" target="_blank" rel="noreferrer">Project + explanation ↗</a><a href="./representations.html">Representation audit →</a></nav></article>
         </div>
       </section>
 
@@ -77,18 +87,54 @@
       </section>
 
       <section id="flow" class="reference-section alternate">
-        <header><span>06 · DESTINATION + MEDIUM</span><h2>Surface flow and explorable explanations</h2><p>One branch supplies the physical destination; the other asks how a computational argument can remain inspectable and editable.</p></header>
+        <header><span>06 · PHYSICAL DESTINATION</span><h2>Fluids on surfaces: a deliberate reading order</h2><p>These papers do not describe one interchangeable method. They progressively change the stored state, the preserved structure, the topology, and finally the governing equations.</p></header>
+
+        <nav class="flow-roadmap" aria-label="Surface fluid reading order">
+          <a href="#flow-language"><b>1</b><span><strong>Choose the state</strong><small>Velocity, covector, vorticity, or Clebsch variables</small></span></a>
+          <a href="#flow-structure"><b>2</b><span><strong>Preserve structure</strong><small>Relabeling, Kelvin circulation, energy, Casimirs</small></span></a>
+          <a href="#flow-topology"><b>3</b><span><strong>Restore topology</strong><small>Harmonic periods that vorticity does not determine</small></span></a>
+          <a href="#flow-surface"><b>4</b><span><strong>Add surface physics</strong><small>Depth, curvature, boundaries, and viscosity</small></span></a>
+        </nav>
+
+        <div id="flow-language" class="reference-subsection">
+          <div><span>1 · REPRESENTATION</span><h3>What should the solver carry?</h3></div>
+          <p>Read these after the gentle Clebsch introduction. They explain why circulation is naturally a one-form measurement, and why Clebsch variables are a factorization of that one-form rather than a new physical fluid.</p>
+        </div>
         <div class="reference-grid three">
-          <article data-kind="paper"><div><span>SCA · 2007</span><b>Wang, Miller & Turk</b></div><h3>Solving General Shallow Wave Equations on Surfaces</h3><p>A canonical graphics treatment of shallow water directly on curved surfaces without requiring a global parameterization.</p><nav><a href="https://faculty.cc.gatech.edu/~turk/paper_pages/2007_shallow_waves/index.html" target="_blank" rel="noreferrer">Project + paper ↗</a><a href="./shallow-water.html">Run the baseline →</a></nav></article>
-          <article data-kind="paper"><div><span>ACM TOG · 2023</span><b>Feng, Gillespie & Crane</b></div><h3>Winding Numbers on Discrete Surfaces</h3><p>A model problem in representation-first reasoning: translate difficult curve data into a differential one-form, use Hodge decomposition to isolate topology, then reconstruct the geometric answer.</p><nav><a href="https://nzfeng.github.io/research/WNoDS/index.html" target="_blank" rel="noreferrer">Project + explanation ↗</a><a href="./representations.html">Representation audit →</a></nav></article>
-          <article data-kind="essay"><div><span>ESSAY · 2011/2024</span><b>Bret Victor</b></div><h3>Explorable Explanations</h3><p>The design north star: claims backed by computational models whose assumptions and calculations remain visible and editable.</p><nav><a href="https://worrydream.com/ExplorableExplanations/" target="_blank" rel="noreferrer">Read the essay ↗</a></nav></article>
-          <article data-kind="course"><div><span>BROWSER COURSE</span><b>Geometry Collective</b></div><h3>Geometry Processing in JavaScript</h3><p>Direct precedents for teaching DEC and direction-field design through focused interactive browser assignments.</p><nav><a href="https://geometrycollective.github.io/geometry-processing-js/projects/discrete-exterior-calculus/index.html" target="_blank" rel="noreferrer">DEC project ↗</a><a href="https://geometrycollective.github.io/geometry-processing-js/projects/direction-field-design/index.html" target="_blank" rel="noreferrer">Field design ↗</a></nav></article>
+          <article data-kind="paper"><div><span>ACM TOG · 2017</span><b>Chern, Knöppel, Pinkall & Schröder</b></div><h3>Inside Fluids: Clebsch Maps for Visualization and Processing</h3><p>Uses Clebsch maps to expose vortex structure and make a three-dimensional velocity field accessible through transported scalar data.</p><nav><a href="https://cseweb.ucsd.edu/~alchern/projects/Clebsch/" target="_blank" rel="noreferrer">Project + paper ↗</a><a href="./clebsch-surfaces-action.html">See the scalar factorization →</a></nav></article>
+          <article data-kind="paper"><div><span>ACM TOG · 2022</span><b>Nabizadeh, Wang, Ramamoorthi & Chern</b></div><h3>Covector Fluids</h3><p>Rewrites Euler advection in covector form so the numerical update follows circulation and Kelvin’s theorem more directly than ordinary velocity interpolation.</p><nav><a href="https://cseweb.ucsd.edu/~viscomp/projects/SIG22CovectorFluids/" target="_blank" rel="noreferrer">Project + paper ↗</a><a href="./clebsch-surfaces-action.html#cs-pairing-title">Covector lesson →</a></nav></article>
+          <article data-kind="paper"><div><span>ACM TOG · 2023</span><b>Yin, Nabizadeh, Wu, Wang & Chern</b></div><h3>Fluid Cohomology</h3><p>Derives the missing evolution of harmonic velocity components on domains with holes, periodic boundaries, or genus. This is the research foundation for the torus lesson.</p><nav><a href="https://doi.org/10.1145/3592402" target="_blank" rel="noreferrer">Paper ↗</a><a href="https://yhesper.github.io/fc23/fc23.html" target="_blank" rel="noreferrer">Interactive companion ↗</a><a href="./flat-torus-cohomology.html">Torus lab →</a></nav></article>
+        </div>
+
+        <div id="flow-structure" class="reference-subsection">
+          <div><span>2 · VARIATIONAL STRUCTURE</span><h3>Which invariants survive discretization?</h3></div>
+          <p>The older work establishes the discrete-diffeomorphism and Lagrange–d’Alembert lineage. The new vakonomic formulation makes a different choice for nonholonomic constraints and supplies the clearest research destination for low-rank Clebsch state.</p>
+        </div>
+        <div class="reference-grid three">
+          <article data-kind="paper"><div><span>PHYSICA D · 2011</span><b>Pavlov, Mullen, Tong, Kanso, Marsden & Desbrun</b></div><h3>Structure-Preserving Discretization of Incompressible Fluids</h3><p>Approximates volume-preserving diffeomorphisms by a finite-dimensional Lie group and derives a discrete Eulerian integrator with a discrete Kelvin theorem.</p><nav><a href="https://geometry.caltech.edu/pubs/PMT+09.pdf" target="_blank" rel="noreferrer">Read the paper ↗</a><a href="./course.html#unit-three">Course bridge →</a></nav></article>
+          <article data-kind="preprint"><div><span>PREPRINT · 2026</span><b>Roy-Chowdhury, Nabizadeh, Gross, Gruber & Chern</b></div><h3>Vakonomic Fluids</h3><p>Treats the discrete velocity constraint vakonomically, yielding Lie–Poisson dynamics, a discrete relabeling symmetry, Kelvin circulation, and a low-rank momentum-map representation analogous to Clebsch variables.</p><nav><a href="https://arxiv.org/abs/2607.18312" target="_blank" rel="noreferrer">Preprint ↗</a><a href="./clebsch-surfaces-action.html">Representation prerequisite →</a></nav></article>
+          <article data-kind="paper"><div><span>DCDS · 2014</span><b>Desbrun, Gawlik, Gay-Balmaz & Zeitlin</b></div><h3>Variational Discretization for Rotating Stratified Fluids</h3><p>Extends the geometric integrator viewpoint to advected density and rotation, preserving a discrete Kelvin theorem and long-term energy behavior. It is a useful bridge toward geophysical shallow-water structure.</p><nav><a href="https://doi.org/10.3934/dcds.2014.34.477" target="_blank" rel="noreferrer">Paper ↗</a><a href="./clebsch-shallow-water.html">Shallow-water destination →</a></nav></article>
+        </div>
+
+        <div id="flow-topology" class="reference-subsection paired">
+          <div><span>3 · TOPOLOGY</span><h3>Vorticity is local; periods are global.</h3></div>
+          <p><a href="./disk-circulation.html">The annulus lab</a> introduces one missing circulation. <a href="./flat-torus-cohomology.html">The flat-torus lab</a> exposes two. Return to <em>Fluid Cohomology</em> above for the equations that evolve those harmonic coefficients rather than freezing them.</p>
+        </div>
+
+        <div id="flow-surface" class="reference-subsection">
+          <div><span>4 · SURFACE PHYSICS</span><h3>What changes when the domain bends—or the depth evolves?</h3></div>
+          <p>Shallow water replaces the incompressible horizontal constraint by depth-weighted continuity. Viscous surface flow adds a separate geometric burden: curvature, boundary conditions, and harmonic-mode dynamics enter the dissipation.</p>
+        </div>
+        <div class="reference-grid three">
+          <article data-kind="paper"><div><span>SCA · 2007</span><b>Wang, Miller & Turk</b></div><h3>Solving General Shallow Wave Equations on Surfaces</h3><p>A graphics baseline for shallow water directly on curved surfaces without requiring one global parameterization.</p><nav><a href="https://faculty.cc.gatech.edu/~turk/paper_pages/2007_shallow_waves/index.html" target="_blank" rel="noreferrer">Project + paper ↗</a><a href="./shallow-water.html">Run the baseline →</a></nav></article>
+          <article data-kind="paper"><div><span>ACM TOG · 2025</span><b>Zhu, Yin & Chern</b></div><h3>Viscous Vortex Dynamics on Surfaces</h3><p>Derives curvature-dependent viscous terms and the evolution of harmonic components on surfaces of arbitrary topology, including non-orientable domains and several boundary conditions.</p><nav><a href="https://doi.org/10.1145/3763320" target="_blank" rel="noreferrer">Paper ↗</a><a href="https://cseweb.ucsd.edu/~alchern/projects/ViscousVortex/ViscousVortex.pdf" target="_blank" rel="noreferrer">Author preprint ↗</a><a href="./disk-circulation.html">Boundary prerequisite →</a></nav></article>
+          <article data-kind="course"><div><span>COURSE SYNTHESIS</span><b>Direction Field Lab</b></div><h3>Clebsch Shallow Water</h3><p>The course endpoint combines transported labels, covector assembly, metric conversion, depth flux, and harmonic bookkeeping. It is a teaching architecture—not yet an implementation of the vakonomic solver.</p><nav><a href="./clebsch-shallow-water.html">Open the synthesis lab →</a><a href="./course.html">See all prerequisites →</a></nav></article>
         </div>
       </section>
 
       <section class="citation-note">
-        <div><span>FOR STUDENT REPORTS</span><h2>Cite the method you actually use.</h2><p>This page is an orientation map. Follow the project or DOI link for the authors’ preferred BibTeX and version of record, and distinguish an inspiration from an implemented method.</p></div>
-        <nav><a href="./energy-playground.html">Edit an energy live</a><a href="./getting-started.html">Clone the lab</a><a href="./index.html">Return to the course</a></nav>
+        <div><span>FOR STUDENT REPORTS</span><h2>Cite the method you actually use.</h2><p>This page is an orientation map. Follow the project or DOI link for the authors’ preferred BibTeX and version of record; record the version date for preprints; and distinguish an inspiration, a teaching analogue, and an implemented method.</p></div>
+        <nav><a href="./course.html">Follow the course</a><a href="./clebsch-surfaces-reference.html">Open the forms reference</a><a href="./index.html">Return to the gallery</a></nav>
       </section>
     </main>
 
