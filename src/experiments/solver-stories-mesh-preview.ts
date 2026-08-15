@@ -245,11 +245,11 @@ export async function initializeSolverStoriesMeshPreview(
     particlePoints = new THREE.Points(
       pointGeometry,
       new THREE.PointsMaterial({
-        size: 0.018,
+        size: 0.024,
         sizeAttenuation: true,
         vertexColors: true,
         transparent: true,
-        opacity: 0.96,
+        opacity: 1,
         depthWrite: false,
         blending: THREE.AdditiveBlending,
       }),

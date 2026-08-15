@@ -102,6 +102,7 @@ let allFieldVertices: Array<{ position: Vec3; u?: number; v?: number }> = [];
 let showEveryVectorVertex = false;
 
 const TAU = 2 * Math.PI;
+const PARTICLE_TRAIL_LIMIT = 640;
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0d081f);
@@ -308,11 +309,11 @@ function initializeParticles(): void {
   particlePoints = new THREE.Points(
     geometry,
     new THREE.PointsMaterial({
-      size: surface === "frog" ? 0.022 : surface === "square" ? 0.028 : surface === "sphere" ? 0.035 : 0.032,
+      size: surface === "frog" ? 0.029 : surface === "square" ? 0.036 : surface === "sphere" ? 0.043 : 0.04,
       sizeAttenuation: true,
       vertexColors: true,
       transparent: true,
-      opacity: 0.94,
+      opacity: 1,
       depthWrite: false,
       blending: THREE.AdditiveBlending,
     }),
@@ -342,7 +343,7 @@ function updateParticles(appendTrail: boolean): void {
   model.particles.forEach((particle, index) => {
     const point = renderPosition(particle);
     positions.setXYZ(index, point.x, point.y, point.z);
-    if (appendTrail) {
+    if (appendTrail && index < PARTICLE_TRAIL_LIMIT) {
       const history = trailHistory[index]!;
       const previous = history.at(-1);
       if (surface === "square" && previous && Math.hypot(point.x - previous.x, point.y - previous.y) > 1.4) {
@@ -774,12 +775,15 @@ function animate(): void {
   resizeRenderer();
   orbit.update();
   if (playing) {
-    model.step();
-    const appendTrail = frame % 2 === 0;
-    updateParticles(appendTrail);
-    if (frame % 4 === 0) {
-      const samples = updateField();
-      if (frame % 12 === 0) updateDiagnostics(samples);
+    const simulationStride = model.particles.length > 2500 ? 2 : 1;
+    if (frame % simulationStride === 0) {
+      model.step();
+      const appendTrail = frame % (2 * simulationStride) === 0;
+      updateParticles(appendTrail);
+      if (frame % (4 * simulationStride) === 0) {
+        const samples = updateField();
+        if (frame % (12 * simulationStride) === 0) updateDiagnostics(samples);
+      }
     }
     frame += 1;
   }

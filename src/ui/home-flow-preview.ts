@@ -87,6 +87,10 @@ function pushTrail(trail: PreviewTrail, x: number, y: number, limit: number): vo
   }
   trail.x = fract(x);
   trail.y = fract(y);
+  if (limit <= 0) {
+    trail.points.length = 0;
+    return;
+  }
   trail.points.push({ x: trail.x, y: trail.y });
   if (trail.points.length > limit) trail.points.splice(0, trail.points.length - limit);
 }
@@ -137,6 +141,8 @@ function initializeFlowStory(root: HTMLElement): void {
   } | undefined;
 
   const isHomeTeaser = root.classList.contains("home-flow-teaser");
+  const flatParticleCount = isHomeTeaser ? 700 : 1600;
+  const flatTrailCount = isHomeTeaser ? 180 : 360;
   const randomModel = new RandomSurfaceFluidModel({
     surface: "square",
     projection: "clebsch-projected",
@@ -146,7 +152,7 @@ function initializeFlowStory(root: HTMLElement): void {
     turnover: 0.34,
     speed: 0.56,
     timeStep: 0.018,
-    particleCount: isHomeTeaser ? 68 : 130,
+    particleCount: flatParticleCount,
   });
   const waterModel = new FlatShallowWaterPreviewModel(isHomeTeaser ? 24 : 32);
 
@@ -157,7 +163,7 @@ function initializeFlowStory(root: HTMLElement): void {
     group: particle.group,
   }));
   const waterTrails: PreviewTrail[] = Array.from(
-    { length: isHomeTeaser ? 58 : 110 },
+    { length: flatParticleCount },
     (_, index) => ({
       x: seeded(index, 31),
       y: seeded(index, 47),
@@ -311,7 +317,7 @@ function initializeFlowStory(root: HTMLElement): void {
 
   const drawTrails = (trails: readonly PreviewTrail[]): void => {
     context.lineCap = "round";
-    context.lineWidth = isHomeTeaser ? 1 : 1.35;
+    context.lineWidth = isHomeTeaser ? 1.15 : 1.55;
     trails.forEach((trail) => {
       context.strokeStyle = trail.group === 0 ? "rgba(88,224,232,.72)" : "rgba(255,184,91,.78)";
       context.beginPath();
@@ -321,7 +327,7 @@ function initializeFlowStory(root: HTMLElement): void {
       context.stroke();
       context.fillStyle = trail.group === 0 ? "#76f0f4" : "#ffd26a";
       context.beginPath();
-      context.arc(trail.x * width, (1 - trail.y) * height, isHomeTeaser ? 1.35 : 1.8, 0, TAU);
+      context.arc(trail.x * width, (1 - trail.y) * height, isHomeTeaser ? 1.9 : 2.35, 0, TAU);
       context.fill();
     });
   };
@@ -403,14 +409,16 @@ function initializeFlowStory(root: HTMLElement): void {
     if (mode === "random") {
       randomModel.step(1);
       randomModel.particles.forEach((particle, index) => {
-        pushTrail(randomTrails[index]!, particle.u! / TAU, particle.v! / TAU, isHomeTeaser ? 18 : 34);
+        const trailLength = index < flatTrailCount ? (isHomeTeaser ? 18 : 30) : 0;
+        pushTrail(randomTrails[index]!, particle.u! / TAU, particle.v! / TAU, trailLength);
       });
     } else {
       const velocity = waterModel.velocity();
       const dt = Math.min(0.006, elapsed * 0.12);
-      waterTrails.forEach((trail) => {
+      waterTrails.forEach((trail, index) => {
         const field = samplePeriodicVector(velocity, waterModel.parameters.resolution, trail.x, trail.y);
-        pushTrail(trail, trail.x + dt * field.x, trail.y + dt * field.y, isHomeTeaser ? 18 : 34);
+        const trailLength = index < flatTrailCount ? (isHomeTeaser ? 18 : 30) : 0;
+        pushTrail(trail, trail.x + dt * field.x, trail.y + dt * field.y, trailLength);
       });
       waterModel.step(dt);
     }
