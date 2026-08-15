@@ -4,21 +4,21 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#130c2b" />
-    <meta name="description" content="A compact exterior-calculus and DEC reference for the Clebsch variables on surfaces tutorial." />
-    <title>Clebsch exterior-calculus reference · Direction Field Lab</title>
+    <meta name="description" content="A gentle background notebook for Clebsch variables on surfaces: exterior calculus, DEC, gauge freedom, projection, topology, and related fluid methods." />
+    <title>Clebsch background notebook · Direction Field Lab</title>
   </head>
   <body>
     <header class="cs-header">
       <a href="./clebsch-surfaces-action.html">← Part II · In action</a>
-      <div><span>CLEBSCH · TUTORIAL 03 OF 03</span><strong>Forms, DEC, and solver checklist</strong></div>
-      <nav><a href="./flat-torus-cohomology.html">Torus lab</a><a href="./clebsch-shallow-water.html">Clebsch water</a></nav>
+      <div><span>CLEBSCH · BACKGROUND NOTEBOOK</span><strong>Forms, DEC, and neighboring ideas</strong></div>
+      <nav><a href="#cs-related-work">Related work</a><a href="./flat-torus-cohomology.html">Torus lab</a><a href="./clebsch-shallow-water.html">Clebsch water</a></nav>
     </header>
 
     <main>
       <section class="cs-intro">
-        <div><p class="cs-eyebrow">A reference page, not another experiment</p><h1>Keep the types<br /><em>in view.</em></h1></div>
+        <div><p class="cs-eyebrow">A quiet place behind the experiments</p><h1>Keep the types<br /><em>and the lineage in view.</em></h1></div>
         <div class="cs-intro-copy">
-          <p>The live page is now reserved for choosing fields and watching material labels. This page holds the exterior-calculus bookkeeping you need when implementing the same ideas on a mesh.</p>
+          <p>The live page is for choosing fields and watching labels. This notebook is where the slower questions live: what kind of object is each symbol, what does a mesh actually store, why is the representation nonunique, and how does this little construction relate to fluid methods in the literature?</p>
           <div class="cs-math-display" data-latex="(\phi,\alpha,\beta)\in\Omega^0(S)^3\longrightarrow \eta=d\phi+\alpha d\beta\in\Omega^1(S)\longrightarrow\omega=d\eta\in\Omega^2(S)">scalars to velocity one-form to vorticity two-form</div>
           <p>Read straight through once; return later as a solver checklist.</p>
         </div>
@@ -78,9 +78,21 @@
         </div>
       </section>
 
+      <section id="cs-related-work" class="cs-related" aria-labelledby="cs-related-title">
+        <header><div><p class="cs-eyebrow">Four nearby ideas · not four names for the same solver</p><h2 id="cs-related-title">A small map of the neighborhood.</h2></div><p>Clebsch variables are useful partly because they sit between Lagrangian labels and Eulerian fields. Different methods use that bridge for different reasons. Read the question in the right column before following a paper.</p></header>
+        <div class="cs-related-list">
+          <article><span>01 · SEE THE LABEL STRUCTURE</span><div><h3>Inside Fluids: Clebsch Maps</h3><p>Uses Clebsch maps to visualize and process vortex structure. It is the closest conceptual neighbor of the deforming α/β grid in the action lab.</p></div><aside><b>Ask:</b><p>What geometric information becomes easier to see when a vector field is represented by transported scalars?</p><a href="https://cseweb.ucsd.edu/~alchern/projects/Clebsch/" target="_blank" rel="noreferrer">Project + paper ↗</a></aside></article>
+          <article><span>02 · FOLLOW CIRCULATION</span><div><h3>Covector Fluids</h3><p>Starts from the fact that Euler’s circulation law is naturally expressed by a velocity one-form integrated along moving loops.</p></div><aside><b>Ask:</b><p>Should the numerical state be chosen to make the conservation law easier to transport?</p><a href="https://cseweb.ucsd.edu/~viscomp/projects/SIG22CovectorFluids/" target="_blank" rel="noreferrer">Project + paper ↗</a></aside></article>
+          <article><span>03 · KEEP THE MISSING PERIODS</span><div><h3>Fluid Cohomology</h3><p>Derives the dynamics of harmonic velocity components on multiply connected or periodic domains—the part local vorticity reconstruction leaves undetermined.</p></div><aside><b>Ask:</b><p>Which global loop integrals remain after divergence and vorticity have been specified?</p><a href="https://doi.org/10.1145/3592402" target="_blank" rel="noreferrer">Paper ↗</a></aside></article>
+          <article><span>04 · CHOOSE A DISCRETE DYNAMICS</span><div><h3>Vakonomic Fluids</h3><p>Places low-rank Clebsch-like variables inside a vakonomic, Lie–Poisson discretization of Euler flow designed to preserve relabeling structure and invariants.</p></div><aside><b>Ask:</b><p>Which constrained variational principle should govern the discrete trajectories?</p><a href="https://arxiv.org/abs/2607.18312" target="_blank" rel="noreferrer">Preprint ↗</a></aside></article>
+        </div>
+        <p class="cs-related-caveat"><b>What this course implements:</b> small controlled representations, Hodge projections, topology audits, and a teaching shallow-water model. It does not currently implement the full Covector Fluids, Fluid Cohomology, or Vakonomic Fluids algorithms. The distinction is intentional and should remain visible.</p>
+        <nav><a href="./references.html#flow">Open the full annotated reading path →</a><a href="./clebsch-surfaces-action.html#cs-field-lab">Return to the construction playground →</a></nav>
+      </section>
+
       <section class="cs-tutorial">
         <section class="cs-course-handoff">
-          <div><p class="cs-eyebrow">Return to an experiment</p><h2>Use the reference only when a type or operator becomes ambiguous.</h2><p>The flat-torus lab isolates the two harmonic coefficients. The shallow-water lab shows why divergence is part of the dynamics rather than something to erase.</p></div>
+          <div><p class="cs-eyebrow">Return to an experiment</p><h2>Close the notebook when the picture feels clear again.</h2><p>The flat-torus lab isolates the two harmonic coefficients. The shallow-water lab shows why divergence becomes part of the dynamics rather than something to erase.</p></div>
           <a href="./flat-torus-cohomology.html"><span>NEXT EXPERIMENT</span><strong>Compare two harmonic periods with material grids →</strong></a>
         </section>
       </section>

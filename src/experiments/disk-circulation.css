@@ -36,7 +36,7 @@ button { cursor: pointer; }
 .dd-header nav { display: flex; justify-content: flex-end; gap: 18px; }
 
 .dd-hero { display: grid; grid-template-columns: minmax(500px, 1.16fr) minmax(410px, .84fr); gap: clamp(48px, 8vw, 120px); align-items: end; padding: 65px max(24px, calc((100vw - 1320px) / 2)) 56px; }
-.dd-hero h1 { margin: 13px 0 24px; color: var(--ink); font-size: clamp(4rem, 6.7vw, 7.5rem); line-height: .82; letter-spacing: -.075em; }
+.dd-hero h1 { max-width:820px; margin: 13px 0 26px; color: var(--ink); font-size: clamp(3.2rem, 5.15vw, 5.55rem); font-weight:680; line-height: .97; letter-spacing: -.048em; }
 .dd-hero h1 em { color: var(--orange); font-style: normal; }
 .dd-hero > div > p:last-child { max-width: 800px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.75; }
 .dd-hero > aside { padding: 28px; color: white; border: 1px solid #506579; border-top: 7px solid var(--gold); border-radius: 8px; background: linear-gradient(145deg, #071421, #233953 58%, #205861); box-shadow: 13px 13px 0 rgba(255,125,69,.15); }
@@ -141,7 +141,7 @@ button { cursor: pointer; }
 .dd-explanation { padding: 78px max(24px, calc((100vw - 1280px) / 2)) 92px; }
 .dd-explanation > header { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(350px, .85fr); gap: 58px; align-items: end; }
 .dd-explanation > header .dd-eyebrow { grid-column: 1 / -1; }
-.dd-explanation h2 { margin: 10px 0 0; color: var(--ink); font-size: clamp(3rem, 5.4vw, 6rem); line-height: .88; letter-spacing: -.065em; }
+.dd-explanation h2 { margin: 10px 0 0; color: var(--ink); font-size: clamp(2.5rem, 4vw, 4.5rem); font-weight:680; line-height: 1; letter-spacing: -.042em; }
 .dd-explanation > header > p:last-child { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.75; }
 .dd-derivation { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 34px; }
 .dd-derivation article { min-width: 0; padding: 23px; border: 1px solid var(--line); border-top: 6px solid var(--indigo); border-radius: 6px; background: var(--paper); }
@@ -160,7 +160,7 @@ button { cursor: pointer; }
 .dd-puzzle { padding: 78px max(24px, calc((100vw - 1280px) / 2)) 92px; color: white; border-top: 5px solid var(--orange); background: radial-gradient(circle at 84% 12%, rgba(105,239,242,.12), transparent 27rem), linear-gradient(145deg, #071421, #192a43 58%, #33203f); }
 .dd-puzzle > header { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(350px, .85fr); gap: 58px; align-items: end; }
 .dd-puzzle > header .dd-eyebrow { grid-column: 1 / -1; color: var(--cyan); }
-.dd-puzzle h2 { margin: 10px 0 0; color: white; font-size: clamp(3rem, 5.4vw, 6rem); line-height: .88; letter-spacing: -.065em; }
+.dd-puzzle h2 { margin: 10px 0 0; color: white; font-size: clamp(2.5rem, 4vw, 4.5rem); font-weight:680; line-height: 1; letter-spacing: -.042em; }
 .dd-puzzle > header > p:last-child { margin: 0; color: #c2d0db; font-size: 12px; line-height: 1.75; }
 .dd-puzzle .dd-math-inline { color: var(--gold); }
 .dd-slit-demo { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(310px, .45fr); gap: 8px; margin-top: 36px; }
@@ -209,7 +209,7 @@ button { cursor: pointer; }
   .dd-header > div { display: none; }
   .dd-header nav { justify-content: flex-start; flex-wrap: wrap; }
   .dd-hero { gap: 30px; }
-  .dd-hero h1 { font-size: clamp(3.7rem, 15vw, 6rem); }
+  .dd-hero h1 { font-size: clamp(3rem, 12vw, 4.8rem); }
   .dd-guide { border-right: 0; border-bottom: 1px solid var(--line); }
   .dd-controls { grid-column: auto; grid-template-columns: 1fr; }
   .dd-controls > .dd-eyebrow, .dd-controls > .dd-mode-buttons, .dd-controls > #dd-smooth-controls, .dd-controls > #dd-annulus-controls, .dd-controls > .dd-boundary-card, .dd-controls > .dd-decomposition-card, .dd-controls > .dd-probe-card { grid-column: auto; }

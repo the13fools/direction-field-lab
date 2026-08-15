@@ -112,11 +112,11 @@ a.button { display: inline-grid; place-items: center; text-decoration: none; }
 .editor-resizer:focus-visible::after { background: #70a493; box-shadow: 0 0 0 2px rgba(112, 164, 147, .24); }
 body.resizing-editor { cursor: col-resize; user-select: none; }
 .sidebar { padding: 20px; border-right: 1px solid var(--line); }
-.home-route-map { display:grid; gap:9px; margin:0 0 20px; padding:13px; color:#eaf4ef; border:1px solid #52766a; border-radius:5px; background:linear-gradient(150deg,#102c25,#17213b 72%,#392541); }
+.home-route-map { display:grid; gap:10px; margin:0 0 20px; padding:15px; color:#eaf4ef; border:1px solid #52766a; border-radius:10px; background:linear-gradient(150deg,#102c25,#17213b 72%,#392541); }
 .home-route-map>span { color:var(--acid); font:800 8px var(--mono); letter-spacing:.1em; }
-.home-route-map>h2 { margin:0; color:#fff; font-size:14px; line-height:1.15; }
-.home-route-map>p { margin:0 0 3px; color:#abc0b8; font-size:9px; line-height:1.5; }
-.home-route-card { position:relative; isolation:isolate; display:grid; gap:4px; min-height:72px; overflow:hidden; padding:11px; color:white; border:1px solid #526579; border-radius:4px; background:#0b1c2a; text-decoration:none; }
+.home-route-map>h2 { margin:0; color:#fff; font-size:16px; font-weight:650; line-height:1.25; }
+.home-route-map>p { margin:0 0 4px; color:#b7c9c2; font-size:10px; line-height:1.62; }
+.home-route-card { position:relative; isolation:isolate; display:grid; gap:5px; min-height:82px; overflow:hidden; padding:13px; color:white; border:1px solid #526579; border-radius:7px; background:#0b1c2a; text-decoration:none; }
 .home-route-card>canvas { position:absolute; z-index:-1; inset:0; width:100%; height:100%; opacity:.9; }
 .home-route-card::after { content:""; position:absolute; z-index:-1; inset:0; background:linear-gradient(90deg,rgba(7,22,35,.96) 0%,rgba(7,22,35,.7) 68%,rgba(7,22,35,.18)); }
 .home-route-card.course { min-height:0; color:#17223a; border-color:#ffb15f; background:linear-gradient(115deg,#ffd26a,#ff7540); }
@@ -128,6 +128,8 @@ body.resizing-editor { cursor: col-resize; user-select: none; }
 .home-route-card.course>small { color:#50364a; }
 .home-route-card:hover { border-color:#58e0e8; transform:translateY(-1px); }
 .home-route-card.course:hover { border-color:#dffc5b; }
+.home-play-note { display:grid; grid-template-columns:auto 1fr; gap:8px; align-items:start; padding:10px 11px; color:#c7d8d1; border-left:3px solid var(--acid); background:rgba(255,255,255,.055); font-size:9px; line-height:1.5; }
+.home-play-note b { color:var(--acid); font-weight:700; white-space:nowrap; }
 .editor-panel { display: flex; flex-direction: column; border-left: 1px solid var(--line); }
 .section-label { margin: 0 0 10px; color: var(--quiet); font: 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
 .sidebar-intro { margin: 0 0 22px; color: var(--quiet); font-size: 13px; line-height: 1.55; }

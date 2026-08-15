@@ -65,9 +65,10 @@ button { cursor: pointer; }
 .random-title h1 {
   margin: 11px 0 24px;
   color: var(--ink);
-  font-size: clamp(3.9rem, 7vw, 7.6rem);
-  line-height: .82;
-  letter-spacing: -.078em;
+  font-size: clamp(3.2rem, 5.2vw, 5.7rem);
+  font-weight: 680;
+  line-height: .97;
+  letter-spacing: -.048em;
 }
 .random-title h1 em { color: var(--orange); font-style: normal; }
 .random-title > p:not(.random-eyebrow) { max-width: 770px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.75; }
@@ -99,7 +100,7 @@ button { cursor: pointer; }
   background-size: 28px 28px;
 }
 .tutorial-heading { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(340px, .85fr); gap: clamp(35px, 7vw, 100px); align-items: end; margin-bottom: 34px; }
-.tutorial-heading h2 { max-width: 820px; margin: 11px 0 0; color: var(--ink); font-size: clamp(2.5rem, 4.7vw, 5.4rem); line-height: .92; letter-spacing: -.06em; }
+.tutorial-heading h2 { max-width: 820px; margin: 11px 0 0; color: var(--ink); font-size: clamp(2.3rem, 3.8vw, 4.2rem); font-weight:680; line-height: 1; letter-spacing: -.042em; }
 .tutorial-heading > p { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.72; }
 .tutorial-pipeline { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
 .tutorial-step { min-width: 0; padding: clamp(22px, 3vw, 38px); border: 1px solid #cfc0dc; border-top: 7px solid var(--violet); border-radius: 8px; background: rgba(255, 255, 255, .94); box-shadow: 8px 8px 0 rgba(114, 73, 167, .09); }
@@ -306,7 +307,7 @@ button { cursor: pointer; }
 
 @media (max-width: 540px) {
   .random-intro { padding-inline: 18px; }
-  .random-title h1 { font-size: 3.55rem; }
+  .random-title h1 { font-size: 3.05rem; }
   .clebsch-tutorial { padding-inline: 14px; }
   .tutorial-step { padding: 22px 18px; }
   .noise-recipe, .streamfunction-identities, .projection-recipe, .preserve-grid, .tutorial-actions { grid-template-columns: 1fr; }

@@ -11,15 +11,16 @@
     <header class="cs-header">
       <a href="./clebsch-surfaces.html">← Part I · The problem</a>
       <div><span>CLEBSCH · TUTORIAL 02 OF 03</span><strong>Transport, covectors, and projection</strong></div>
-      <nav><a href="./clebsch-surfaces-reference.html">Part III · Reference</a><a href="./disk-circulation.html">Disk boundary</a><a href="./flat-torus-cohomology.html">Torus cohomology</a></nav>
+      <nav><a href="./clebsch-surfaces-reference.html">Background notebook</a><a href="./disk-circulation.html">Disk boundary</a><a href="./flat-torus-cohomology.html">Torus cohomology</a></nav>
     </header>
 
     <main>
       <section class="cs-intro">
-        <div><p class="cs-eyebrow">Part II · put the representation to work</p><h1>Build the field.<br /><em>Audit each step.</em></h1></div>
+        <div><p class="cs-eyebrow">Part II · put the representation to work</p><h1>Follow the labels.<br /><em>See a velocity emerge.</em></h1></div>
         <div class="cs-intro-copy">
-          <p>Begin by carrying a known Clebsch triple through a steady flow. Then freeze time and inspect how the three scalar fields assemble the velocity one-form.</p>
+          <p>Clebsch notation can look like a trick because three innocent scalar fields suddenly become a velocity. This page slows the trick down. First watch two labels travel with the water; then ask what a one-form measures; finally assemble one small field by hand.</p>
           <div class="cs-math-display" data-latex="\eta=d\phi+\alpha d\beta,\qquad \omega^{(2)}=d\eta=d\alpha\wedge d\beta,\qquad \zeta=\star_g\omega^{(2)}">one-form, vorticity two-form, and displayed scalar</div>
+          <p>You do not need to memorize the formula before playing. The experiments are arranged so that each term earns its meaning.</p>
         </div>
       </section>
 
@@ -115,13 +116,20 @@
 
       <section id="cs-field-lab" class="cs-lab" aria-labelledby="cs-field-lab-title">
         <header class="cs-lab-intro">
-          <div><p class="cs-eyebrow">Third experiment · local field construction</p><h2 id="cs-field-lab-title">Change one ingredient at a time.</h2></div>
+          <div><p class="cs-eyebrow">Third experiment · a small construction game</p><h2 id="cs-field-lab-title">Build a swirl from two painted labels.</h2></div>
           <ol aria-label="Questions answered by the field construction lab">
-            <li><span>01</span><p><b>Cross α and β.</b> Where does vorticity appear?</p></li>
-            <li><span>02</span><p><b>Add dφ.</b> What changes while curl stays fixed?</p></li>
-            <li><span>03</span><p><b>Project.</b> Which exact component is removed?</p></li>
+            <li><span>01</span><p><b>Lay the labels parallel.</b> Why is there no swirl yet?</p></li>
+            <li><span>02</span><p><b>Let them cross.</b> Watch oriented area—and vorticity—appear.</p></li>
+            <li><span>03</span><p><b>Add and remove an exact piece.</b> Change velocity without changing its curl.</p></li>
           </ol>
         </header>
+        <section class="cs-play-script" aria-label="A short guided Clebsch experiment">
+          <div><span>A TWO-MINUTE PATH THROUGH THE CONTROLS</span><strong>Use the presets as a story, not a test.</strong><p>Move left to right. Keep the vorticity colors visible and ask what changes after each click.</p></div>
+          <button data-cs-choice-preset="parallel"><i>1</i><span><b>Begin parallel</b><small>two labels · no oriented crossing</small></span></button>
+          <button data-cs-choice-preset="vortical"><i>2</i><span><b>Make a swirl</b><small>cross the labels · create vorticity</small></span></button>
+          <button data-cs-choice-preset="exact"><i>3</i><span><b>Add dφ</b><small>change velocity · keep vorticity</small></span></button>
+          <button data-cs-velocity="projected"><i>4</i><span><b>Project it</b><small>remove an exact source–sink piece</small></span></button>
+        </section>
         <aside class="cs-guide">
           <p class="cs-eyebrow">Choose a surface</p>
           <div class="cs-button-stack cs-surfaces">
@@ -147,14 +155,14 @@
           </div>
 
           <div class="cs-question">
-            <span>THE NONUNIQUENESS IS REAL</span>
-            <strong>Many triples encode the same velocity.</strong>
-            <p>The labels are representation variables, not separately measurable fluid quantities. Judge a choice by whether dα ∧ dβ gives the desired vorticity and whether dφ + αdβ gives the desired velocity, up to harmonic terms.</p>
+            <span>A NOTE ABOUT FREEDOM</span>
+            <strong>The labels are a description, not three new observables.</strong>
+            <p>Many triples describe the same velocity. Here we choose especially simple sine waves so you can see what each term does; a solver may choose labels for numerical convenience, transport, or structure preservation.</p>
           </div>
         </aside>
 
         <section class="cs-stage">
-          <header><div><span>LIVE CONTROLLED FIELD</span><strong id="cs-stage-title">periodic plane · two crossing label foliations</strong></div><div class="cs-stage-key"><i></i>metric-dual arrows <i></i>selected probe</div></header>
+          <header><div><span>YOUR CURRENT FIELD</span><strong id="cs-stage-title">periodic plane · two crossing label foliations</strong></div><div class="cs-stage-key"><i></i>metric-dual arrows <i></i>selected probe</div></header>
           <div id="cs-viewer" aria-label="Interactive Clebsch field on a surface"><div class="cs-viewer-note">drag to orbit · click the surface to move the probe</div><div id="cs-layer-caption">color: α · arrows: (dα)♯</div></div>
           <div class="cs-stage-actions">
             <button class="active" data-cs-velocity="raw" aria-pressed="true"><span>RAW CLEBSCH</span><b>u♭ = dφ + αdβ</b><small>tangent, vortical, generally divergent</small></button>
@@ -185,7 +193,7 @@
           <label><span><strong id="cs-potential-label">Potential strength</strong><small id="cs-potential-help">changes dφ, never dα∧dβ</small></span><output id="cs-potential-output">0.24</output><input id="cs-potential" type="range" min="0" max="1" step="0.02" value="0.24" /></label>
 
           <section class="cs-current-choice" aria-live="polite">
-            <span id="cs-current-choice-kicker">YOUR CURRENT FACTORIZATION</span>
+            <span id="cs-current-choice-kicker">WHAT THE CURRENT CHOICE MEANS</span>
             <div id="cs-choice-label-equation" class="cs-math-display" data-latex="\alpha=0.70\sin x,\quad\beta=0.34\sin x+0.94\sin y">chosen alpha and beta</div>
             <div id="cs-choice-vorticity-equation" class="cs-math-display" data-latex="\omega^{(2)}=d\alpha\wedge d\beta=0.66\cos x\cos y\,dx\wedge dy">resulting vorticity two-form</div>
             <div id="cs-choice-phi-equation" class="cs-math-display" data-latex="\phi=0.24\cos(x-y),\qquad d(d\phi)=0">chosen exact part</div>
@@ -216,8 +224,23 @@
         </aside>
       </section>
 
+      <aside class="cs-background-note" aria-labelledby="cs-background-title">
+        <div>
+          <p class="cs-eyebrow">Background notebook · where this picture sits</p>
+          <h2 id="cs-background-title">Clebsch variables are one member of a larger family of fluid descriptions.</h2>
+          <p>This playground teaches a shared geometric language; it does not claim that every related method runs the same algorithm. The useful comparison is to ask what each method stores, what it transports, and which conservation law motivates the choice.</p>
+        </div>
+        <ol>
+          <li><span>LABELS</span><strong>Clebsch maps</strong><p>Use transported scalar structure to expose and process vortices. This is the closest relative of the colored label-grid picture above.</p></li>
+          <li><span>CIRCULATION</span><strong>Covector fluids</strong><p>Reformulate velocity advection so that the numerical update respects the one-form quantity measured along moving loops.</p></li>
+          <li><span>TOPOLOGY</span><strong>Fluid cohomology</strong><p>Add the harmonic periods that local vorticity cannot recover on domains with holes, periodic boundaries, or genus.</p></li>
+          <li><span>DYNAMICS</span><strong>Vakonomic fluids</strong><p>Use low-rank Clebsch-like variables inside a particular structure-preserving discretization of Euler flow. That is a research destination, not what this local construction demo implements.</p></li>
+        </ol>
+        <nav><a href="./clebsch-surfaces-reference.html#cs-related-work">Open the background notebook →</a><a href="./references.html#flow">Follow the annotated papers →</a></nav>
+      </aside>
+
       <section class="cs-core-handoff" aria-labelledby="cs-core-handoff-title">
-        <div><p class="cs-eyebrow">Core lesson checkpoint</p><h2 id="cs-core-handoff-title">Stop after the local construction.</h2><p>You now have the essential Clebsch pipeline: choose scalar labels, differentiate them into one-forms, assemble <span class="cs-math-inline" data-latex="u^\flat=d\phi+\alpha\,d\beta">u flat equals d phi plus alpha d beta</span>, and use the metric only when a velocity arrow is needed. The next conceptual burden is global circulation—not another local formula.</p></div>
+        <div><p class="cs-eyebrow">A good place to pause</p><h2 id="cs-core-handoff-title">The local picture is now complete.</h2><p>You can choose scalar labels, differentiate them into one-forms, assemble <span class="cs-math-inline" data-latex="u^\flat=d\phi+\alpha\,d\beta">u flat equals d phi plus alpha d beta</span>, and use the metric only when an arrow is needed. The next surprise is global: a loop around a hole can remember circulation even when local vorticity says nothing.</p></div>
         <nav aria-label="Continue after the Clebsch construction lesson">
           <a class="primary" href="./disk-circulation.html"><span>NEXT CORE LESSON</span><strong>Test Stokes on a disk and annulus →</strong><small>See exactly when circulation is, and is not, determined by vorticity.</small></a>
           <a href="./flat-torus-cohomology.html"><span>JUMP TO THE TORUS LAB</span><strong>Expose both missing harmonic periods →</strong><small>The full flat-torus page is the clearest place to study the global obstruction.</small></a>

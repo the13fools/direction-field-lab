@@ -20,10 +20,10 @@
     <main>
       <section class="cw-hero">
         <div class="cw-title">
-          <p class="cw-eyebrow">A periodic plane · material labels · one-forms · shallow water</p>
-          <h1>Clebsch variables,<br /><em>without the sleight of hand.</em></h1>
-          <p>The variables are scalar fields. They do not become a velocity until their differentials are assembled into a one-form and the metric raises that covector to a vector. This lab keeps every step visible on one planar grid.</p>
-          <a href="#clebsch-water-lab">Open the live grid ↓</a>
+          <p class="cw-eyebrow">A periodic plane · four fields · one moving layer</p>
+          <h1>Paint labels on the water.<br /><em>Then let the layer move.</em></h1>
+          <p>Imagine two invisible dyes attached to every parcel of water. Their crossing helps encode rotation; a third scalar accounts for the exact part of the motion; height records how much water occupies the column. This lab keeps the conversion from those four scalar fields to a moving fluid visible on one planar grid.</p>
+          <a href="#clebsch-water-lab">Wander into the live grid ↓</a>
         </div>
         <div class="cw-equation-card">
           <span>THE REPRESENTATION</span>
@@ -38,6 +38,15 @@
         <article data-variable="phi"><span>BERNOULLI POTENTIAL</span><strong>φ(x,y,t)</strong><p>Its differential <i>dφ</i> supplies the exact, curl-free part of the velocity one-form.</p></article>
         <article data-variable="alpha"><span>LABEL WEIGHT</span><strong>α(x,y,t)</strong><p>A materially transported scalar that weights how strongly the β-label contributes.</p></article>
         <article data-variable="beta"><span>MATERIAL LABEL</span><strong>β(x,y,t)</strong><p>Another transported scalar. Its level curves move with the water.</p></article>
+      </section>
+
+      <section class="cw-ocean-note" aria-labelledby="cw-ocean-title">
+        <div><p class="cw-eyebrow">Why combine these ideas?</p><h2 id="cw-ocean-title">Shallow water gives the labels a physical job to do.</h2><p>The random-field playground can show Clebsch assembly and pressure projection without choosing a time evolution. Here the labels travel with an actual layer: velocity moves them, height changes under mass flux, and the Bernoulli potential responds to gravity.</p></div>
+        <div>
+          <article><span>FOR OCEAN-LIKE FLOWS</span><strong>Material structure matters.</strong><p>Vorticity and tracers can persist as water moves over long distances; a label-based state makes that material viewpoint explicit.</p></article>
+          <article><span>FOR CURVED SURFACES</span><strong>The representation separates roles.</strong><p>One-forms measure circulation, vectors move parcels, and the metric converts between them—useful bookkeeping before moving from a plane to a sphere or mesh.</p></article>
+          <article><span>FOR PERIODIC OR HOLED DOMAINS</span><strong>Local labels are not the whole state.</strong><p>Global harmonic periods still have to be stored or evolved. This flat example sets them to zero so the local transport can be read first.</p></article>
+        </div>
       </section>
 
       <section class="cw-scope-note" aria-label="How shallow water differs from incompressible projection">

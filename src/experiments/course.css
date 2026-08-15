@@ -13,10 +13,10 @@ body { margin: 0; background: radial-gradient(circle at 94% 2%, rgba(88,224,232,
 .course-header span { margin-bottom:3px; color:var(--cyan); font:800 7px var(--mono); letter-spacing:.12em; }
 .course-header strong { font-size:13px; }
 .course-header nav { display:flex; justify-content:flex-end; gap:18px; }
-.course-hero { display:grid; grid-template-columns:minmax(560px,1.18fr) minmax(390px,.82fr); gap:clamp(48px,8vw,116px); align-items:end; padding:70px max(24px,calc((100vw - 1320px)/2)) 60px; }
-.course-hero h1 { margin:13px 0 24px; color:var(--ink); font-size:clamp(4rem,6.7vw,7.3rem); line-height:.84; letter-spacing:-.072em; }
+.course-hero { display:grid; grid-template-columns:minmax(560px,1.18fr) minmax(390px,.82fr); gap:clamp(48px,8vw,116px); align-items:end; padding:76px max(24px,calc((100vw - 1320px)/2)) 66px; }
+.course-hero h1 { max-width:880px; margin:15px 0 27px; color:var(--ink); font-size:clamp(3.35rem,5.25vw,5.7rem); font-weight:680; line-height:.96; letter-spacing:-.048em; }
 .course-hero h1 em { color:var(--orange); font-style:normal; }
-.course-hero > div > p:nth-of-type(2) { max-width:800px; margin:0; color:var(--muted); font-size:14px; line-height:1.75; }
+.course-hero > div > p:nth-of-type(2) { max-width:820px; margin:0; color:var(--muted); font-size:15px; line-height:1.82; }
 .course-actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:24px; }
 .course-actions a { padding:13px 18px; color:var(--ink); border:1px solid var(--line); border-radius:3px; background:var(--paper); font-size:10px; font-weight:850; text-decoration:none; }
 .course-actions a.primary { border-color:var(--orange); background:linear-gradient(135deg,var(--gold),var(--orange)); }
@@ -27,6 +27,16 @@ body { margin: 0; background: radial-gradient(circle at 94% 2%, rgba(88,224,232,
 .course-hero aside ul { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:1px; margin:15px 0 0; padding:1px; list-style:none; background:rgba(255,255,255,.14); }
 .course-hero aside li { padding:9px; background:rgba(3,12,21,.55); font-size:8px; }
 .course-hero aside li b { color:var(--cyan); }
+.course-motivation { display:grid; grid-template-columns:minmax(330px,.72fr) minmax(600px,1.28fr); gap:30px 70px; padding:58px max(24px,calc((100vw - 1320px)/2)); border-block:1px solid var(--line); background:linear-gradient(145deg,#fffdf8,#f0f8f4 60%,#ecfbfc); }
+.course-motivation h2 { max-width:630px; margin:10px 0 17px; color:var(--ink); font-size:clamp(2rem,3.2vw,3.5rem); font-weight:680; line-height:1.05; letter-spacing:-.038em; }
+.course-motivation > div > p:last-child { margin:0; color:var(--muted); font-size:12px; line-height:1.75; }
+.course-motivation ol { display:grid; gap:7px; margin:0; padding:0; list-style:none; }
+.course-motivation li { display:grid; grid-template-columns:36px 1fr; gap:12px; padding:16px 18px; border:1px solid var(--line); border-radius:7px; background:rgba(255,255,255,.8); }
+.course-motivation li > span { display:grid; place-items:center; width:34px; height:34px; color:var(--night); border-radius:50%; background:var(--gold); font:800 8px var(--mono); }
+.course-motivation li strong { color:var(--ink); font-size:13px; }
+.course-motivation li p { margin:4px 0 0; color:var(--muted); font-size:10px; line-height:1.6; }
+.course-motivation-caveat { grid-column:1/-1; margin:0; padding:16px 19px; color:#d3dee6; border-left:6px solid var(--cyan); border-radius:5px; background:var(--night); font-size:10px; line-height:1.68; }
+.course-motivation-caveat b { color:var(--gold); }
 .course-contract { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1px; border-block:1px solid var(--line); background:var(--line); }
 .course-contract article { padding:25px max(22px,calc((100vw - 1320px)/6)); background:var(--paper); }
 .course-contract span { color:var(--orange); font:850 8px var(--mono); letter-spacing:.09em; }
@@ -43,7 +53,7 @@ body { margin: 0; background: radial-gradient(circle at 94% 2%, rgba(88,224,232,
 .course-unit { padding:76px max(24px,calc((100vw - 1320px)/2)); scroll-margin-top:120px; }
 .course-unit > header { display:grid; grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr); gap:25px 65px; align-items:end; }
 .course-unit > header > span { grid-column:1/-1; color:var(--indigo); font:850 9px var(--mono); letter-spacing:.1em; }
-.course-unit h2,.course-electives h2 { margin:8px 0 0; color:var(--ink); font-size:clamp(3.2rem,5vw,5.8rem); line-height:.88; letter-spacing:-.064em; }
+.course-unit h2,.course-electives h2 { margin:8px 0 0; color:var(--ink); font-size:clamp(2.6rem,4vw,4.5rem); font-weight:680; line-height:.98; letter-spacing:-.045em; }
 .course-unit header p { margin:17px 0 0; max-width:700px; color:var(--muted); font-size:11px; line-height:1.72; }
 .course-unit-equation { padding:20px; color:var(--cyan); border-top:6px solid var(--orange); border-radius:5px; background:var(--night); }
 .course-lessons { display:grid; gap:7px; margin:40px 0 0; padding:0; list-style:none; }
@@ -68,11 +78,12 @@ body { margin: 0; background: radial-gradient(circle at 94% 2%, rgba(88,224,232,
 .course-unit.dark .course-lessons span,.course-unit.dark .course-lessons div strong { color:var(--cyan); }
 .course-unit.dark > aside { border:1px solid #506278; border-left:7px solid var(--gold); }
 .course-electives { padding:80px max(24px,calc((100vw - 1320px)/2)) 96px; }
-.course-electives > div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:35px; }
+.course-electives > header > p:last-child { max-width:720px; margin:15px 0 0; color:var(--muted); font-size:11px; line-height:1.7; }
+.course-electives > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; margin-top:35px; }
 .course-electives a { padding:24px; color:var(--ink); border:1px solid var(--line); border-top:6px solid var(--cyan); border-radius:5px; background:var(--paper); text-decoration:none; }
 .course-electives a:nth-child(even) { border-top-color:var(--orange); }
 .course-electives span { color:var(--indigo); font:850 8px var(--mono); letter-spacing:.08em; }
 .course-electives strong { display:block; margin-top:8px; font-size:17px; }
 .course-electives p { margin:8px 0 0; color:var(--muted); font-size:9px; line-height:1.65; }
-@media (max-width:850px) { .course-header,.course-hero,.course-unit>header { grid-template-columns:1fr; } .course-header { position:relative; } .course-header>div { display:none; } .course-header nav { justify-content:flex-start; } .course-hero { gap:30px; } .course-hero h1 { font-size:clamp(3.6rem,15vw,6rem); } .course-contract { grid-template-columns:1fr; } .course-notation { grid-template-columns:repeat(2,minmax(0,1fr)); } .course-notation>span { grid-column:1/-1; } .course-unit-nav { top:0; overflow-x:auto; } .course-unit-nav a { min-width:130px; } .course-unit>header>span { grid-column:auto; } }
-@media (max-width:620px) { .course-hero,.course-unit,.course-electives { padding-inline:16px; } .course-lessons a { grid-template-columns:42px 1fr; padding:18px; } .course-lessons em { grid-column:2; } .course-electives>div { grid-template-columns:1fr; } .course-hero aside ul { grid-template-columns:1fr; } }
+@media (max-width:850px) { .course-header,.course-hero,.course-motivation,.course-unit>header { grid-template-columns:1fr; } .course-header { position:relative; } .course-header>div { display:none; } .course-header nav { justify-content:flex-start; } .course-hero { gap:30px; } .course-hero h1 { font-size:clamp(3rem,12vw,4.7rem); } .course-contract { grid-template-columns:1fr; } .course-notation { grid-template-columns:repeat(2,minmax(0,1fr)); } .course-notation>span { grid-column:1/-1; } .course-unit-nav { top:0; overflow-x:auto; } .course-unit-nav a { min-width:130px; } .course-unit>header>span { grid-column:auto; } .course-electives>div { grid-template-columns:1fr; } }
+@media (max-width:620px) { .course-hero,.course-motivation,.course-unit,.course-electives { padding-inline:16px; } .course-lessons a { grid-template-columns:42px 1fr; padding:18px; } .course-lessons em { grid-column:2; } .course-electives>div { grid-template-columns:1fr; } .course-hero aside ul { grid-template-columns:1fr; } }

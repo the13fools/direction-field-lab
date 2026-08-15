@@ -11,17 +11,27 @@ button { cursor: pointer; }
 .water-header span { margin-bottom: 3px; color: var(--cyan); font: 700 7px var(--mono); letter-spacing: .11em; }
 .water-header strong { font-size: 13px; }
 .water-header nav { display: flex; justify-content: flex-end; gap: 18px; }
-.water-hero { display: grid; grid-template-columns: minmax(420px,1.25fr) minmax(350px,.75fr); gap: clamp(40px,8vw,120px); align-items: center; min-height: 470px; padding: 65px max(24px, calc((100vw - 1250px) / 2)); }
+.water-hero { display: grid; grid-template-columns: minmax(420px,1.25fr) minmax(350px,.75fr); gap: clamp(40px,8vw,120px); align-items: center; min-height: 470px; padding: 72px max(24px, calc((100vw - 1250px) / 2)); }
 .eyebrow { margin: 0 0 10px; color: var(--violet); font: 800 8px var(--mono); letter-spacing: .1em; text-transform: uppercase; }
-.water-hero h1 { margin: 0 0 24px; color: var(--plum); font-size: clamp(3.7rem,7vw,7.4rem); line-height: .82; letter-spacing: -.075em; }
+.water-hero h1 { max-width:760px; margin: 4px 0 27px; color: var(--plum); font-size: clamp(3.15rem,5.2vw,5.55rem); font-weight:680; line-height: .97; letter-spacing: -.048em; }
 .water-hero h1 em { color: var(--pink); font-style: normal; }
-.water-hero > div > p:last-child { max-width: 780px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.75; }
+.water-hero > div > p:last-child { max-width: 790px; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.82; }
 .equation-card { padding: 26px; color: white; border: 1px solid #6e5594; border-top: 7px solid var(--cyan); border-radius: 8px; background: linear-gradient(145deg, #24164c, #473068 60%, #1e5267); box-shadow: 13px 13px 0 rgba(255,111,189,.15); }
 .equation-card > span { color: var(--gold); font: 800 8px var(--mono); letter-spacing: .1em; }
 .equation-card code { display: block; margin-top: 14px; padding: 11px; border: 1px solid rgba(255,255,255,.14); border-radius: 4px; background: rgba(10,7,26,.4); font: 12px/1.5 var(--mono); }
 .equation-card code small { color: var(--gold); font-size: 7px; }
 .equation-card p { margin: 18px 0 0; color: #d7cee4; font-size: 10px; line-height: 1.6; }
 .equation-card p strong { color: var(--cyan); font-family: var(--mono); }
+.water-why { display:grid; grid-template-columns:minmax(330px,.75fr) minmax(570px,1.25fr); gap:30px 65px; padding:52px max(24px,calc((100vw - 1250px)/2)); border-block:1px solid var(--line); background:linear-gradient(145deg,#fffdf7,#f0f5fb 56%,#e9fbfc); }
+.water-why h2 { max-width:590px; margin:10px 0 16px; color:var(--plum); font-size:clamp(2rem,3.2vw,3.4rem); font-weight:680; line-height:1.05; letter-spacing:-.038em; }
+.water-why > div > p:last-child { margin:0; color:var(--muted); font-size:12px; line-height:1.75; }
+.water-why-stories { display:grid; gap:7px; }
+.water-why-stories article { padding:15px 18px; border:1px solid var(--line); border-radius:7px; background:rgba(255,255,255,.84); }
+.water-why-stories span { color:var(--violet); font:800 7px var(--mono); letter-spacing:.08em; }
+.water-why-stories strong { display:block; margin:6px 0 4px; color:var(--plum); font-size:13px; }
+.water-why-stories p { margin:0; color:var(--muted); font-size:9px; line-height:1.58; }
+.water-why-limit { grid-column:1/-1; margin:0; padding:14px 18px; color:#d7cee4; border-left:6px solid var(--gold); border-radius:5px; background:var(--plum); font-size:10px; line-height:1.65; }
+.water-why-limit b { color:var(--gold); }
 .state-ladder { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr; gap: 18px; align-items: center; padding: 22px max(24px, calc((100vw - 1400px) / 2)); color: white; border-block: 4px solid var(--cyan); background: linear-gradient(110deg, #211444, #4a2f72 55%, #1f536b); }
 .state-ladder article { min-height: 150px; padding: 16px; border: 1px solid #725b91; border-radius: 7px; background: rgba(25,15,53,.65); }
 .state-ladder article > span, .state-ladder article > strong, .state-ladder article > code { display: block; }
@@ -109,5 +119,5 @@ button { cursor: pointer; }
 .assignment-bridge nav { grid-column: 2; display: flex; flex-wrap: wrap; gap: 8px; }
 .assignment-bridge nav a { padding: 8px 10px; color: white; border-radius: 3px; background: var(--violet); font-size: 9px; font-weight: 800; text-decoration: none; }
 @media (max-width: 1180px) { .water-lab { grid-template-columns: 240px minmax(0,1fr); }.water-controls { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(2,1fr); gap: 0 25px; }.water-controls .eyebrow, .water-controls .height-energy-card, .water-controls .starter-card, .water-controls .water-source { grid-column: 1 / -1; }.water-controls .water-source { max-width: 720px; }.water-metrics { grid-template-columns: repeat(3,1fr); } }
-@media (max-width: 800px) { .water-header, .water-hero, .water-lab, .assignment-bridge { grid-template-columns: 1fr; }.water-header { position: relative; }.water-header > div { text-align: left; }.water-header nav { justify-content: flex-start; }.water-hero { min-height: 0; }.state-ladder { grid-template-columns: 1fr; }.state-ladder > i { justify-self: center; transform: rotate(90deg); }.lesson-panel { border-right: 0; }.water-controls { grid-column: auto; grid-template-columns: 1fr; }.water-controls .eyebrow, .water-controls .height-energy-card, .water-controls .starter-card, .water-controls .water-source { grid-column: auto; }.assignment-bridge ol { grid-template-columns: 1fr; }.assignment-bridge nav { grid-column: auto; }.water-stage { min-height: 820px; } }
-@media (max-width: 520px) { .water-hero { padding-inline: 18px; }.water-hero h1 { font-size: 3.6rem; }.water-metrics { grid-template-columns: repeat(2,1fr); }.history { grid-template-columns: 1fr; }.assignment-bridge { padding-inline: 18px; } }
+@media (max-width: 800px) { .water-header, .water-hero, .water-why, .water-lab, .assignment-bridge { grid-template-columns: 1fr; }.water-header { position: relative; }.water-header > div { text-align: left; }.water-header nav { justify-content: flex-start; }.water-hero { min-height: 0; }.state-ladder { grid-template-columns: 1fr; }.state-ladder > i { justify-self: center; transform: rotate(90deg); }.lesson-panel { border-right: 0; }.water-controls { grid-column: auto; grid-template-columns: 1fr; }.water-controls .eyebrow, .water-controls .height-energy-card, .water-controls .starter-card, .water-controls .water-source { grid-column: auto; }.assignment-bridge ol { grid-template-columns: 1fr; }.assignment-bridge nav { grid-column: auto; }.water-stage { min-height: 820px; } }
+@media (max-width: 520px) { .water-hero,.water-why { padding-inline: 18px; }.water-hero h1 { font-size: 3.1rem; }.water-metrics { grid-template-columns: repeat(2,1fr); }.history { grid-template-columns: 1fr; }.assignment-bridge { padding-inline: 18px; } }

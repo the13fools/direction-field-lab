@@ -20,9 +20,9 @@
     <main>
       <section class="water-hero">
         <div>
-          <p class="eyebrow">One conservative pressure step + one passive transport audit</p>
-          <h1>Make the variables<br /><em>earn their place.</em></h1>
-          <p>This first model keeps height and tangent velocity on vertices, derives an oriented edge 1-form for audits, and advances the linear gravity-wave equations. A passive dye visualizes velocity without entering pressure or energy. The physical wave state remains intentionally simple so the operator pair is tested before curvature, nonlinear transport, or wet/dry fronts.</p>
+          <p class="eyebrow">A first ripple · a periodic plane · visible conservation checks</p>
+          <h1>Start with a ripple<br /><em>you can account for.</em></h1>
+          <p>Drop a small height pulse into a shallow layer. Gravity pulls the surface back toward level, horizontal motion carries the disturbance outward, and the two effects trade energy. This intentionally small model lets us watch that exchange before adding coastlines, curved geometry, nonlinear transport, or Clebsch variables.</p>
         </div>
         <div class="equation-card">
           <span>BASELINE EQUATIONS</span>
@@ -31,6 +31,16 @@
           <code>qⁿ⁺¹(x) = qⁿ(x − Δt u) <small>diagnostic only</small></code>
           <p><strong>D = −Gᵀ</strong> under the uniform vertex mass. The adjointness defect below tests the implementation rather than asking you to trust the notation.</p>
         </div>
+      </section>
+
+      <section class="water-why" aria-labelledby="water-why-title">
+        <div><p class="eyebrow">Why ocean modelers begin here</p><h2 id="water-why-title">The ocean is deep to us, but thin compared with a planet.</h2><p>When the vertical scale is small relative to the horizontal scale, depth-averaged equations capture long waves and large horizontal currents without resolving the full three-dimensional water column.</p></div>
+        <div class="water-why-stories">
+          <article><span>WAVES</span><strong>Height and velocity talk to each other.</strong><p>A raised surface creates a pressure gradient; the resulting flow redistributes the water.</p></article>
+          <article><span>CURRENTS</span><strong>Divergence becomes physical.</strong><p>Convergence piles water up and divergence draws it down, so incompressible projection would erase the mechanism we want to study.</p></article>
+          <article><span>SURFACES</span><strong>The same story can live on curved geometry.</strong><p>A later solver replaces this periodic square by a surface mesh and adds metric, topology, boundaries, rotation, and bathymetry carefully.</p></article>
+        </div>
+        <p class="water-why-limit"><b>In this lab:</b> linear gravity waves on a flat periodic domain. The dye and seeded vortex are visual diagnostics, not a claim of complete ocean physics.</p>
       </section>
 
       <section class="state-ladder" aria-label="State representation ladder">
@@ -81,7 +91,7 @@
       </section>
 
       <section class="assignment-bridge">
-        <div><span>NEXT RESEARCH QUESTION</span><h2>Choose new variables without losing the audits.</h2><p>A vorticity/divergence or vorticity/streamfunction state should reconstruct velocity, preserve global harmonic modes, and still provide the edge flux used by continuity. Keep the same manufactured tests while swapping only that middle representation.</p></div>
+        <div><span>WHEN THE RIPPLE IS TRUSTWORTHY</span><h2>Change the description without losing the story.</h2><p>A vorticity/divergence, streamfunction, or Clebsch state should still reconstruct velocity, preserve global harmonic modes, and provide the edge flux used by continuity. Keep the same manufactured tests while swapping only the representation in the middle.</p></div>
         <ol><li><span>A</span><div><strong>Replace the state.</strong><p>Store ζ and δ (or ψ), plus the two harmonic periods on a torus.</p></div></li><li><span>B</span><div><strong>Reconstruct u.</strong><p>Use the Hodge split and report the residual and gauge conditions.</p></div></li><li><span>C</span><div><strong>Reuse the contracts.</strong><p>Mass drift, energy, curl, adjointness, and edge flux must still be visible.</p></div></li></ol>
         <nav><a href="./clebsch-shallow-water.html">Rewrite this state in Clebsch variables</a><a href="./random-fluids.html">Seed a random surface flow</a><a href="./dec-playground.html">Review d and the Hodge star</a><a href="./energy-playground.html">Edit a sparse energy live</a><a href="https://faculty.cc.gatech.edu/~turk/paper_pages/2007_shallow_waves/index.html" target="_blank" rel="noreferrer">Wang–Miller–Turk surface waves ↗</a></nav>
       </section>

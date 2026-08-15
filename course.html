@@ -10,17 +10,17 @@
   <body>
     <header class="course-header">
       <a href="./index.html">← Direction Field Lab</a>
-      <div><span>ADVANCED UNDERGRADUATE PATH</span><strong>Clebsch fluids on surfaces</strong></div>
-      <nav><a href="./clebsch-surfaces-reference.html">Forms reference</a><a href="./references.html#flow">Reading map</a></nav>
+      <div><span>A GUIDED WATER PATH</span><strong>Clebsch fluids on surfaces</strong></div>
+      <nav><a href="./clebsch-surfaces-reference.html">Background notebook</a><a href="./references.html#flow">Reading map</a></nav>
     </header>
 
     <main>
       <section class="course-hero">
         <div>
-          <p class="course-eyebrow">Eight lessons · four conceptual turns</p>
-          <h1>Learn the language.<br />Find the topology.<br /><em>Then evolve the fluid.</em></h1>
-          <p>This is the guided path for students building toward shallow water on curved surfaces with Clebsch variables. It is deliberately shorter than the surrounding Direction Field Lab gallery: each lesson asks one question, introduces one new burden, and preserves the audits established earlier.</p>
-          <div class="course-actions"><a class="primary" href="./dec-playground.html">Begin lesson 1</a><a href="#course-units">See the complete path</a></div>
+          <p class="course-eyebrow">Eight lessons · one thread of water</p>
+          <h1>Begin with a loop.<br />End with water<br /><em>moving on a surface.</em></h1>
+          <p>Imagine following a patch of ocean as it travels over a curved planet. Which quantities move with the water? What does a loop remember? What can local vorticity never tell you about a current that circles the globe? This course develops the language for those questions before assembling a small shallow-water model.</p>
+          <div class="course-actions"><a class="primary" href="./dec-playground.html">Start with the first question</a><a href="#course-units">Browse the whole path</a></div>
         </div>
         <aside>
           <span>THE CENTRAL REPRESENTATION</span>
@@ -28,6 +28,16 @@
           <p>The course explains every symbol separately before asking it to evolve.</p>
           <ul><li><b>u</b> moves particles</li><li><b>u<sup>♭</sup></b> measures circulation</li><li><b>α, β</b> carry vorticity</li><li><b>φ</b> enforces the local constraint</li><li><b>c<sub>H</sub><sup>k</sup></b> restores global periods</li></ul>
         </aside>
+      </section>
+
+      <section class="course-motivation" aria-labelledby="course-motivation-title">
+        <div><p class="course-eyebrow">Why shallow water?</p><h2 id="course-motivation-title">A modest equation with a surprisingly large world.</h2><p>When horizontal distances are much larger than the water depth, a three-dimensional fluid can often be approximated by a moving surface layer. That idea appears in ocean and coastal models, tides and tsunamis, atmospheric layers, and films flowing over curved objects.</p></div>
+        <ol>
+          <li><span>01</span><div><strong>Depth can change.</strong><p>Horizontal convergence raises the free surface; divergence lowers it. This is why we cannot simply project horizontal velocity to zero divergence.</p></div></li>
+          <li><span>02</span><div><strong>Geometry can matter.</strong><p>On a planet or a curved mesh, gradients, areas, circulation, and transport all depend on the surface metric.</p></div></li>
+          <li><span>03</span><div><strong>Topology can survive locally invisible.</strong><p>A current may wind around a periodic domain even where its vorticity vanishes. Those harmonic periods belong in the state.</p></div></li>
+        </ol>
+        <p class="course-motivation-caveat"><b>This course is a foundation, not an operational ocean model.</b> Rotation, bathymetry, coastlines, forcing, viscosity, wet/dry fronts, and robust large-scale numerics are later layers. The playground keeps them out until the representation and conservation laws are legible.</p>
       </section>
 
       <section class="course-contract">
@@ -44,7 +54,7 @@
         <div><b>h</b><p>Water-column depth in the shallow-water unit.</p></div>
       </section>
 
-      <nav class="course-unit-nav" aria-label="Course units"><a href="#unit-one">I · Language</a><a href="#unit-two">II · Topology</a><a href="#unit-three">III · Dynamics</a><a href="#unit-four">IV · Surfaces</a><a href="#electives">References</a></nav>
+      <nav class="course-unit-nav" aria-label="Course units"><a href="#unit-one">I · Language</a><a href="#unit-two">II · Topology</a><a href="#unit-three">III · Dynamics</a><a href="#unit-four">IV · Surfaces</a><a href="#electives">Places to pause</a></nav>
 
       <section id="course-units" class="course-units">
         <section id="unit-one" class="course-unit">
@@ -85,9 +95,9 @@
       </section>
 
       <section id="electives" class="course-electives">
-        <header><p class="course-eyebrow">Reference and implementation</p><h2>Three supporting tools. No parallel curriculum.</h2></header>
+        <header><p class="course-eyebrow">Places to pause</p><h2>A few notebooks to keep beside the experiments.</h2><p>These pages are here when a symbol, a mesh operator, or a research connection deserves more time. They are detours, not prerequisites.</p></header>
         <div>
-          <a href="./clebsch-surfaces-reference.html"><span>REFERENCE</span><strong>Exterior calculus + DEC lookup</strong><p>Return when a type, discrete storage location, sign convention, or gauge becomes ambiguous.</p></a>
+          <a href="./clebsch-surfaces-reference.html"><span>BACKGROUND NOTEBOOK</span><strong>Clebsch, exterior calculus, and nearby work</strong><p>Return when a type, discrete storage location, gauge freedom, or research connection deserves a slower explanation.</p></a>
           <a href="./energy-playground.html"><span>IMPLEMENTATION</span><strong>Editable sparse energies</strong><p>Explore the optimization and differentiation infrastructure used elsewhere in the lab.</p></a>
           <a href="./getting-started.html"><span>WORKFLOW</span><strong>Run, fork, and publish</strong><p>Use this when moving from a browser lesson to a student code project.</p></a>
         </div>

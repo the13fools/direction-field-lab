@@ -48,7 +48,7 @@ button { cursor: pointer; }
 .obs-shell { position: relative; z-index: 1; width: min(1580px, calc(100% - 36px)); margin: 0 auto; padding: 48px 0 80px; }
 .obs-hero { display: grid; grid-template-columns: minmax(0,1.25fr) minmax(340px,.75fr); gap: clamp(28px,6vw,90px); align-items: center; margin-bottom: 38px; }
 .obs-eyebrow, .instrument-bar, .experiment-flow span, .notebook-head span, .operator-source summary span, .operator-ledger > div span, .connection-card header span, .refinement-card header span { color: var(--mint); font: 600 9px var(--mono); letter-spacing: .11em; }
-.obs-hero h1 { margin: 12px 0 20px; font-size: clamp(3.2rem,7vw,7.4rem); line-height: .84; letter-spacing: -.075em; }
+.obs-hero h1 { margin: 12px 0 22px; font-size: clamp(2.9rem,5vw,5.4rem); font-weight:680; line-height: .97; letter-spacing: -.048em; }
 .obs-hero h1 em { color: var(--gold); background: linear-gradient(90deg, var(--gold), var(--coral) 48%, var(--violet)); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-style: normal; }
 .obs-hero p:last-child { max-width: 820px; margin: 0; color: var(--muted); font-size: 15px; line-height: 1.72; }
 .curl-compass { display: block; width: 100%; border: 1px solid var(--line); border-top: 4px solid var(--mint); background: linear-gradient(145deg, rgba(17,12,34,.92), rgba(8,18,31,.86)); box-shadow: 20px 20px 0 rgba(213,166,255,.035), 0 0 70px rgba(112,220,255,.04); }
@@ -190,7 +190,7 @@ tr[data-current="true"] td { color: var(--gold); background: rgba(255,204,103,.0
 @media (max-width: 600px) {
   .obs-shell { width: min(100% - 20px, 1580px); padding-top: 28px; }
   .obs-hero { grid-template-columns: 1fr; }
-  .obs-hero h1 { font-size: clamp(3rem,16vw,5rem); }
+  .obs-hero h1 { font-size: clamp(2.8rem,12vw,4.5rem); }
   .curl-compass { display: none; }
   .topology-audit, .connection-card > header { grid-template-columns: 1fr; }
   #preset-rail, .operator-ledger { grid-template-columns: 1fr; }

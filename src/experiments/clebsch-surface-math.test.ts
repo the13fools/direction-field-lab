@@ -41,7 +41,7 @@ describe("Clebsch surface lesson math", () => {
   it("hands topology to the dedicated disk and torus lessons", () => {
     expect(actionPageSource).toContain('href="./disk-circulation.html"');
     expect(actionPageSource).toContain('href="./flat-torus-cohomology.html"');
-    expect(actionPageSource).toContain("The next conceptual burden is global circulation");
+    expect(actionPageSource).toContain("The next surprise is global");
     expect(actionPageSource).not.toContain('data-cs-torus-mode=');
     expect(actionPageSource).not.toContain('id="cs-torus-chart-canvas"');
   });

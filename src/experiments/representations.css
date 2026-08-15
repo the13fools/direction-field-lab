@@ -15,7 +15,7 @@ button { cursor: pointer; }
 main { width: min(1500px,calc(100% - 40px)); margin: 0 auto; padding: 64px 0 90px; }
 .eyebrow { margin: 0; color: var(--cyan); font: 750 8px var(--mono); letter-spacing: .12em; }
 .rep-hero { display: grid; grid-template-columns: minmax(0,1.4fr) minmax(300px,.6fr); gap: clamp(28px,6vw,90px); align-items: end; margin-bottom: 42px; }
-.rep-hero h1 { margin: 13px 0 20px; font-size: clamp(3.2rem,6vw,6.8rem); line-height: .88; letter-spacing: -.07em; }
+.rep-hero h1 { margin: 13px 0 22px; font-size: clamp(2.9rem,4.8vw,5.2rem); font-weight:680; line-height: .98; letter-spacing: -.045em; }
 .rep-hero h1 em { color: transparent; background: linear-gradient(90deg,var(--gold),var(--pink),var(--violet),var(--cyan)); background-clip: text; -webkit-background-clip: text; font-style: normal; }
 .rep-hero > div > p:last-child { max-width: 850px; margin: 0; color: var(--muted); font-size: 14px; line-height: 1.7; }
 .rep-hero aside { padding: 24px; color: var(--ink); border-top: 5px solid var(--cyan); background: linear-gradient(145deg,#fff7d7,#f3deff 58%,#dffcff); box-shadow: 14px 14px 0 rgba(255,115,189,.13); transform: rotate(.6deg); }
@@ -84,4 +84,4 @@ dd { margin: 6px 0 0; color: var(--cyan); font: 750 10px var(--mono); overflow-w
 .next-links strong,.next-links span { display: block; }
 .next-links strong { font-size: 12px; }.next-links span { margin-top: 5px; color: #76687e; font: 8px var(--mono); }
 @media (max-width:980px) { .rep-header { grid-template-columns: 1fr auto; }.rep-header div { display:none; }.rep-hero,.rep-lab,.rep-conclusion { grid-template-columns:1fr; }.rep-notebook { position:static; }.representation-rail { grid-template-columns:1fr; }.representation-rail > i { min-height:24px; writing-mode:horizontal-tb; }.rep-metrics { grid-template-columns:1fr 1fr; } #representation-canvas { height:65vw; } }
-@media (max-width:620px) { main { width:min(100% - 20px,1500px); padding-top:36px; }.rep-header { padding:10px; }.rep-header a:last-child { display:none; }.rep-hero h1 { font-size:3rem; }.rep-hero aside { transform:none; }.rep-metrics { grid-template-columns:1fr; } #representation-canvas { min-height:360px; }.rep-conclusion { margin-top:45px; } }
+@media (max-width:620px) { main { width:min(100% - 20px,1500px); padding-top:36px; }.rep-header { padding:10px; }.rep-header a:last-child { display:none; }.rep-hero h1 { font-size:2.75rem; }.rep-hero aside { transform:none; }.rep-metrics { grid-template-columns:1fr; } #representation-canvas { min-height:360px; }.rep-conclusion { margin-top:45px; } }

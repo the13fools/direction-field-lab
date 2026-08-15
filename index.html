@@ -7,7 +7,7 @@
     <meta name="description" content="An open gallery of inspectable direction-field and geometry-processing experiments, with a separate guided course toward Clebsch shallow water." />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Direction Field Lab" />
-    <meta property="og:description" content="Live energies, sparse Hessians, vector-field discretizations, and a path into TinyAD." />
+    <meta property="og:description" content="A playground of inspectable direction-field experiments, with a guided path from circulation to shallow water on surfaces." />
     <meta property="og:image" content="./og.png" />
     <meta property="og:image:alt" content="A luminous tangent vector field flowing over a violet triangulated surface." />
     <meta name="twitter:card" content="summary_large_image" />
@@ -20,7 +20,7 @@
         <div><h1>Direction Field Lab</h1><p>open experiment gallery · direction fields · surface fluids</p></div>
       </div>
       <div class="header-actions">
-        <a href="./course.html" class="button primary">Shallow-water course</a>
+        <a href="./course.html" class="button primary">Follow the water course</a>
         <a href="./references.html" class="button dark">Reading map</a>
         <span id="persistence-state" class="persistence-state">local draft ready</span>
         <button id="import-file" class="button dark">Import problem</button>
@@ -36,17 +36,18 @@
     <main class="workspace">
       <aside class="sidebar">
         <section class="home-route-map" aria-labelledby="home-route-title">
-          <span>YOU ARE IN THE OPEN LAB</span>
-          <h2 id="home-route-title">Explore freely—or follow the course.</h2>
-          <p>The gallery contains independent geometry-processing experiments. The course is a smaller, ordered path toward a shallow-water solver.</p>
+          <span>WELCOME TO THE WORKBENCH</span>
+          <h2 id="home-route-title">Follow a curiosity, or settle in for the course.</h2>
+          <p>Nothing here has to be read in order. Each experiment begins with one geometric question, gives you something to change, and leaves an audit visible when the picture becomes surprising.</p>
           <a class="home-route-card fluid" href="./random-fluids.html">
             <canvas id="home-flow-preview" aria-hidden="true"></canvas>
-            <span>FEATURED GALLERY LAB</span><strong>Random fluids on surfaces</strong><small>Explore Clebsch fields and pressure projection without committing to a physical evolution law.</small>
+            <span>A GOOD FIRST WANDER</span><strong>Random fluids on surfaces</strong><small>Choose a surface, stir several spatial scales together, and compare a raw Clebsch field with its pressure projection.</small>
           </a>
-          <a class="home-route-card course" href="./course.html"><span>GUIDED ROUTE · 8 LESSONS</span><strong>Build toward shallow water</strong><small>Forms → circulation → topology → projection → dynamics.</small></a>
+          <a class="home-route-card course" href="./course.html"><span>A LONGER PATH · 8 LESSONS</span><strong>Build toward water on a surface</strong><small>Begin with what a loop measures; end with a small shallow-water solver.</small></a>
+          <aside class="home-play-note"><b>Try this first</b><span>Open the random-fluid lab, freeze time, and toggle raw/projected. Ask what changed before reading the explanation.</span></aside>
         </section>
         <p class="section-label">Direction-field experiments</p>
-        <p class="sidebar-intro">These chapters are a browseable research gallery. Open whichever representation or numerical question you want to inspect.</p>
+        <p class="sidebar-intro">The rest of the gallery is a shelf of small numerical toys: fields, operators, energies, and the occasional failure mode. Open the one that sounds useful today.</p>
         <div id="tutorials" class="tutorial-sections"></div>
         <details class="tour-section roadmap-section" name="tour-sections">
           <summary class="tour-summary"><span class="tour-marker">C</span><span><strong>Guided shallow-water course</strong><small>A separate prerequisite-ordered route through the gallery.</small></span></summary>

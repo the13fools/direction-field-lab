@@ -13,7 +13,7 @@ a { color:inherit; }
 .reference-header strong { margin-top:4px; font-size:13px; }
 .eyebrow { margin:0 0 12px; color:var(--violet); font:850 9px var(--mono); letter-spacing:.12em; }
 .reference-hero { display:grid; grid-template-columns:minmax(420px,1.2fr) minmax(340px,.8fr); gap:clamp(45px,8vw,120px); align-items:center; min-height:560px; padding:75px max(24px,calc((100vw - 1240px)/2)); }
-.reference-hero h1 { margin:0; color:var(--plum); font-size:clamp(4rem,8vw,8rem); line-height:.82; letter-spacing:-.075em; }
+.reference-hero h1 { max-width:840px; margin:0; color:var(--plum); font-size:clamp(3.2rem,5.35vw,5.8rem); font-weight:680; line-height:.97; letter-spacing:-.048em; }
 .reference-hero h1 em { color:var(--orange); font-style:normal; }
 .reference-hero > div > p:last-child { max-width:740px; margin:26px 0 0; color:var(--muted); font-size:14px; line-height:1.75; }
 .reference-index { display:grid; grid-template-columns:1fr 1fr; gap:1px; border:1px solid #665082; border-top:7px solid var(--cyan); border-radius:8px; overflow:hidden; background:#665082; box-shadow:13px 13px 0 rgba(255,117,64,.14); }
@@ -25,7 +25,7 @@ a { color:inherit; }
 .reference-section.alternate { background:repeating-linear-gradient(135deg,rgba(255,117,64,.035) 0 13px,rgba(82,223,234,.035) 13px 26px),rgba(250,245,255,.8); }
 .reference-section > header { display:grid; grid-template-columns:minmax(280px,.8fr) minmax(390px,1.2fr); gap:8px 70px; align-items:end; margin-bottom:28px; }
 .reference-section > header span { grid-column:1/-1; color:var(--orange); font:850 8px var(--mono); letter-spacing:.11em; }
-.reference-section h2 { margin:0; color:var(--plum); font-size:clamp(2.2rem,4.7vw,5rem); line-height:.93; letter-spacing:-.055em; }
+.reference-section h2 { margin:0; color:var(--plum); font-size:clamp(2.1rem,3.7vw,3.95rem); font-weight:680; line-height:1; letter-spacing:-.04em; }
 .reference-section > header p { margin:0; color:var(--muted); font-size:11px; line-height:1.7; }
 .reference-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
 .reference-grid.three { grid-template-columns:repeat(3,1fr); }
@@ -65,4 +65,4 @@ a { color:inherit; }
 .citation-note a:nth-child(3) { background:#f5eaff; }
 @media(max-width:1040px){.flow-roadmap{grid-template-columns:1fr 1fr}}
 @media(max-width:900px){.reference-hero,.reference-section>header,.reference-subsection,.citation-note{grid-template-columns:1fr}.reference-grid.three{grid-template-columns:1fr 1fr}.citation-note nav{grid-template-columns:repeat(3,1fr)}.citation-note a{min-width:0}}
-@media(max-width:620px){.reference-header{grid-template-columns:1fr auto}.reference-header div{display:none}.reference-hero{grid-template-columns:1fr;min-height:0;padding-top:54px}.reference-hero h1{font-size:4.1rem}.reference-index,.reference-grid,.reference-grid.three,.flow-roadmap{grid-template-columns:1fr}.reference-section{padding-block:50px}.reference-section h2{font-size:2.6rem}.citation-note nav{grid-template-columns:1fr}.reference-grid article{min-height:0}.reference-subsection{margin-top:42px}.flow-roadmap a{min-height:0}}
+@media(max-width:620px){.reference-header{grid-template-columns:1fr auto}.reference-header div{display:none}.reference-hero{grid-template-columns:1fr;min-height:0;padding-top:54px}.reference-hero h1{font-size:3.2rem}.reference-index,.reference-grid,.reference-grid.three,.flow-roadmap{grid-template-columns:1fr}.reference-section{padding-block:50px}.reference-section h2{font-size:2.4rem}.citation-note nav{grid-template-columns:1fr}.reference-grid article{min-height:0}.reference-subsection{margin-top:42px}.flow-roadmap a{min-height:0}}
