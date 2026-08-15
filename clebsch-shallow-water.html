@@ -66,12 +66,25 @@
         <div>
           <span>THE NUMERICAL REPAIR</span>
           <h2>Rechart the representation, not the fluid.</h2>
-          <p>Transport eventually distorts any finite-resolution label grid. At a rechart time, the solver first saves the current one-form, resets <b>B</b> to the ambient XYZ coordinate functions, and solves for new weights <b>λ</b>. Height, particles, and physical time do not reset.</p>
+          <p>Transport eventually distorts any finite-resolution label grid. At a rechart time, the solver first saves the current one-form, resets <b>B</b> to the ambient XYZ coordinate functions, and solves for new weights <b>λ</b>. Height, material dye, and physical time do not reset.</p>
         </div>
         <div class="cw-scope-equations">
           <div class="cw-math-display" data-latex="r=u^\flat-d\phi,\qquad B\leftarrow(X,Y,Z)">save the non-exact part and reset the labels</div>
           <div class="cw-math-display" data-latex="\lambda=\arg\min_{\tilde\lambda}\|\tilde\lambda\|^2\quad\text{s.t.}\quad\sum_a\tilde\lambda_a\,dB^a=r">minimum norm weights preserve the residual one-form</div>
           <p>The “rechart defect” below is the relative RMS change in velocity caused by this discrete solve. It should remain near machine precision immediately after a reset. This is a gauge change, not a pressure projection and not remeshing.</p>
+        </div>
+      </section>
+
+      <section class="cw-limitations" aria-labelledby="cw-limitations-title">
+        <header>
+          <p class="cw-eyebrow">What this prototype actually claims</p>
+          <h2 id="cw-limitations-title">A readable numerical experiment, not yet a production surface solver.</h2>
+          <p>The lab couples a conservative periodic height update to semi-Lagrangian Clebsch transport. It is useful for seeing the variables and the recharting problem. It should not be read as evidence that all of the geometric and conservation issues are finished.</p>
+        </header>
+        <div>
+          <article><span>IMPLEMENTED HERE</span><strong>A periodic shallow-water layer.</strong><p>Height obeys a conservative face-flux update. The Clebsch labels and dye follow the reconstructed velocity, φ receives the pressure term, and mass and representation defects are measured.</p></article>
+          <article><span>DELIBERATELY OMITTED</span><strong>The hard surface cases.</strong><p>No curved triangle mesh, bathymetry, Coriolis force, wet/dry front, shock treatment, viscosity, or nonzero harmonic circulation appears in this square experiment.</p></article>
+          <article><span>FUTURE SOLVER WORK</span><strong>Preserve more than a picture.</strong><p>A serious mesh version needs DEC/FEM mass matrices, a coupled conservative time integrator, topology-aware harmonic state, robust chart resets, and benchmark tests for energy, potential vorticity, and Kelvin circulation.</p></article>
         </div>
       </section>
 
@@ -91,8 +104,13 @@
         </aside>
 
         <section class="cw-stage">
-          <div class="cw-stage-head"><div><span>LIVE PERIODIC GRID</span><strong id="cw-caption">height h with velocity vectors</strong></div><div id="cw-status">ready</div></div>
+          <div class="cw-stage-head"><div><span>LIVE PERIODIC GRID</span><strong id="cw-caption">height h − H with no glyphs</strong></div><div id="cw-status">ready</div></div>
           <canvas id="cw-canvas" aria-label="Clebsch shallow-water scalar field with vector or covector glyphs"></canvas>
+          <div class="cw-motion-key" aria-label="How to interpret motion in the plot">
+            <p><b>Color is Eulerian height.</b><span>It is a water-column value at each fixed cell, not paint glued to a parcel.</span></p>
+            <p><b>Arrows are optional grid samples.</b><span>Their anchors stay fixed while their direction and length change; they are not particles.</span></p>
+            <p><b>Dye is the material view.</b><span>Select <i>dye</i> to watch a scalar carried by the reconstructed velocity.</span></p>
+          </div>
           <div class="cw-layer-switch" aria-label="Displayed scalar field">
             <button class="active" data-cw-layer="height">h</button><button data-cw-layer="phi">φ</button><button data-cw-layer="weight">λ</button><button data-cw-layer="label">B</button><button data-cw-layer="vorticity">ζ</button><button data-cw-layer="pv">q = ζ/h</button><button data-cw-layer="tracer">dye</button>
           </div>
@@ -100,9 +118,9 @@
             <span>LABEL CHANNEL</span><button class="active" data-cw-channel="0">X</button><button data-cw-channel="1">Y</button><button data-cw-channel="2">Z</button>
           </div>
           <div class="cw-glyph-switch" aria-label="Displayed vector or covector field">
-            <span>GLYPHS</span><button class="active" data-cw-glyph="velocity">u vectors</button><button data-cw-glyph="u-flat">u♭ covectors</button><button data-cw-glyph="d-phi">dφ covectors</button><button data-cw-glyph="label-one-form">ΣλₐdBᵃ</button><button data-cw-glyph="flux">hu flux</button><button data-cw-glyph="none">none</button>
+            <span>FIXED-GRID GLYPHS</span><button data-cw-glyph="velocity">u vectors</button><button data-cw-glyph="u-flat">u♭ covectors</button><button data-cw-glyph="d-phi">dφ covectors</button><button data-cw-glyph="label-one-form">ΣλₐdBᵃ</button><button data-cw-glyph="flux">hu flux</button><button class="active" data-cw-glyph="none">none</button>
           </div>
-          <p id="cw-glyph-note" class="cw-glyph-note">Arrows are vectors: they point where a particle moves.</p>
+          <p id="cw-glyph-note" class="cw-glyph-note">Uncluttered scalar view. Choose a glyph layer to sample vectors or covectors on the fixed grid.</p>
           <div class="cw-actions"><button id="cw-reset">Reset</button><button id="cw-rechart">Rechart now</button><button id="cw-step">One step</button><button id="cw-play" class="primary" aria-pressed="false">Play</button></div>
           <div class="cw-metrics">
             <div><span>time</span><strong id="cw-time">0</strong></div><div><span>mass drift</span><strong id="cw-mass">—</strong></div><div><span>energy</span><strong id="cw-energy">—</strong></div><div><span>divergence RMS</span><strong id="cw-divergence">—</strong></div><div><span>vorticity RMS</span><strong id="cw-vorticity">—</strong></div><div><span>ζ − curl(label term)</span><strong id="cw-identity">—</strong></div><div><span>recharts</span><strong id="cw-recharts">—</strong></div><div><span>last velocity defect</span><strong id="cw-rechart-defect">—</strong></div><div><span>label-frame quality</span><strong id="cw-frame-quality">—</strong></div>

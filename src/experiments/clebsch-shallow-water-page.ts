@@ -75,7 +75,7 @@ let preset: ClebschWaterPreset = "crossing-labels";
 let representation: ClebschRepresentation = "ambient-recharted";
 let model = new ClebschShallowWaterModel();
 let scalarLayer: ScalarLayer = "height";
-let glyphLayer: GlyphLayer = "velocity";
+let glyphLayer: GlyphLayer = "none";
 let labelChannel = 0;
 let playing = false;
 let probe = { x: 0.62, y: 0.54 };
@@ -102,12 +102,12 @@ const glyphCaptions: Record<GlyphLayer, string> = {
 };
 
 const glyphNotes: Record<GlyphLayer, string> = {
-  velocity: "Arrows are vectors: they point where a particle moves.",
+  velocity: "These are Eulerian velocity samples, not particles: each arrow stays anchored to a grid site while its direction and length change.",
   "u-flat": "Parallel bars are covectors: motion along a bar is in the kernel; crossing bars produces a nonzero reading.",
   "d-phi": "These bars represent the exact one-form dφ. Its exterior derivative—and therefore its vorticity—is zero.",
   "label-one-form": "These bars represent the complete label term Σ λₐdBᵃ. Three redundant channels survive a chart fold better than one pair.",
   flux: "Flux arrows are h u: velocity weighted by the local water column.",
-  none: "Only the selected scalar field is shown; colors are numbers, not directions.",
+  none: "Uncluttered scalar view. Choose a glyph layer to sample vectors or covectors on the fixed grid.",
 };
 
 function readModel(): ClebschShallowWaterModel {
@@ -255,6 +255,7 @@ function glyphVectors(): { vectors: Vec2[]; covectors: boolean; color: string } 
 }
 
 function drawArrow(context: CanvasRenderingContext2D, x: number, y: number, dx: number, dy: number): void {
+  if (Math.hypot(dx, dy) < 3) return;
   context.beginPath();
   context.moveTo(x, y);
   context.lineTo(x + dx, y + dy);
@@ -312,6 +313,8 @@ function drawGlyphs(context: CanvasRenderingContext2D, left: number, top: number
   for (let row = 0; row < n; row += stride) {
     for (let column = 0; column < n; column += stride) {
       const vector = field.vectors[row * n + column]!;
+      const magnitude = Math.hypot(vector.x, vector.y);
+      if (magnitude < 0.08 * maximum) continue;
       const x = left + (column + 0.5) * cell;
       const y = top + (n - row - 0.5) * cell;
       if (field.covectors) {
@@ -351,7 +354,7 @@ function drawField(): void {
   context.strokeRect(left, top, side, side);
   context.fillStyle = "rgba(255,255,255,.72)";
   context.font = "700 8px ui-monospace, monospace";
-  context.fillText("bilinear view · faint lines show the periodic computational grid", left + 7, top + 13);
+  context.fillText("Eulerian field · glyph anchors (when enabled) stay on the fixed grid", left + 7, top + 13);
 }
 
 function drawAtlas(): void {
