@@ -21,6 +21,7 @@
       </div>
       <div class="header-actions">
         <a href="./course.html" class="button primary">Follow the water course</a>
+        <a href="./solver-stories.html" class="button dark">Mesh fluid stories</a>
         <a href="./references.html" class="button dark">Reading map</a>
         <span id="persistence-state" class="persistence-state">local draft ready</span>
         <button id="import-file" class="button dark">Import problem</button>
@@ -45,11 +46,17 @@
             <div class="home-teaser-switch" role="group" aria-label="Teaser field model">
               <button class="active" data-flow-mode="random" aria-pressed="true">Random + projected</button><button data-flow-mode="water" aria-pressed="false">Shallow water</button>
             </div>
-            <div class="home-teaser-foot"><span data-flow-audit>evolves: noise coordinates · constraint: div u ≈ 0</span><a data-flow-link href="./random-fluids.html">Open the random-field playground →</a></div>
+            <div class="home-teaser-foot">
+              <span data-flow-audit>evolves: noise coordinates · constraint: div u ≈ 0</span>
+              <nav class="home-teaser-routes" aria-label="Continue from the fluid teaser">
+                <a class="story-route" href="./solver-stories.html">See both fields on the frog mesh →</a>
+                <a data-flow-link href="./random-fluids.html">Open this field’s full lab →</a>
+              </nav>
+            </div>
           </article>
-          <a class="home-route-card methods" href="./solver-stories.html"><span>BEFORE CHOOSING A SOLVER</span><strong>How should the water remember?</strong><small>Compare backtracing, Stable Fluids, APIC, Clebsch transport, and conservative shallow-water updates.</small></a>
+          <a class="home-route-card methods" href="./solver-stories.html"><span>INTERACTIVE FROG MESH · SOLVER STORIES</span><strong>How should the water remember?</strong><small>Switch between projected random fields and surface shallow-water waves, then compare backtracing, APIC, Clebsch transport, and conservative updates.</small></a>
           <a class="home-route-card course" href="./course.html"><span>A LONGER PATH · 8 LESSONS</span><strong>Build toward water on a surface</strong><small>Begin with what a loop measures; end with a small shallow-water solver.</small></a>
-          <aside class="home-play-note"><b>Try this first</b><span>Switch the teaser from random kinematics to shallow-water dynamics. The arrows may look similar; ask which quantities are actually evolving.</span></aside>
+          <aside class="home-play-note"><b>Try this first</b><span>Switch the teaser from random kinematics to shallow-water dynamics. Then open <a href="./solver-stories.html">Solver stories</a> to repeat the comparison on the interactive frog mesh.</span></aside>
         </section>
         <p class="section-label">Direction-field experiments</p>
         <p class="sidebar-intro">The rest of the gallery is a shelf of small numerical toys: fields, operators, energies, and the occasional failure mode. Open the one that sounds useful today.</p>
