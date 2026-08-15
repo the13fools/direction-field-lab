@@ -4,10 +4,10 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#f1ede1" />
-    <meta name="description" content="An open gallery of inspectable direction-field and geometry-processing experiments, with a separate guided course toward Clebsch shallow water." />
+    <meta name="description" content="An interactive direction-field playground with a tree-frog surface-fluid teaser and a guided course toward Clebsch shallow water." />
     <meta property="og:type" content="website" />
     <meta property="og:title" content="Direction Field Lab" />
-    <meta property="og:description" content="A playground of inspectable direction-field experiments, with a guided path from circulation to shallow water on surfaces." />
+    <meta property="og:description" content="Compare projected random fields and shallow-water waves on a tree-frog mesh, then follow the guided path from circulation to surface fluids." />
     <meta property="og:image" content="./og.png" />
     <meta property="og:image:alt" content="A luminous tangent vector field flowing over a violet triangulated surface." />
     <meta name="twitter:card" content="summary_large_image" />
@@ -40,23 +40,28 @@
           <span>WELCOME TO THE WORKBENCH</span>
           <h2 id="home-route-title">Follow a curiosity, or settle in for the course.</h2>
           <p>Nothing here has to be read in order. Each experiment begins with one geometric question, gives you something to change, and leaves an audit visible when the picture becomes surprising.</p>
-          <article class="home-route-card fluid home-flow-teaser" data-flow-story="random">
-            <canvas id="home-flow-preview" data-flow-canvas role="img" aria-label="Particles moving through either a projected random Clebsch field or a Clebsch shallow-water state"></canvas>
-            <div class="home-teaser-copy"><span data-flow-kicker>PRESCRIBED KINEMATICS</span><strong data-flow-title>A random projected Clebsch field</strong><small data-flow-copy>Temporal Perlin coefficients move multiscale scalar labels. A periodic Hodge solve removes the divergent part before particles are advected.</small></div>
+          <article class="home-route-card fluid home-flow-teaser" data-flow-story="random" data-flow-view="mesh">
+            <canvas id="home-flow-preview" data-flow-canvas hidden role="img" aria-label="Flat-torus particles moving through either a projected random field or a shallow-water reference wave"></canvas>
+            <div data-flow-mesh class="home-mesh-preview" role="img" aria-label="Interactive tree-frog mesh carrying either a projected random field or a shallow-water wave packet">Loading the tree-frog surface…</div>
+            <div class="home-teaser-copy"><span data-flow-kicker>PRESCRIBED SURFACE KINEMATICS</span><strong data-flow-title>A random projected field on the frog</strong><small data-flow-copy>Temporal noise moves Laplace–Beltrami coefficients on the triangle mesh. A mesh Poisson solve reconstructs a tangent, divergence-free Clebsch field.</small></div>
             <div class="home-teaser-switch" role="group" aria-label="Teaser field model">
               <button class="active" data-flow-mode="random" aria-pressed="true">Random + projected</button><button data-flow-mode="water" aria-pressed="false">Shallow water</button>
             </div>
+            <div class="home-teaser-switch home-view-switch" role="group" aria-label="Teaser surface view">
+              <button class="active" data-flow-view="mesh" aria-pressed="true">Frog mesh</button><button data-flow-view="flat" aria-pressed="false">Flat torus</button>
+            </div>
             <div class="home-teaser-foot">
-              <span data-flow-audit>evolves: noise coordinates · constraint: div u ≈ 0</span>
+              <span data-flow-time>loading the frog field…</span>
+              <span data-flow-audit>evolves: spectral coefficients · constraint: mesh div u ≈ 0</span>
               <nav class="home-teaser-routes" aria-label="Continue from the fluid teaser">
-                <a class="story-route" href="./solver-stories.html">See both fields on the frog mesh →</a>
+                <a class="story-route" href="./solver-stories.html">Open the full field comparison →</a>
                 <a data-flow-link href="./random-fluids.html">Open this field’s full lab →</a>
               </nav>
             </div>
           </article>
-          <a class="home-route-card methods" href="./solver-stories.html"><span>INTERACTIVE FROG MESH · SOLVER STORIES</span><strong>How should the water remember?</strong><small>Switch between projected random fields and surface shallow-water waves, then compare backtracing, APIC, Clebsch transport, and conservative updates.</small></a>
+          <a class="home-route-card methods" href="./solver-stories.html"><span>INTERACTIVE FROG MESH · SOLVER STORIES</span><strong>How should the water remember?</strong><small>Compare a projected random field with a localized shallow-water wave packet, audit mesh continuity, then place Clebsch transport beside backtracing, APIC, and conservative updates.</small></a>
           <a class="home-route-card course" href="./course.html"><span>A LONGER PATH · 8 LESSONS</span><strong>Build toward water on a surface</strong><small>Begin with what a loop measures; end with a small shallow-water solver.</small></a>
-          <aside class="home-play-note"><b>Try this first</b><span>Switch the teaser from random kinematics to shallow-water dynamics. Then open <a href="./solver-stories.html">Solver stories</a> to repeat the comparison on the interactive frog mesh.</span></aside>
+          <aside class="home-play-note"><b>Try this first</b><span>Switch from random kinematics to shallow-water dynamics, then unfold the same question from the frog onto the flat torus. Open <a href="./solver-stories.html">Solver stories</a> when you want the numerical-method context.</span></aside>
         </section>
         <p class="section-label">Direction-field experiments</p>
         <p class="sidebar-intro">The rest of the gallery is a shelf of small numerical toys: fields, operators, energies, and the occasional failure mode. Open the one that sounds useful today.</p>

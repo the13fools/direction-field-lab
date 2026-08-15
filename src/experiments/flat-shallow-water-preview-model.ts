@@ -42,10 +42,7 @@ export class FlatShallowWaterPreviewModel {
       throw new Error("resolution must be an integer from 16 through 96");
     }
     this.parameters = { resolution, gravity, meanDepth };
-    this.modes = [
-      this.makeMode(1, 0, 0.058, 0.15),
-      this.makeMode(0, 1, 0.036, 1.1),
-    ];
+    this.modes = this.makePulseModes();
     const count = resolution * resolution;
     this.state = {
       height: new Float64Array(count),
@@ -72,6 +69,36 @@ export class FlatShallowWaterPreviewModel {
       phase,
       omega: Math.sqrt(this.parameters.gravity * this.parameters.meanDepth) * magnitude,
     };
+  }
+
+  private makePulseModes(): FourierWaveMode[] {
+    const centerX = 0.43;
+    const centerY = 0.52;
+    const width = 0.13;
+    const targetPeak = 0.09;
+    const records: Array<{ waveNumberX: number; waveNumberY: number; weight: number }> = [];
+
+    // Keep one representative from each ±k pair. The Gaussian Fourier
+    // envelope makes all retained phases agree at one point, producing a
+    // localized height bump rather than a pair of global standing stripes.
+    for (let waveNumberX = 0; waveNumberX <= 3; waveNumberX += 1) {
+      for (let waveNumberY = -3; waveNumberY <= 3; waveNumberY += 1) {
+        if (waveNumberX === 0 && waveNumberY <= 0) continue;
+        const waveNumber2 = waveNumberX ** 2 + waveNumberY ** 2;
+        records.push({
+          waveNumberX,
+          waveNumberY,
+          weight: Math.exp(-2 * Math.PI ** 2 * width ** 2 * waveNumber2),
+        });
+      }
+    }
+    const weightSum = records.reduce((sum, record) => sum + record.weight, 0);
+    return records.map((record) => this.makeMode(
+      record.waveNumberX,
+      record.waveNumberY,
+      targetPeak * record.weight / Math.max(weightSum, 1e-14),
+      -TAU * (record.waveNumberX * centerX + record.waveNumberY * centerY),
+    ));
   }
 
   private initializeLabels(): void {
@@ -133,5 +160,43 @@ export class FlatShallowWaterPreviewModel {
     let mean = 0;
     for (const value of this.state.height) mean += value;
     return mean / this.state.height.length - this.parameters.meanDepth;
+  }
+
+  energy(): number {
+    let total = 0;
+    for (let index = 0; index < this.state.height.length; index += 1) {
+      const displacement = this.state.height[index]! - this.parameters.meanDepth;
+      const velocity = this.velocityValues[index]!;
+      total += (
+        0.5 * this.parameters.meanDepth * (velocity.x ** 2 + velocity.y ** 2)
+        + 0.5 * this.parameters.gravity * displacement ** 2
+      );
+    }
+    return total / this.state.height.length;
+  }
+
+  continuityResidualRms(): number {
+    const { resolution: n, gravity, meanDepth } = this.parameters;
+    let residual2 = 0;
+    let reference2 = 0;
+    for (let row = 0; row < n; row += 1) {
+      for (let column = 0; column < n; column += 1) {
+        const x = (column + 0.5) / n;
+        const y = (row + 0.5) / n;
+        let heightRate = 0;
+        let divergence = 0;
+        for (const mode of this.modes) {
+          const angle = TAU * (mode.waveNumberX * x + mode.waveNumberY * y) + mode.phase;
+          const temporalSine = Math.sin(mode.omega * this.state.time);
+          const waveNumber2 = TAU ** 2 * (mode.waveNumberX ** 2 + mode.waveNumberY ** 2);
+          heightRate -= mode.amplitude * mode.omega * temporalSine * Math.cos(angle);
+          divergence += gravity * mode.amplitude / mode.omega * temporalSine * waveNumber2 * Math.cos(angle);
+        }
+        const fluxDivergence = meanDepth * divergence;
+        residual2 += (heightRate + fluxDivergence) ** 2;
+        reference2 += 0.5 * (heightRate ** 2 + fluxDivergence ** 2);
+      }
+    }
+    return reference2 < 1e-24 ? 0 : Math.sqrt(residual2 / reference2);
   }
 }

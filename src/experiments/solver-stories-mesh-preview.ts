@@ -147,14 +147,14 @@ export async function initializeSolverStoriesMeshPreview(
       material.emissive.setHex(0x06351d);
     } else {
       const state = waterModel.stateAt();
-      const warm = new THREE.Color(0xd9f45f);
+      const warm = new THREE.Color(0xff7642);
       const cool = new THREE.Color(0x25d2d5);
-      const neutral = new THREE.Color(0x11924f);
+      const neutral = new THREE.Color(0x1b704a);
       for (let vertex = 0; vertex < colors.count; vertex += 1) {
         const displacement = state.height[vertex]! - waterModel.meanDepth;
-        const amount = Math.min(1, Math.abs(displacement) / 0.075);
+        const amount = Math.min(1, Math.abs(displacement) / 0.082);
         const source = displacement >= 0 ? warm : cool;
-        const blend = 0.72 * Math.sqrt(amount);
+        const blend = Math.sqrt(amount);
         colors.setXYZ(
           vertex,
           neutral.r + blend * (source.r - neutral.r),
@@ -162,7 +162,7 @@ export async function initializeSolverStoriesMeshPreview(
           neutral.b + blend * (source.b - neutral.b),
         );
       }
-      material.emissive.setHex(0x063d27);
+      material.emissive.setHex(0x082b28);
     }
     colors.needsUpdate = true;
   };

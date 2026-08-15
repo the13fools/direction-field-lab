@@ -36,10 +36,10 @@ const FLOW_STORIES: Record<FlowStoryMode, {
     linkLabel: "Open the random-field playground →",
   },
   water: {
-    kicker: "NON-DISSIPATIVE REFERENCE WAVE",
-    title: "A periodic shallow-water wave",
-    copy: "Two broad, low-frequency Fourier modes exchange height and potential velocity exactly in time. They do not fade numerically; the nonlinear Clebsch lab shows the harder transported-label problem.",
-    audit: "evolves: h and potential velocity · low Fourier modes · mass fixed",
+    kicker: "PROPAGATING SHALLOW-WATER PULSE",
+    title: "Pressure turns one bump into moving fronts",
+    copy: "Begin with a localized height bump and zero velocity. The pressure gradient accelerates water away from the center; continuity lowers the bump and carries the fronts around the periodic domain.",
+    audit: "initial state: localized h, u = 0 · then: pressure creates u, div(hu) moves h",
     link: "./clebsch-shallow-water.html",
     linkLabel: "Open the shallow-water lab →",
   },
@@ -422,7 +422,7 @@ function initializeFlowStory(root: HTMLElement): void {
     const time = root.querySelector<HTMLElement>("[data-flow-time]");
     if (time && frameNumber % 10 === 0) {
       if (mode === "random") time.textContent = `t ${randomModel.time.toFixed(2)} · projected periodic field`;
-      else time.textContent = `t ${waterModel.state.time.toFixed(2)} · exact Fourier wave · mass drift ${waterModel.massDrift().toExponential(1)}`;
+      else time.textContent = `t ${waterModel.state.time.toFixed(2)} · propagating SW pulse · continuity ${waterModel.continuityResidualRms().toExponential(1)}`;
     }
   };
 
