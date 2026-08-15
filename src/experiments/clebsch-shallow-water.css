@@ -70,6 +70,7 @@ button { cursor: pointer; }
 #cw-canvas { display: block; width: 100%; height: clamp(520px,58vw,720px); max-height: 720px; border: 1px solid #49756e; border-radius: 6px; background: #081d1c; touch-action: none; }
 .cw-layer-switch, .cw-glyph-switch, .cw-actions { display: flex; flex-wrap: wrap; gap: 5px; }
 .cw-layer-switch { padding-top: 10px; }
+.cw-layer-switch > span { align-self: center; margin-right: 5px; color: var(--lime); font: 800 7px var(--mono); letter-spacing: .08em; }
 .cw-layer-switch button, .cw-glyph-switch button, .cw-actions button, .cw-presets button { min-height: 36px; padding: 7px 10px; color: #d2e4de; border: 1px solid #426c65; border-radius: 3px; background: #102f2d; font-size: 9px; font-weight: 800; }
 .cw-layer-switch button.active, .cw-glyph-switch button.active { color: var(--deep); border-color: var(--cyan); background: var(--cyan); }
 .cw-glyph-switch { align-items: center; padding-top: 7px; }
@@ -78,7 +79,7 @@ button { cursor: pointer; }
 .cw-actions { padding: 5px 0 11px; }
 .cw-actions button { min-width: 100px; }
 .cw-actions button.primary { color: var(--deep); border-color: var(--lime); background: linear-gradient(135deg, var(--lime), var(--orange)); }
-.cw-metrics { display: grid; grid-template-columns: repeat(6,1fr); gap: 1px; border: 1px solid #42645f; background: #42645f; }
+.cw-metrics { display: grid; grid-template-columns: repeat(3,1fr); gap: 1px; border: 1px solid #42645f; background: #42645f; }
 .cw-metrics > div { min-width: 0; padding: 10px; background: #102b2a; }
 .cw-metrics span, .cw-metrics strong { display: block; }
 .cw-metrics span { color: #87aaa0; font: 700 7px var(--mono); text-transform: uppercase; }
@@ -92,6 +93,7 @@ button { cursor: pointer; }
 .cw-atlas button span { display: block; margin-top: 5px; overflow: hidden; font: 7px var(--mono); text-overflow: ellipsis; white-space: nowrap; }
 .cw-controls { min-width: 0; border-left: 1px solid var(--line); }
 .cw-presets { display: grid; grid-template-columns: repeat(3,1fr); gap: 5px; margin: 0 0 10px; }
+.cw-presets.cw-representation { grid-template-columns: repeat(2,1fr); }
 .cw-presets button { min-width: 0; min-height: 49px; padding: 6px; color: var(--green); border-color: #a9c8ba; background: white; font-size: 8px; }
 .cw-presets button.active { color: white; border-color: var(--green); background: var(--green); }
 .cw-controls > label, .cw-probe > label { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; padding: 12px 0; border-bottom: 1px solid var(--line); }

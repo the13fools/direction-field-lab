@@ -5,12 +5,13 @@ import katex from "katex";
 
 import {
   ClebschShallowWaterModel,
+  type ClebschRepresentation,
   type ClebschWaterPreset,
   type Vec2,
 } from "./clebsch-shallow-water-model";
 
-type ScalarLayer = "height" | "phi" | "alpha" | "beta" | "vorticity" | "pv" | "tracer";
-type GlyphLayer = "velocity" | "u-flat" | "d-phi" | "alpha-d-beta" | "flux" | "none";
+type ScalarLayer = "height" | "phi" | "weight" | "label" | "vorticity" | "pv" | "tracer";
+type GlyphLayer = "velocity" | "u-flat" | "d-phi" | "label-one-form" | "flux" | "none";
 
 function byId<T extends HTMLElement>(id: string): T {
   const value = document.getElementById(id);
@@ -57,6 +58,7 @@ const controls = {
   gravity: byId<HTMLInputElement>("cw-gravity"),
   meanDepth: byId<HTMLInputElement>("cw-depth"),
   clebschStrength: byId<HTMLInputElement>("cw-strength"),
+  rechartInterval: byId<HTMLInputElement>("cw-rechart-interval"),
   angle: byId<HTMLInputElement>("cw-angle"),
 };
 const outputs = {
@@ -65,13 +67,16 @@ const outputs = {
   gravity: byId<HTMLOutputElement>("cw-gravity-output"),
   meanDepth: byId<HTMLOutputElement>("cw-depth-output"),
   clebschStrength: byId<HTMLOutputElement>("cw-strength-output"),
+  rechartInterval: byId<HTMLOutputElement>("cw-rechart-output"),
   angle: byId<HTMLOutputElement>("cw-angle-output"),
 };
 
 let preset: ClebschWaterPreset = "crossing-labels";
+let representation: ClebschRepresentation = "ambient-recharted";
 let model = new ClebschShallowWaterModel();
 let scalarLayer: ScalarLayer = "height";
 let glyphLayer: GlyphLayer = "velocity";
+let labelChannel = 0;
 let playing = false;
 let probe = { x: 0.62, y: 0.54 };
 let plotBounds = { left: 0, top: 0, side: 1 };
@@ -80,8 +85,8 @@ let lastFrame = 0;
 const scalarCaptions: Record<ScalarLayer, string> = {
   height: "height h − H",
   phi: "Bernoulli potential φ",
-  alpha: "material label weight α",
-  beta: "material label β",
+  weight: "Clebsch weight λ",
+  label: "material ambient label B",
   vorticity: "vorticity ζ = curl u",
   pv: "potential vorticity q = ζ/h",
   tracer: "passive material dye",
@@ -91,7 +96,7 @@ const glyphCaptions: Record<GlyphLayer, string> = {
   velocity: "velocity vectors",
   "u-flat": "velocity one-form u♭",
   "d-phi": "exact covectors dφ",
-  "alpha-d-beta": "label covectors αdβ",
+  "label-one-form": "label covectors Σ λₐdBᵃ",
   flux: "mass-flux vectors hu",
   none: "no glyphs",
 };
@@ -100,7 +105,7 @@ const glyphNotes: Record<GlyphLayer, string> = {
   velocity: "Arrows are vectors: they point where a particle moves.",
   "u-flat": "Parallel bars are covectors: motion along a bar is in the kernel; crossing bars produces a nonzero reading.",
   "d-phi": "These bars represent the exact one-form dφ. Its exterior derivative—and therefore its vorticity—is zero.",
-  "alpha-d-beta": "These bars represent αdβ. Their curl is dα ∧ dβ, the rotational Clebsch contribution.",
+  "label-one-form": "These bars represent the complete label term Σ λₐdBᵃ. Three redundant channels survive a chart fold better than one pair.",
   flux: "Flux arrows are h u: velocity weighted by the local water column.",
   none: "Only the selected scalar field is shown; colors are numbers, not directions.",
 };
@@ -112,6 +117,8 @@ function readModel(): ClebschShallowWaterModel {
     gravity: Number(controls.gravity.value),
     meanDepth: Number(controls.meanDepth.value),
     clebschStrength: Number(controls.clebschStrength.value),
+    representation,
+    rechartInterval: Math.round(Number(controls.rechartInterval.value)),
     preset,
   });
 }
@@ -122,6 +129,9 @@ function updateOutputs(): void {
   outputs.gravity.value = Number(controls.gravity.value).toFixed(2);
   outputs.meanDepth.value = Number(controls.meanDepth.value).toFixed(2);
   outputs.clebschStrength.value = Number(controls.clebschStrength.value).toFixed(2);
+  outputs.rechartInterval.value = Number(controls.rechartInterval.value) === 0
+    ? "off"
+    : Math.round(Number(controls.rechartInterval.value)) + " steps";
   outputs.angle.value = `${Math.round(Number(controls.angle.value))}°`;
 }
 
@@ -130,8 +140,8 @@ function fieldValues(layer: ScalarLayer): Float64Array {
     return Float64Array.from(model.state.height, (value) => value - model.parameters.meanDepth);
   }
   if (layer === "phi") return model.state.phi;
-  if (layer === "alpha") return model.state.alpha;
-  if (layer === "beta") return model.state.beta;
+  if (layer === "weight") return model.state.weights[labelChannel]!;
+  if (layer === "label") return model.state.labels[labelChannel]!;
   if (layer === "vorticity") return model.curl();
   if (layer === "pv") return model.potentialVorticity();
   return model.state.tracer;
@@ -241,15 +251,7 @@ function glyphVectors(): { vectors: Vec2[]; covectors: boolean; color: string } 
   }
   if (glyphLayer === "u-flat") return { vectors: velocity, covectors: true, color: "rgba(185,223,97,.9)" };
   if (glyphLayer === "d-phi") return { vectors: model.gradient(model.state.phi), covectors: true, color: "rgba(255,168,91,.9)" };
-  const dBeta = model.gradient(model.state.beta);
-  return {
-    vectors: dBeta.map((value, index) => ({
-      x: model.state.alpha[index]! * value.x,
-      y: model.state.alpha[index]! * value.y,
-    })),
-    covectors: true,
-    color: "rgba(85,220,225,.9)",
-  };
+  return { vectors: model.labelOneForm(), covectors: true, color: "rgba(85,220,225,.9)" };
 }
 
 function drawArrow(context: CanvasRenderingContext2D, x: number, y: number, dx: number, dy: number): void {
@@ -354,7 +356,7 @@ function drawField(): void {
 
 function drawAtlas(): void {
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cw-atlas]")) {
-    const layer = button.dataset.cwAtlas as "height" | "phi" | "alpha" | "beta";
+    const layer = button.dataset.cwAtlas as "height" | "phi" | "weight" | "label";
     const tile = button.querySelector("canvas")!;
     const { context, width, height } = fitCanvas(tile);
     context.clearRect(0, 0, width, height);
@@ -373,15 +375,18 @@ function updateProbe(): void {
   const angle = Number(controls.angle.value) * Math.PI / 180;
   const displacement = { x: Math.cos(angle), y: Math.sin(angle) };
   const exactPairing = sample.dPhi.x * displacement.x + sample.dPhi.y * displacement.y;
-  const labelPairing = sample.alphaDBeta.x * displacement.x + sample.alphaDBeta.y * displacement.y;
+  const labelPairing = sample.labelOneForm.x * displacement.x + sample.labelOneForm.y * displacement.y;
   const pairing = exactPairing + labelPairing;
   byId("cw-probe-location").textContent = `x = ${probe.x.toFixed(2)} · y = ${probe.y.toFixed(2)}`;
   byId("cw-probe-h").textContent = sample.height.toFixed(3);
-  byId("cw-probe-alpha").textContent = sample.alpha.toFixed(3);
-  byId("cw-probe-beta").textContent = sample.beta.toFixed(3);
+  byId("cw-probe-alpha").textContent = "(" + sample.weights.map((value) => value.toFixed(2)).join(", ") + ")";
+  byId("cw-probe-beta").textContent = "(" + sample.labels.map((value) => value.toFixed(2)).join(", ") + ")";
   byId("cw-probe-pv").textContent = format(sample.potentialVorticity);
   byId("cw-probe-pairing").textContent = `u♭(δx) = ${pairing.toFixed(4)}`;
-  byId("cw-probe-breakdown").textContent = `dφ contributes ${exactPairing.toFixed(4)}; αdβ contributes ${labelPairing.toFixed(4)}. Their sum is the covector reading. On this Euclidean grid the raised velocity has components u = (${sample.velocity.x.toFixed(3)}, ${sample.velocity.y.toFixed(3)}).`;
+  byId("cw-probe-breakdown").textContent = "dφ contributes " + exactPairing.toFixed(4)
+    + "; Σ λₐdBᵃ contributes " + labelPairing.toFixed(4)
+    + ". Their sum is the covector reading. On this Euclidean grid the raised velocity has components u = ("
+    + sample.velocity.x.toFixed(3) + ", " + sample.velocity.y.toFixed(3) + ").";
 }
 
 function updateChoiceButtons(): void {
@@ -394,7 +399,15 @@ function updateChoiceButtons(): void {
   for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cw-preset]")) {
     button.classList.toggle("active", button.dataset.cwPreset === preset);
   }
-  byId("cw-caption").textContent = `${scalarCaptions[scalarLayer]} with ${glyphCaptions[glyphLayer]}`;
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cw-representation]")) {
+    button.classList.toggle("active", button.dataset.cwRepresentation === representation);
+  }
+  for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cw-channel]")) {
+    button.classList.toggle("active", Number(button.dataset.cwChannel) === labelChannel);
+  }
+  const channelName = ["X", "Y", "Z"][labelChannel];
+  const channelSuffix = scalarLayer === "weight" || scalarLayer === "label" ? " channel " + channelName : "";
+  byId("cw-caption").textContent = scalarCaptions[scalarLayer] + channelSuffix + " with " + glyphCaptions[glyphLayer];
   byId("cw-glyph-note").textContent = glyphNotes[glyphLayer];
 }
 
@@ -406,6 +419,9 @@ function render(): void {
   byId("cw-divergence").textContent = format(diagnostics.divergenceRms);
   byId("cw-vorticity").textContent = format(diagnostics.vorticityRms);
   byId("cw-identity").textContent = format(diagnostics.clebschIdentityRms);
+  byId("cw-recharts").textContent = String(diagnostics.rechartCount);
+  byId("cw-rechart-defect").textContent = format(diagnostics.rechartVelocityDefect);
+  byId("cw-frame-quality").textContent = diagnostics.labelFrameQuality.toFixed(3);
   drawField();
   drawAtlas();
   updateProbe();
@@ -425,7 +441,7 @@ function setPlaying(value: boolean): void {
   byId("cw-status").textContent = playing ? "material labels advecting" : "paused";
 }
 
-for (const input of [controls.resolution, controls.timeStep, controls.gravity, controls.meanDepth, controls.clebschStrength]) {
+for (const input of [controls.resolution, controls.timeStep, controls.gravity, controls.meanDepth, controls.clebschStrength, controls.rechartInterval]) {
   input.addEventListener("input", updateOutputs);
   input.addEventListener("change", () => reset("parameters rebuilt"));
 }
@@ -463,6 +479,20 @@ for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cw-pres
   });
 }
 
+for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cw-representation]")) {
+  button.addEventListener("click", () => {
+    representation = button.dataset.cwRepresentation as ClebschRepresentation;
+    reset(representation === "ambient-recharted" ? "three-channel ambient chart loaded" : "single-pair comparison loaded");
+  });
+}
+
+for (const button of document.querySelectorAll<HTMLButtonElement>("[data-cw-channel]")) {
+  button.addEventListener("click", () => {
+    labelChannel = Number(button.dataset.cwChannel);
+    render();
+  });
+}
+
 canvas.addEventListener("pointerdown", (event) => {
   const bounds = canvas.getBoundingClientRect();
   const x = event.clientX - bounds.left;
@@ -475,6 +505,13 @@ canvas.addEventListener("pointerdown", (event) => {
 });
 
 byId<HTMLButtonElement>("cw-reset").addEventListener("click", () => reset("initial fields restored"));
+byId<HTMLButtonElement>("cw-rechart").addEventListener("click", () => {
+  const defect = model.rechartToAmbientCoordinates();
+  representation = "ambient-recharted";
+  model.parameters.representation = representation;
+  byId("cw-status").textContent = "recharted · velocity defect " + format(defect);
+  render();
+});
 byId<HTMLButtonElement>("cw-step").addEventListener("click", () => {
   setPlaying(false);
   model.step();

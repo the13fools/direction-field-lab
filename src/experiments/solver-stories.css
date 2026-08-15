@@ -35,7 +35,11 @@ button,a { font:inherit; }
 .story-canvas-panel>header { display:flex; justify-content:space-between; gap:20px; padding:12px 14px; color:#a8c2bf; border-bottom:1px solid #416261; font:7px var(--mono); }
 .story-canvas-panel>header strong { color:var(--gold); font-weight:700; }
 .story-canvas-panel canvas { display:block; width:100%; height:clamp(430px,48vw,610px); background:#071c21; }
-.story-live-actions { display:grid; grid-template-columns:1fr auto auto; gap:6px; padding:8px; border-top:1px solid #416261; }
+.story-canvas-panel [hidden] { display:none!important; }
+.story-mesh-view { display:grid; place-items:center; width:100%; height:clamp(430px,48vw,610px); overflow:hidden; color:#9dc1bb; background:radial-gradient(circle at 50% 42%,#173d39,#071c21 64%); font:700 9px/1.6 var(--mono); text-align:center; }
+.story-mesh-view canvas { width:100%!important; height:100%!important; cursor:grab; }
+.story-mesh-view canvas:active { cursor:grabbing; }
+.story-live-actions { display:grid; grid-template-columns:minmax(280px,1.3fr) minmax(175px,.72fr) auto auto; gap:6px; padding:8px; border-top:1px solid #416261; }
 .story-live-actions>div { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
 .story-live-actions button { min-height:42px; padding:9px 12px; color:#d6e5e2; border:1px solid #4a6867; border-radius:5px; background:#10272d; font-size:9px; font-weight:750; cursor:pointer; }
 .story-live-actions button:hover,.story-live-actions button.active { color:var(--night); border-color:var(--teal); background:var(--teal); }
@@ -127,8 +131,8 @@ button,a { font:inherit; }
   .story-hero { grid-template-columns:1fr; padding-top:54px; }
   .story-hero h1 { font-size:clamp(3rem,12vw,4.7rem); }
   .story-live-actions { grid-template-columns:1fr 1fr; }
-  .story-live-actions>div { grid-column:1/-1; }
-  .story-canvas-panel canvas { height:min(78vw,520px); min-height:360px; }
+  .story-live-actions>div:first-child { grid-column:1/-1; }
+  .story-canvas-panel canvas,.story-mesh-view { height:min(78vw,520px); min-height:360px; }
   .story-pipeline { grid-template-columns:1fr; }
 }
 @media(max-width:540px){
@@ -139,5 +143,5 @@ button,a { font:inherit; }
   .story-method-copy h3 { font-size:1.65rem; }
   .story-live-reading { padding:22px; }
   .story-live-actions { grid-template-columns:1fr; }
-  .story-live-actions>div { grid-template-columns:1fr; }
+  .story-live-actions>div { grid-column:auto; grid-template-columns:1fr; }
 }

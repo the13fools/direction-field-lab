@@ -2,6 +2,7 @@ import { ClebschShallowWaterModel, type Vec2 } from "../experiments/clebsch-shal
 import { RandomSurfaceFluidModel } from "../experiments/random-surface-fluid-model";
 
 type FlowStoryMode = "random" | "water";
+type FlowStoryView = "flat" | "mesh";
 
 interface TrailPoint {
   x: number;
@@ -36,8 +37,27 @@ const FLOW_STORIES: Record<FlowStoryMode, {
   water: {
     kicker: "EVOLVING DYNAMICS",
     title: "A Clebsch shallow-water state",
-    copy: "The labels α and β travel with the water, φ responds to the Bernoulli equation, and depth h changes through mass flux.",
-    audit: "evolves: h, φ, α, β · audit: total mass",
+    copy: "Three ambient-coordinate labels and their weights travel with the water, φ responds to the Bernoulli equation, and depth h changes through mass flux.",
+    audit: "evolves: h, φ, λ₁…λ₃, B¹…B³ · audit: total mass",
+    link: "./clebsch-shallow-water.html",
+    linkLabel: "Open the shallow-water lab →",
+  },
+};
+
+const MESH_FLOW_STORIES: typeof FLOW_STORIES = {
+  random: {
+    kicker: "PRESCRIBED SURFACE KINEMATICS",
+    title: "A random projected field on the frog",
+    copy: "Temporal noise moves Laplace–Beltrami eigenmode coefficients on the actual triangle mesh. A mesh Poisson solve reconstructs a tangent, divergence-free Clebsch field.",
+    audit: "evolves: spectral coefficients · constraint: mesh div u ≈ 0",
+    link: "./random-fluids.html",
+    linkLabel: "Open the random-field playground →",
+  },
+  water: {
+    kicker: "SURFACE-WAVE DYNAMICS",
+    title: "A shallow-water wave on the frog",
+    copy: "Two Laplace–Beltrami eigenmodes exchange height and tangent velocity. In the ambient Clebsch chart B=(X,Y,Z), the three minimum-norm weights are the tangent velocity components.",
+    audit: "evolves: h and u · representation: Σ λₐ dXᵃ · audit: mass",
     link: "./clebsch-shallow-water.html",
     linkLabel: "Open the shallow-water lab →",
   },
@@ -107,6 +127,13 @@ function initializeFlowStory(root: HTMLElement): void {
   const canvas = root.querySelector<HTMLCanvasElement>("[data-flow-canvas]");
   const context = canvas?.getContext("2d");
   if (!canvas || !context) return;
+  const meshTarget = root.querySelector<HTMLElement>("[data-flow-mesh]");
+  let meshController: {
+    setMode(mode: FlowStoryMode): void;
+    setPlaying(playing: boolean): void;
+    setVisible(visible: boolean): void;
+    reset(): void;
+  } | undefined;
 
   const isHomeTeaser = root.classList.contains("home-flow-teaser");
   const randomModel = new RandomSurfaceFluidModel({
@@ -144,6 +171,7 @@ function initializeFlowStory(root: HTMLElement): void {
   );
 
   let mode = (root.dataset.flowStory === "water" ? "water" : "random") as FlowStoryMode;
+  let view = (meshTarget && root.dataset.flowView === "mesh" ? "mesh" : "flat") as FlowStoryView;
   let playing = root.dataset.flowPlaying !== "false";
   let width = 1;
   let height = 1;
@@ -151,7 +179,7 @@ function initializeFlowStory(root: HTMLElement): void {
   let frameNumber = 0;
 
   const updateCopy = (): void => {
-    const story = FLOW_STORIES[mode];
+    const story = view === "mesh" ? MESH_FLOW_STORIES[mode] : FLOW_STORIES[mode];
     const kicker = root.querySelector<HTMLElement>("[data-flow-kicker]");
     const title = root.querySelector<HTMLElement>("[data-flow-title]");
     const copy = root.querySelector<HTMLElement>("[data-flow-copy]");
@@ -167,6 +195,11 @@ function initializeFlowStory(root: HTMLElement): void {
     }
     for (const button of root.querySelectorAll<HTMLButtonElement>("[data-flow-mode]")) {
       const active = button.dataset.flowMode === mode;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-pressed", String(active));
+    }
+    for (const button of root.querySelectorAll<HTMLButtonElement>("[data-flow-view]")) {
+      const active = button.dataset.flowView === view;
       button.classList.toggle("active", active);
       button.setAttribute("aria-pressed", String(active));
     }
@@ -200,6 +233,46 @@ function initializeFlowStory(root: HTMLElement): void {
     canvas.height = Math.max(1, Math.round(height * ratio));
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
   };
+
+  const updateView = (): void => {
+    canvas.hidden = view !== "flat";
+    if (meshTarget) meshTarget.hidden = view !== "mesh";
+    meshController?.setVisible(view === "mesh");
+    const hint = root.querySelector<HTMLElement>("[data-flow-view-hint]");
+    if (hint) hint.textContent = view === "mesh"
+      ? "drag to orbit · scroll to zoom"
+      : "opposite edges are identified";
+    if (view === "flat") {
+      frameNumber = 0;
+      fit();
+      draw();
+    }
+    updateCopy();
+  };
+
+  if (meshTarget) {
+    meshTarget.textContent = "Loading the tree-frog mesh and Laplace–Beltrami basis…";
+    import("../experiments/solver-stories-mesh-preview")
+      .then(({ initializeSolverStoriesMeshPreview }) => initializeSolverStoriesMeshPreview(
+        meshTarget,
+        (label) => {
+          if (view !== "mesh") return;
+          const time = root.querySelector<HTMLElement>("[data-flow-time]");
+          if (time) time.textContent = label;
+        },
+      ))
+      .then((controller) => {
+        meshController = controller;
+        controller.setMode(mode);
+        controller.setPlaying(playing);
+        controller.setVisible(view === "mesh");
+      })
+      .catch(() => {
+        meshTarget.textContent = "The mesh view could not start here. The flat chart remains available.";
+        view = "flat";
+        updateView();
+      });
+  }
 
   const drawGrid = (): void => {
     context.strokeStyle = "rgba(255,255,255,.1)";
@@ -360,8 +433,10 @@ function initializeFlowStory(root: HTMLElement): void {
   const frame = (now: number): void => {
     const elapsed = Math.min(0.04, Math.max(0, (now - previousFrame) / 1000));
     previousFrame = now;
-    advance(elapsed);
-    draw();
+    if (view === "flat") {
+      advance(elapsed);
+      draw();
+    }
     frameNumber += 1;
     requestAnimationFrame(frame);
   };
@@ -369,24 +444,35 @@ function initializeFlowStory(root: HTMLElement): void {
   for (const button of root.querySelectorAll<HTMLButtonElement>("[data-flow-mode]")) {
     button.addEventListener("click", () => {
       mode = button.dataset.flowMode as FlowStoryMode;
+      meshController?.setMode(mode);
       updateCopy();
-      draw();
+      if (view === "flat") draw();
+    });
+  }
+  for (const button of root.querySelectorAll<HTMLButtonElement>("[data-flow-view]")) {
+    button.addEventListener("click", () => {
+      view = button.dataset.flowView as FlowStoryView;
+      updateView();
     });
   }
   root.querySelector<HTMLButtonElement>("[data-flow-reset]")?.addEventListener("click", () => {
-    reset();
-    draw();
+    if (view === "mesh") meshController?.reset();
+    else {
+      reset();
+      draw();
+    }
   });
   const playButton = root.querySelector<HTMLButtonElement>("[data-flow-play]");
   playButton?.addEventListener("click", () => {
     playing = !playing;
+    meshController?.setPlaying(playing);
     playButton.textContent = playing ? "Pause" : "Play";
     playButton.setAttribute("aria-pressed", String(playing));
   });
 
   new ResizeObserver(fit).observe(canvas);
   fit();
-  updateCopy();
+  updateView();
   if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
     playing = false;
     if (playButton) playButton.textContent = "Play";

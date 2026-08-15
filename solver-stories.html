@@ -29,32 +29,37 @@
         </aside>
       </section>
 
-      <section id="story-teaser" class="story-teaser" data-flow-story="random" aria-labelledby="story-teaser-title">
+      <section id="story-teaser" class="story-teaser" data-flow-story="random" data-flow-view="mesh" aria-labelledby="story-teaser-title">
         <header>
-          <div><p class="story-eyebrow">One periodic surface · two different promises</p><h2 id="story-teaser-title">The arrows are not the state.</h2></div>
-          <p>Both modes draw tangent velocity and advected particles on the same flat torus. In the first, time noise prescribes a succession of projected fields. In the second, velocity is reconstructed from an evolving water state.</p>
+          <div><p class="story-eyebrow">One surface · two different promises · two views</p><h2 id="story-teaser-title">The arrows are not the state.</h2></div>
+          <p>Begin on the frog’s actual triangle mesh, then unfold the comparison onto a flat periodic chart. The random mode prescribes projected spectral fields; the water mode evolves height and tangent velocity through surface shallow-water eigenmodes.</p>
         </header>
 
         <div class="story-live-grid">
           <section class="story-canvas-panel">
-            <header><span data-flow-time>t 0.00 · projected periodic field</span><strong>opposite edges are identified</strong></header>
-            <canvas data-flow-canvas role="img" aria-label="Switchable periodic-surface animation of a random projected Clebsch field and Clebsch shallow water"></canvas>
+            <header><span data-flow-time>loading tree-frog mesh…</span><strong data-flow-view-hint>drag to orbit · scroll to zoom</strong></header>
+            <canvas data-flow-canvas hidden role="img" aria-label="Flat periodic-chart animation of a random projected Clebsch field and Clebsch shallow water"></canvas>
+            <div data-flow-mesh class="story-mesh-view" role="img" aria-label="Interactive tree-frog triangle mesh carrying a projected random field or a shallow-water eigenmode">Loading the tree-frog mesh and Laplace–Beltrami basis…</div>
             <div class="story-live-actions">
               <div role="group" aria-label="Field story">
                 <button class="active" data-flow-mode="random" aria-pressed="true">Perlin + projected Clebsch</button>
                 <button data-flow-mode="water" aria-pressed="false">Clebsch shallow water</button>
+              </div>
+              <div role="group" aria-label="Surface view">
+                <button class="active" data-flow-view="mesh" aria-pressed="true">Frog mesh</button>
+                <button data-flow-view="flat" aria-pressed="false">Flat chart</button>
               </div>
               <button data-flow-reset>Reset this state</button><button data-flow-play aria-pressed="true">Pause</button>
             </div>
           </section>
 
           <aside class="story-live-reading" aria-live="polite">
-            <span data-flow-kicker>PRESCRIBED KINEMATICS</span>
-            <h3 data-flow-title>A random projected Clebsch field</h3>
-            <p data-flow-copy>Temporal Perlin coefficients move multiscale scalar labels. A periodic Hodge solve removes the divergent part before the particles are advected.</p>
-            <div><small>WHAT THE MOVIE PROMISES</small><strong data-flow-audit>evolves: noise coordinates · constraint: div u ≈ 0</strong></div>
+            <span data-flow-kicker>PRESCRIBED SURFACE KINEMATICS</span>
+            <h3 data-flow-title>A random projected field on the frog</h3>
+            <p data-flow-copy>Temporal noise moves Laplace–Beltrami eigenmode coefficients on the actual triangle mesh. A mesh Poisson solve reconstructs a tangent, divergence-free Clebsch field.</p>
+            <div><small>WHAT THE MOVIE PROMISES</small><strong data-flow-audit>evolves: spectral coefficients · constraint: mesh div u ≈ 0</strong></div>
             <dl>
-              <div><dt>color</dt><dd>orange/cyan signed field structure; in water mode, height also changes the background</dd></div>
+              <div><dt>color</dt><dd>dark green mesh in random mode; orange/cyan water-column displacement in wave mode</dd></div>
               <div><dt>arrows</dt><dd>the current reconstructed velocity vector</dd></div>
               <div><dt>trails</dt><dd>passive probes; they reveal motion but do not define the field</dd></div>
             </dl>
@@ -62,7 +67,7 @@
           </aside>
         </div>
 
-        <p class="story-teaser-caveat"><b>Why start on a flat torus?</b> It is already a surface with topology, but it postpones tangent-frame transport and mesh singularities. The student project can preserve this comparison while replacing the periodic grid by a triangle surface.</p>
+        <p class="story-teaser-caveat"><b>What changes between the two views?</b> The frog uses its triangle metric and Laplace–Beltrami eigenbasis. The flat chart uses periodic finite differences. The mesh water preview is an exact-in-time linear eigenmode superposition—not yet the nonlinear transported Clebsch solver—so the page distinguishes a trustworthy geometric teaser from the larger student project.</p>
       </section>
 
       <section class="story-questions" aria-labelledby="story-questions-title">
@@ -92,7 +97,7 @@
 
         <article class="story-method clebsch">
           <div class="story-method-number">C</div>
-          <div class="story-method-copy"><span>STATE REPRESENTATION · CLEBSCH + COVECTORS</span><h3>Carry labels whose crossing remembers spin.</h3><p>Clebsch variables factor the velocity one-form into scalar data. The labels can be transported semi-Lagrangianly, with particles, or by another characteristic method; afterward the one-form is reconstructed and coupled to the intended constraint or height equation.</p><div class="story-math" data-latex="u^\flat=d\phi+\alpha\,d\beta+h_H">exact, label, and harmonic pieces of the velocity one-form</div></div>
+          <div class="story-method-copy"><span>STATE REPRESENTATION · CLEBSCH + COVECTORS</span><h3>Carry labels whose crossing remembers spin.</h3><p>Clebsch variables factor the velocity one-form into scalar data. The labels can be transported semi-Lagrangianly, with particles, or by another characteristic method; afterward the one-form is reconstructed and coupled to the intended constraint or height equation.</p><div class="story-math" data-latex="u^\flat=d\phi+\sum_a\lambda_a\,dB^a+h_H">exact, label, and harmonic pieces of the velocity one-form</div></div>
           <div class="story-method-tradeoff"><strong>WHY STUDY IT HERE</strong><p>The representation makes material labels, vorticity, circulation, metric conversion, and topology visible in one pipeline.</p><strong>WHAT IT DOES NOT CHOOSE FOR YOU</strong><p>Transport accuracy, gauge, global charts, harmonic periods, pressure or height evolution, boundaries, and the final discretization all remain modeling decisions.</p><a href="./clebsch-surfaces.html">Begin the Clebsch tutorial →</a></div>
         </article>
       </section>
@@ -100,7 +105,7 @@
       <section class="story-compose" aria-labelledby="story-compose-title">
         <header><p class="story-eyebrow">The useful synthesis</p><h2 id="story-compose-title">A solver can combine these ideas.</h2><p>The course’s Clebsch shallow-water experiment already uses semi-Lagrangian backtracing for material labels and a grid flux for height. APIC could become a different transport-and-transfer layer without replacing the Clebsch representation or the surface equations.</p></header>
         <div class="story-pipeline" aria-label="Composable fluid solver pipeline">
-          <article><span>1 · REPRESENT</span><strong>h, φ, α, β, harmonic periods</strong><p>Choose the state that exposes the invariants and topology you care about.</p></article><i>→</i>
+          <article><span>1 · REPRESENT</span><strong>h, φ, λ, B, harmonic periods</strong><p>Choose the state that exposes the invariants and topology you care about.</p></article><i>→</i>
           <article><span>2 · TRANSPORT</span><strong>backtrace, particles, or conservative flux</strong><p>Choose how each component moves and where interpolation error enters.</p></article><i>→</i>
           <article><span>3 · RECONSTRUCT</span><strong>one-form → metric-dual velocity</strong><p>Use surface operators and restore the harmonic data.</p></article><i>→</i>
           <article><span>4 · EVOLVE + AUDIT</span><strong>forces, depth, circulation, mass</strong><p>Apply the governing equations and report what the discrete step preserved.</p></article>

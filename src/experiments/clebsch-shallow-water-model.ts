@@ -4,6 +4,8 @@ export interface Vec2 {
 }
 
 export type ClebschWaterPreset = "crossing-labels" | "potential-pulse" | "vortical-patch";
+export type ClebschRepresentation = "single-pair" | "ambient-recharted";
+export type ScalarTriple = [Float64Array, Float64Array, Float64Array];
 
 export interface ClebschShallowWaterParameters {
   resolution: number;
@@ -12,6 +14,8 @@ export interface ClebschShallowWaterParameters {
   meanDepth: number;
   clebschStrength: number;
   preset: ClebschWaterPreset;
+  representation: ClebschRepresentation;
+  rechartInterval: number;
 }
 
 export interface ClebschShallowWaterState {
@@ -19,10 +23,14 @@ export interface ClebschShallowWaterState {
   phi: Float64Array;
   alpha: Float64Array;
   beta: Float64Array;
+  weights: ScalarTriple;
+  labels: ScalarTriple;
   tracer: Float64Array;
   time: number;
   steps: number;
   initialMass: number;
+  recharts: number;
+  lastRechartVelocityDefect: number;
 }
 
 export interface ClebschShallowWaterDiagnostics {
@@ -32,6 +40,9 @@ export interface ClebschShallowWaterDiagnostics {
   divergenceRms: number;
   vorticityRms: number;
   clebschIdentityRms: number;
+  rechartCount: number;
+  rechartVelocityDefect: number;
+  labelFrameQuality: number;
 }
 
 export interface ClebschPointSample {
@@ -39,9 +50,12 @@ export interface ClebschPointSample {
   phi: number;
   alpha: number;
   beta: number;
+  weights: [number, number, number];
+  labels: [number, number, number];
   dPhi: Vec2;
   dBeta: Vec2;
   alphaDBeta: Vec2;
+  labelOneForm: Vec2;
   velocity: Vec2;
   flux: Vec2;
   vorticity: number;
@@ -55,6 +69,8 @@ export const DEFAULT_CLEBSCH_SHALLOW_WATER_PARAMETERS: ClebschShallowWaterParame
   meanDepth: 1,
   clebschStrength: 0.16,
   preset: "crossing-labels",
+  representation: "ambient-recharted",
+  rechartInterval: 180,
 };
 
 function assertParameters(parameters: ClebschShallowWaterParameters): void {
@@ -64,13 +80,19 @@ function assertParameters(parameters: ClebschShallowWaterParameters): void {
   if (!(["crossing-labels", "potential-pulse", "vortical-patch"] as const).includes(parameters.preset)) {
     throw new Error("unknown Clebsch shallow-water preset");
   }
+  if (!(["single-pair", "ambient-recharted"] as const).includes(parameters.representation)) {
+    throw new Error("unknown Clebsch representation");
+  }
   for (const [name, value] of Object.entries(parameters)) {
-    if (name !== "preset" && !Number.isFinite(value)) throw new Error(`${name} must be finite`);
+    if (name !== "preset" && name !== "representation" && !Number.isFinite(value)) throw new Error(`${name} must be finite`);
   }
   if (parameters.timeStep <= 0 || parameters.gravity <= 0 || parameters.meanDepth <= 0) {
     throw new Error("timeStep, gravity, and meanDepth must be positive");
   }
   if (parameters.clebschStrength < 0) throw new Error("clebschStrength must be nonnegative");
+  if (!Number.isInteger(parameters.rechartInterval) || parameters.rechartInterval < 0 || parameters.rechartInterval > 2000) {
+    throw new Error("rechartInterval must be an integer from 0 through 2000");
+  }
 }
 
 function rms(values: ArrayLike<number>): number {
@@ -144,14 +166,79 @@ export class ClebschShallowWaterModel {
       phi,
       alpha,
       beta,
+      weights: [alpha, new Float64Array(count), new Float64Array(count)],
+      labels: [beta, new Float64Array(count), new Float64Array(count)],
       tracer,
       time: 0,
       steps: 0,
       initialMass: depth,
+      recharts: 0,
+      lastRechartVelocityDefect: 0,
     };
     this.state = state;
+    if (this.parameters.representation === "ambient-recharted") this.rechartToAmbientCoordinates();
     state.initialMass = this.mass();
     return state;
+  }
+
+  private setClebschState(weights: ScalarTriple, labels: ScalarTriple): void {
+    this.state.weights = weights;
+    this.state.labels = labels;
+    // Keep the original pair as a backwards-compatible view of component zero.
+    this.state.alpha = weights[0];
+    this.state.beta = labels[0];
+  }
+
+  /**
+   * Three smooth, periodic scalar functions used as a redundant chart on the
+   * flat computational torus. On a triangle mesh these arrays are simply the
+   * x, y, and z coordinates of its vertices.
+   */
+  ambientCoordinateLabels(): ScalarTriple {
+    const n = this.parameters.resolution;
+    const count = n * n;
+    const labels: ScalarTriple = [
+      new Float64Array(count),
+      new Float64Array(count),
+      new Float64Array(count),
+    ];
+    const majorRadius = 1.35;
+    const minorRadius = 0.42;
+    for (let row = 0; row < n; row += 1) {
+      const v = 2 * Math.PI * (row + 0.5) / n;
+      for (let column = 0; column < n; column += 1) {
+        const u = 2 * Math.PI * (column + 0.5) / n;
+        const radial = majorRadius + minorRadius * Math.cos(v);
+        const index = this.index(column, row);
+        labels[0][index] = radial * Math.cos(u);
+        labels[1][index] = radial * Math.sin(u);
+        labels[2][index] = minorRadius * Math.sin(v);
+      }
+    }
+    return labels;
+  }
+
+  private labelGradients(labels: ScalarTriple = this.state.labels): [Vec2[], Vec2[], Vec2[]] {
+    return [this.gradient(labels[0]), this.gradient(labels[1]), this.gradient(labels[2])];
+  }
+
+  private labelContribution(
+    weights: ScalarTriple = this.state.weights,
+    gradients: [Vec2[], Vec2[], Vec2[]] = this.labelGradients(),
+  ): Vec2[] {
+    const count = this.parameters.resolution ** 2;
+    const result = Array.from({ length: count }, () => ({ x: 0, y: 0 }));
+    for (let index = 0; index < count; index += 1) {
+      for (let component = 0; component < 3; component += 1) {
+        result[index]!.x += weights[component]![index]! * gradients[component]![index]!.x;
+        result[index]!.y += weights[component]![index]! * gradients[component]![index]!.y;
+      }
+    }
+    return result;
+  }
+
+  labelOneForm(): Vec2[] {
+    return this.labelContribution();
   }
 
   gradient(values: ArrayLike<number>): Vec2[] {
@@ -171,11 +258,89 @@ export class ClebschShallowWaterModel {
 
   velocity(): Vec2[] {
     const dPhi = this.gradient(this.state.phi);
-    const dBeta = this.gradient(this.state.beta);
+    const labelTerm = this.labelContribution();
     return dPhi.map((exact, index) => ({
-      x: exact.x + this.state.alpha[index]! * dBeta[index]!.x,
-      y: exact.y + this.state.alpha[index]! * dBeta[index]!.y,
+      x: exact.x + labelTerm[index]!.x,
+      y: exact.y + labelTerm[index]!.y,
     }));
+  }
+
+  /**
+   * Change Clebsch coordinates without intentionally changing the velocity.
+   *
+   * B is reset to three ambient coordinate functions. At each grid point we
+   * solve the minimum-norm 3-by-2 system
+   *
+   *   sum_a lambda_a dB^a = u^flat - dphi.
+   *
+   * The returned number is the relative RMS velocity defect introduced by the
+   * discrete change of chart.
+   */
+  rechartToAmbientCoordinates(): number {
+    const before = this.velocity();
+    const dPhi = this.gradient(this.state.phi);
+    const labels = this.ambientCoordinateLabels();
+    const gradients = this.labelGradients(labels);
+    const count = before.length;
+    const weights: ScalarTriple = [
+      new Float64Array(count),
+      new Float64Array(count),
+      new Float64Array(count),
+    ];
+    for (let index = 0; index < count; index += 1) {
+      let xx = 0;
+      let xy = 0;
+      let yy = 0;
+      for (let component = 0; component < 3; component += 1) {
+        const gradient = gradients[component]![index]!;
+        xx += gradient.x * gradient.x;
+        xy += gradient.x * gradient.y;
+        yy += gradient.y * gradient.y;
+      }
+      const residualX = before[index]!.x - dPhi[index]!.x;
+      const residualY = before[index]!.y - dPhi[index]!.y;
+      const scale = Math.max(1, xx + yy);
+      const determinant = Math.max(xx * yy - xy * xy, 1e-14 * scale * scale);
+      const dualX = (yy * residualX - xy * residualY) / determinant;
+      const dualY = (xx * residualY - xy * residualX) / determinant;
+      for (let component = 0; component < 3; component += 1) {
+        const gradient = gradients[component]![index]!;
+        weights[component]![index] = gradient.x * dualX + gradient.y * dualY;
+      }
+    }
+    this.setClebschState(weights, labels);
+    const after = this.velocity();
+    let error2 = 0;
+    let reference2 = 0;
+    for (let index = 0; index < count; index += 1) {
+      error2 += (after[index]!.x - before[index]!.x) ** 2 + (after[index]!.y - before[index]!.y) ** 2;
+      reference2 += before[index]!.x ** 2 + before[index]!.y ** 2;
+    }
+    const defect = Math.sqrt(error2 / Math.max(reference2, 1e-24));
+    this.state.recharts += 1;
+    this.state.lastRechartVelocityDefect = defect;
+    return defect;
+  }
+
+  labelFrameQuality(): number {
+    const gradients = this.labelGradients();
+    let minimumQuality = 1;
+    for (let index = 0; index < gradients[0].length; index += 1) {
+      let xx = 0;
+      let xy = 0;
+      let yy = 0;
+      for (let component = 0; component < 3; component += 1) {
+        const gradient = gradients[component]![index]!;
+        xx += gradient.x * gradient.x;
+        xy += gradient.x * gradient.y;
+        yy += gradient.y * gradient.y;
+      }
+      const trace = xx + yy;
+      const discriminant = Math.sqrt(Math.max(0, (xx - yy) ** 2 + 4 * xy ** 2));
+      const smallestEigenvalue = 0.5 * (trace - discriminant);
+      minimumQuality = Math.min(minimumQuality, 2 * smallestEigenvalue / Math.max(trace, 1e-24));
+    }
+    return Math.max(0, minimumQuality);
   }
 
   divergence(vectors: readonly Vec2[]): Float64Array {
@@ -209,11 +374,9 @@ export class ClebschShallowWaterModel {
   }
 
   clebschVorticity(): Float64Array {
-    const dAlpha = this.gradient(this.state.alpha);
-    const dBeta = this.gradient(this.state.beta);
-    return Float64Array.from(dAlpha, (gradient, index) => (
-      gradient.x * dBeta[index]!.y - gradient.y * dBeta[index]!.x
-    ));
+    // Taking curl of the reconstructed discrete one-form avoids pretending
+    // that a finite-difference stencil obeys the continuum product rule.
+    return this.curl(this.labelContribution());
   }
 
   potentialVorticity(): Float64Array {
@@ -313,8 +476,16 @@ export class ClebschShallowWaterModel {
     const speed2 = Float64Array.from(velocity, (value) => value.x ** 2 + value.y ** 2);
     const nextHeight = this.advanceHeight(velocity, timeStep);
     const nextPhi = new Float64Array(n * n);
-    const nextAlpha = new Float64Array(n * n);
-    const nextBeta = new Float64Array(n * n);
+    const nextWeights: ScalarTriple = [
+      new Float64Array(n * n),
+      new Float64Array(n * n),
+      new Float64Array(n * n),
+    ];
+    const nextLabels: ScalarTriple = [
+      new Float64Array(n * n),
+      new Float64Array(n * n),
+      new Float64Array(n * n),
+    ];
     const nextTracer = new Float64Array(n * n);
     for (let row = 0; row < n; row += 1) {
       for (let column = 0; column < n; column += 1) {
@@ -323,8 +494,10 @@ export class ClebschShallowWaterModel {
         const backX = column - timeStep * n * localVelocity.x;
         const backY = row - timeStep * n * localVelocity.y;
         const sampledHeight = this.sample(this.state.height, backX, backY);
-        nextAlpha[index] = this.sample(this.state.alpha, backX, backY);
-        nextBeta[index] = this.sample(this.state.beta, backX, backY);
+        for (let component = 0; component < 3; component += 1) {
+          nextWeights[component]![index] = this.sample(this.state.weights[component]!, backX, backY);
+          nextLabels[component]![index] = this.sample(this.state.labels[component]!, backX, backY);
+        }
         nextTracer[index] = this.sample(this.state.tracer, backX, backY);
         nextPhi[index] = this.sample(this.state.phi, backX, backY) + timeStep * (
           0.5 * this.sample(speed2, backX, backY) - gravity * (sampledHeight - depth)
@@ -335,8 +508,11 @@ export class ClebschShallowWaterModel {
     this.removeMean(filteredPhi);
     this.state.height = nextHeight;
     this.state.phi = filteredPhi;
-    this.state.alpha = this.deAlias(nextAlpha, timeStep);
-    this.state.beta = this.deAlias(nextBeta, timeStep);
+    for (let component = 0; component < 3; component += 1) {
+      nextWeights[component] = this.deAlias(nextWeights[component]!, timeStep);
+      nextLabels[component] = this.deAlias(nextLabels[component]!, timeStep);
+    }
+    this.setClebschState(nextWeights, nextLabels);
     this.state.tracer = this.deAlias(nextTracer, timeStep);
     this.state.time += timeStep;
   }
@@ -361,6 +537,13 @@ export class ClebschShallowWaterModel {
       const substeps = Math.max(1, Math.ceil(dt * n * maximumRate / 0.72));
       for (let substep = 0; substep < substeps; substep += 1) this.advanceOne(dt / substeps);
       this.state.steps += 1;
+      if (
+        this.parameters.representation === "ambient-recharted"
+        && this.parameters.rechartInterval > 0
+        && this.state.steps % this.parameters.rechartInterval === 0
+      ) {
+        this.rechartToAmbientCoordinates();
+      }
     }
   }
 
@@ -391,6 +574,9 @@ export class ClebschShallowWaterModel {
       divergenceRms: rms(divergence),
       vorticityRms: rms(vorticity),
       clebschIdentityRms: rms(identityError),
+      rechartCount: this.state.recharts,
+      rechartVelocityDefect: this.state.lastRechartVelocityDefect,
+      labelFrameQuality: this.labelFrameQuality(),
     };
   }
 
@@ -399,30 +585,47 @@ export class ClebschShallowWaterModel {
     const gridX = ((x % 1 + 1) % 1) * n - 0.5;
     const gridY = ((y % 1 + 1) % 1) * n - 0.5;
     const dPhi = this.gradient(this.state.phi);
-    const dBeta = this.gradient(this.state.beta);
+    const labelGradients = this.labelGradients();
     const velocity = this.velocity();
     const vorticity = this.curl(velocity);
     const height = this.sample(this.state.height, gridX, gridY);
-    const alpha = this.sample(this.state.alpha, gridX, gridY);
+    const weights = [0, 0, 0] as [number, number, number];
+    const labels = [0, 0, 0] as [number, number, number];
+    const sampledGradients = Array.from({ length: 3 }, () => ({ x: 0, y: 0 })) as [Vec2, Vec2, Vec2];
+    for (let component = 0; component < 3; component += 1) {
+      weights[component] = this.sample(this.state.weights[component]!, gridX, gridY);
+      labels[component] = this.sample(this.state.labels[component]!, gridX, gridY);
+      sampledGradients[component] = {
+        x: this.sample(labelGradients[component]!.map((value) => value.x), gridX, gridY),
+        y: this.sample(labelGradients[component]!.map((value) => value.y), gridX, gridY),
+      };
+    }
     const exact = {
       x: this.sample(dPhi.map((value) => value.x), gridX, gridY),
       y: this.sample(dPhi.map((value) => value.y), gridX, gridY),
     };
-    const betaGradient = {
-      x: this.sample(dBeta.map((value) => value.x), gridX, gridY),
-      y: this.sample(dBeta.map((value) => value.y), gridX, gridY),
-    };
-    const label = { x: alpha * betaGradient.x, y: alpha * betaGradient.y };
+    const betaGradient = sampledGradients[0];
+    const label = { x: 0, y: 0 };
+    for (let component = 0; component < 3; component += 1) {
+      label.x += weights[component]! * sampledGradients[component]!.x;
+      label.y += weights[component]! * sampledGradients[component]!.y;
+    }
     const vector = { x: exact.x + label.x, y: exact.y + label.y };
     const curl = this.sample(vorticity, gridX, gridY);
     return {
       height,
       phi: this.sample(this.state.phi, gridX, gridY),
-      alpha,
-      beta: this.sample(this.state.beta, gridX, gridY),
+      alpha: weights[0],
+      beta: labels[0],
+      weights,
+      labels,
       dPhi: exact,
       dBeta: betaGradient,
-      alphaDBeta: label,
+      alphaDBeta: {
+        x: weights[0] * betaGradient.x,
+        y: weights[0] * betaGradient.y,
+      },
+      labelOneForm: label,
       velocity: vector,
       flux: { x: height * vector.x, y: height * vector.y },
       vorticity: curl,
