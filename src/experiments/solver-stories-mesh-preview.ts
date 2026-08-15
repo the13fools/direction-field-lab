@@ -69,7 +69,8 @@ export async function initializeSolverStoriesMeshPreview(
   scene.background = new THREE.Color(0x071c21);
   scene.fog = new THREE.FogExp2(0x071c21, 0.07);
   const camera = new THREE.PerspectiveCamera(38, 1, 0.05, 100);
-  camera.position.set(0.15, -0.12, 6.7);
+  camera.position.set(0, 0, 6.7);
+  camera.up.set(0, 1, 0);
   const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -83,6 +84,7 @@ export async function initializeSolverStoriesMeshPreview(
   orbit.enablePan = false;
   orbit.minDistance = 3;
   orbit.maxDistance = 7.2;
+  orbit.target.set(0, 0, 0);
 
   scene.add(new THREE.HemisphereLight(0xb8fff1, 0x24153f, 1.55));
   const key = new THREE.DirectionalLight(0xffd4b5, 2.5);
@@ -145,14 +147,14 @@ export async function initializeSolverStoriesMeshPreview(
       material.emissive.setHex(0x06351d);
     } else {
       const state = waterModel.stateAt();
-      const warm = new THREE.Color(0xff7642);
+      const warm = new THREE.Color(0xd9f45f);
       const cool = new THREE.Color(0x25d2d5);
-      const neutral = new THREE.Color(0x1b704a);
+      const neutral = new THREE.Color(0x11924f);
       for (let vertex = 0; vertex < colors.count; vertex += 1) {
         const displacement = state.height[vertex]! - waterModel.meanDepth;
-        const amount = Math.min(1, Math.abs(displacement) / 0.09);
+        const amount = Math.min(1, Math.abs(displacement) / 0.075);
         const source = displacement >= 0 ? warm : cool;
-        const blend = Math.sqrt(amount);
+        const blend = 0.72 * Math.sqrt(amount);
         colors.setXYZ(
           vertex,
           neutral.r + blend * (source.r - neutral.r),
@@ -160,7 +162,7 @@ export async function initializeSolverStoriesMeshPreview(
           neutral.b + blend * (source.b - neutral.b),
         );
       }
-      material.emissive.setHex(0x082b28);
+      material.emissive.setHex(0x063d27);
     }
     colors.needsUpdate = true;
   };
@@ -330,7 +332,7 @@ export async function initializeSolverStoriesMeshPreview(
     if (visible && playing) {
       if (frameCount % 2 === 0) {
         if (mode === "random") randomModel.step(1);
-        else waterModel.step(Math.min(0.024, 1.1 * elapsed));
+        else waterModel.step(Math.min(0.006, 0.16 * elapsed));
         updateParticles(true);
       }
       if (frameCount % 4 === 0) {
@@ -341,7 +343,8 @@ export async function initializeSolverStoriesMeshPreview(
         onStatus(mode === "random"
           ? "t " + randomModel.time.toFixed(2) + " · 5,000 particles · frog LB field"
           : "t " + waterModel.time.toFixed(2) + " · mass drift " + waterModel.massDrift().toExponential(1)
-            + " · LB modes 19 + 32 · 5,000 particles");
+            + " · continuity " + waterModel.continuityResidualRms().toExponential(1)
+            + " · LB packet 4–32 · 5,000 particles");
       }
     }
     orbit.update();

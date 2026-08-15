@@ -43,8 +43,8 @@ export class FlatShallowWaterPreviewModel {
     }
     this.parameters = { resolution, gravity, meanDepth };
     this.modes = [
-      this.makeMode(4, 2, 0.052, 0.15),
-      this.makeMode(-3, 5, 0.032, 1.1),
+      this.makeMode(1, 0, 0.058, 0.15),
+      this.makeMode(0, 1, 0.036, 1.1),
     ];
     const count = resolution * resolution;
     this.state = {

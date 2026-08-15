@@ -38,8 +38,8 @@ const FLOW_STORIES: Record<FlowStoryMode, {
   water: {
     kicker: "NON-DISSIPATIVE REFERENCE WAVE",
     title: "A periodic shallow-water wave",
-    copy: "Two higher Fourier modes exchange height and potential velocity exactly in time. They do not fade numerically; the nonlinear Clebsch lab shows the harder transported-label problem.",
-    audit: "evolves: h and potential velocity · exact linear modes · mass fixed",
+    copy: "Two broad, low-frequency Fourier modes exchange height and potential velocity exactly in time. They do not fade numerically; the nonlinear Clebsch lab shows the harder transported-label problem.",
+    audit: "evolves: h and potential velocity · low Fourier modes · mass fixed",
     link: "./clebsch-shallow-water.html",
     linkLabel: "Open the shallow-water lab →",
   },
@@ -57,8 +57,8 @@ const MESH_FLOW_STORIES: typeof FLOW_STORIES = {
   water: {
     kicker: "SURFACE-WAVE DYNAMICS",
     title: "A shallow-water wave on the frog",
-    copy: "Higher Laplace–Beltrami modes 19 and 32 exchange height and tangent velocity. In the ambient Clebsch chart B=(X,Y,Z), the three minimum-norm weights are the tangent velocity components.",
-    audit: "evolves: h and u · LB modes 19 + 32 · representation: Σ λₐ dXᵃ",
+    copy: "A localized Laplace–Beltrami packet spreads across the frog while height and tangent velocity exchange energy. The live continuity residual checks that changing height is actually coupled to mesh divergence.",
+    audit: "evolves: h and u · LB packet 4–32 · checks: ∂ₜh + H div u ≈ 0",
     link: "./clebsch-shallow-water.html",
     linkLabel: "Open the shallow-water lab →",
   },
@@ -407,7 +407,7 @@ function initializeFlowStory(root: HTMLElement): void {
       });
     } else {
       const velocity = waterModel.velocity();
-      const dt = Math.min(0.02, elapsed * 0.6);
+      const dt = Math.min(0.006, elapsed * 0.12);
       waterTrails.forEach((trail) => {
         const field = samplePeriodicVector(velocity, waterModel.parameters.resolution, trail.x, trail.y);
         pushTrail(trail, trail.x + dt * field.x, trail.y + dt * field.y, isHomeTeaser ? 18 : 34);

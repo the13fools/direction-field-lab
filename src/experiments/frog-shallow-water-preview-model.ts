@@ -9,6 +9,8 @@ interface WaveMode {
   faceGradients: Float64Array;
 }
 
+const WAVE_MODE_INDICES = [3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 21, 24, 27, 31] as const;
+
 interface ParticleState {
   face: number;
   barycentric: [number, number, number];
@@ -46,8 +48,8 @@ function seeded(index: number, offset: number): number {
 
 /**
  * A deliberately small, exact-in-time linear shallow-water preview on the
- * frog mesh. It is not the nonlinear course solver: it superposes a few
- * Laplace--Beltrami eigenmodes so the mesh teaser has honest surface physics.
+ * frog mesh. It is not the nonlinear course solver: it evolves a localized
+ * Laplace--Beltrami wave packet so the mesh teaser has honest surface physics.
  */
 export class FrogShallowWaterPreviewModel {
   readonly mesh: FrogTriangleMesh;
@@ -60,7 +62,7 @@ export class FrogShallowWaterPreviewModel {
   private cachedTime = Number.NaN;
   private cachedState: FrogWaveState | undefined;
 
-  readonly waveModeIndices = [18, 31] as const;
+  readonly waveModeIndices = WAVE_MODE_INDICES;
 
   constructor(
     mesh: FrogTriangleMesh,
@@ -72,17 +74,14 @@ export class FrogShallowWaterPreviewModel {
     if (mesh.positions.length / 3 !== eigenbasis.vertexCount) {
       throw new Error("The frog mesh and shallow-water eigenbasis do not match.");
     }
-    if (eigenbasis.modeCount <= this.waveModeIndices[1]) {
+    if (eigenbasis.modeCount <= this.waveModeIndices[this.waveModeIndices.length - 1]!) {
       throw new Error("The frog wave preview needs at least 32 eigenmodes.");
     }
     this.mesh = mesh;
     this.eigenbasis = eigenbasis;
     this.gravity = gravity;
     this.meanDepth = meanDepth;
-    this.modes = [
-      this.makeMode(this.waveModeIndices[0], 0.062),
-      this.makeMode(this.waveModeIndices[1], 0.034),
-    ];
+    this.modes = this.makeLocalizedPacket();
     this.particles = Array.from({ length: particleCount }, (_, index) => {
       const face = Math.floor(seeded(index, 17) * (mesh.faces.length / 3));
       const root = Math.sqrt(seeded(index, 31));
@@ -105,7 +104,7 @@ export class FrogShallowWaterPreviewModel {
     });
   }
 
-  private makeMode(basisIndex: number, amplitude: number): WaveMode {
+  private makeMode(basisIndex: number): WaveMode {
     const vertexCount = this.eigenbasis.vertexCount;
     const values = new Float64Array(vertexCount);
     const offset = basisIndex * vertexCount;
@@ -118,23 +117,59 @@ export class FrogShallowWaterPreviewModel {
       area += weight;
     }
     mean /= Math.max(area, 1e-14);
-    let maximum = 0;
     for (let vertex = 0; vertex < vertexCount; vertex += 1) {
       values[vertex] = values[vertex]! - mean;
-      maximum = Math.max(maximum, Math.abs(values[vertex]!));
-    }
-    for (let vertex = 0; vertex < vertexCount; vertex += 1) {
-      values[vertex] = values[vertex]! / Math.max(maximum, 1e-14);
     }
     const faceGradients = this.faceGradients(values);
     const eigenvalue = this.eigenbasis.eigenvalues[basisIndex]!;
     return {
       basisIndex,
       omega: Math.sqrt(this.gravity * this.meanDepth * eigenvalue),
-      amplitude,
+      amplitude: 0,
       values,
       faceGradients,
     };
+  }
+
+  private makeLocalizedPacket(): WaveMode[] {
+    const modes = this.waveModeIndices.map((basisIndex) => this.makeMode(basisIndex));
+    const sourceTarget = { x: 0, y: -0.34, z: 0.46 };
+    let sourceVertex = 0;
+    let sourceDistance2 = Infinity;
+    for (let vertex = 0; vertex < this.mesh.positions.length / 3; vertex += 1) {
+      const delta = subtract(arrayVector(this.mesh.positions, vertex), sourceTarget);
+      const distance2 = dot(delta, delta);
+      if (distance2 < sourceDistance2) {
+        sourceDistance2 = distance2;
+        sourceVertex = vertex;
+      }
+    }
+
+    // A heat-kernel-shaped spectral packet: coefficients agree in sign at a
+    // single point, while the exponential envelope suppresses unresolved
+    // mesh-scale ringing. Omitting the first modes keeps useful fine structure.
+    for (const mode of modes) {
+      const eigenvalue = this.eigenbasis.eigenvalues[mode.basisIndex]!;
+      let norm2 = 0;
+      for (let vertex = 0; vertex < mode.values.length; vertex += 1) {
+        norm2 += this.mesh.vertexAreas[vertex]! * mode.values[vertex]! ** 2;
+      }
+      mode.amplitude = (
+        mode.values[sourceVertex]!
+        * Math.exp(-0.022 * eigenvalue)
+        / Math.max(norm2, 1e-14)
+      );
+    }
+
+    let packetMaximum = 0;
+    for (let vertex = 0; vertex < this.mesh.positions.length / 3; vertex += 1) {
+      let value = 0;
+      for (const mode of modes) value += mode.amplitude * mode.values[vertex]!;
+      packetMaximum = Math.max(packetMaximum, Math.abs(value));
+    }
+    const scaleFactor = 0.092 / Math.max(packetMaximum, 1e-14);
+    for (const mode of modes) mode.amplitude *= scaleFactor;
+    return modes;
   }
 
   private faceGradients(values: Float64Array): Float64Array {
@@ -175,21 +210,49 @@ export class FrogShallowWaterPreviewModel {
     return result;
   }
 
+  private faceVelocityAt(time: number): Float64Array {
+    const faceVelocity = new Float64Array(this.mesh.faces.length);
+    for (const mode of this.modes) {
+      const coefficient = -mode.amplitude * this.gravity / mode.omega * Math.sin(mode.omega * time);
+      for (let index = 0; index < faceVelocity.length; index += 1) {
+        faceVelocity[index] = faceVelocity[index]! + coefficient * mode.faceGradients[index]!;
+      }
+    }
+    return faceVelocity;
+  }
+
+  private weakDivergence(faceVelocity: Float64Array): Float64Array {
+    const divergence = new Float64Array(this.mesh.positions.length / 3);
+    for (let face = 0; face < this.mesh.faces.length / 3; face += 1) {
+      const velocity = arrayVector(faceVelocity, face);
+      const area = this.mesh.faceAreas[face]!;
+      for (let local = 0; local < 3; local += 1) {
+        const vertex = this.mesh.faces[3 * face + local]!;
+        const offset = 9 * face + 3 * local;
+        const basisGradient = {
+          x: this.mesh.faceGradients[offset]!,
+          y: this.mesh.faceGradients[offset + 1]!,
+          z: this.mesh.faceGradients[offset + 2]!,
+        };
+        divergence[vertex] = divergence[vertex]! - area * dot(basisGradient, velocity);
+      }
+    }
+    for (let vertex = 0; vertex < divergence.length; vertex += 1) {
+      divergence[vertex] = divergence[vertex]! / Math.max(this.mesh.vertexAreas[vertex]!, 1e-14);
+    }
+    return divergence;
+  }
+
   stateAt(time = this.time): FrogWaveState {
     if (time === this.cachedTime && this.cachedState) return this.cachedState;
     const vertexCount = this.mesh.positions.length / 3;
-    const faceCount = this.mesh.faces.length / 3;
     const height = new Float64Array(vertexCount);
     height.fill(this.meanDepth);
-    const faceVelocity = new Float64Array(3 * faceCount);
+    const faceVelocity = this.faceVelocityAt(time);
     for (const mode of this.modes) {
       const heightCoefficient = mode.amplitude * Math.cos(mode.omega * time);
-      const velocityCoefficient = -mode.amplitude * this.gravity / mode.omega * Math.sin(mode.omega * time);
       for (let vertex = 0; vertex < vertexCount; vertex += 1) {
         height[vertex] = height[vertex]! + heightCoefficient * mode.values[vertex]!;
-      }
-      for (let index = 0; index < faceVelocity.length; index += 1) {
-        faceVelocity[index] = faceVelocity[index]! + velocityCoefficient * mode.faceGradients[index]!;
       }
     }
     const state = { height, faceVelocity, vertexVelocity: this.vertexAverage(faceVelocity) };
@@ -273,19 +336,37 @@ export class FrogShallowWaterPreviewModel {
   }
 
   step(timeStep = 0.012): void {
-    const startState = this.stateAt(this.time);
     const midpointTime = this.time + 0.5 * timeStep;
-    const midpointState = this.stateAt(midpointTime);
+    const startVelocity = this.faceVelocityAt(this.time);
+    const midpointVelocity = this.faceVelocityAt(midpointTime);
     this.particles.forEach((particle) => {
-      const first = arrayVector(startState.faceVelocity, particle.face);
+      const first = arrayVector(startVelocity, particle.face);
       const midpoint = this.walk(particle, first, 0.5 * timeStep);
-      const second = arrayVector(midpointState.faceVelocity, midpoint.face);
+      const second = arrayVector(midpointVelocity, midpoint.face);
       const next = this.walk(particle, second, timeStep);
       particle.face = next.face;
       particle.barycentric = next.barycentric;
     });
     this.time += timeStep;
     this.cachedTime = Number.NaN;
+  }
+
+  /** Relative lumped-mass residual of eta_t + H div(u) = 0. */
+  continuityResidualRms(time = this.time): number {
+    const divergence = this.weakDivergence(this.faceVelocityAt(time));
+    let residual2 = 0;
+    let reference2 = 0;
+    for (let vertex = 0; vertex < divergence.length; vertex += 1) {
+      let heightRate = 0;
+      for (const mode of this.modes) {
+        heightRate -= mode.amplitude * mode.omega * Math.sin(mode.omega * time) * mode.values[vertex]!;
+      }
+      const fluxDivergence = this.meanDepth * divergence[vertex]!;
+      const weight = this.mesh.vertexAreas[vertex]!;
+      residual2 += weight * (heightRate + fluxDivergence) ** 2;
+      reference2 += 0.5 * weight * (heightRate ** 2 + fluxDivergence ** 2);
+    }
+    return reference2 < 1e-24 ? 0 : Math.sqrt(residual2 / reference2);
   }
 
   massDrift(): number {

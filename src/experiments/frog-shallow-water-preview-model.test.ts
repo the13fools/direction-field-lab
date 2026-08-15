@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
+// @ts-expect-error Vitest supplies Node; the browser application intentionally omits Node globals.
+import { readFileSync } from "node:fs";
 
 import frogSource from "../assets/treefrog.obj?raw";
 import {
+  parseFrogEigenbasis,
   parseFrogTriangleMesh,
   type FrogEigenbasis,
   type FrogTriangleMesh,
@@ -31,7 +34,7 @@ describe("frog shallow-water story preview", () => {
     const mesh = parseFrogTriangleMesh(frogSource);
     const basis = makeTestEigenbasis(mesh);
     const model = new FrogShallowWaterPreviewModel(mesh, basis, 12);
-    expect(model.waveModeIndices).toEqual([18, 31]);
+    expect(model.waveModeIndices).toEqual([3, 4, 5, 6, 7, 8, 9, 10, 12, 14, 16, 18, 21, 24, 27, 31]);
     model.step(0.08);
     expect(Math.abs(model.massDrift())).toBeLessThan(1e-8);
     expect(model.ambientRechartDefect()).toBeLessThan(1e-12);
@@ -49,5 +52,15 @@ describe("frog shallow-water story preview", () => {
       expect(Math.min(...particle.barycentric)).toBeGreaterThan(-1e-7);
       expect(particle.barycentric.reduce((sum, value) => sum + value, 0)).toBeCloseTo(1, 8);
     }
+  });
+
+  it("couples height rate to the mesh weak divergence on the precomputed LB basis", () => {
+    const mesh = parseFrogTriangleMesh(frogSource);
+    const bytes = readFileSync(new URL("../assets/treefrog-lb-eigenbasis.bin", import.meta.url));
+    const buffer = bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength) as ArrayBuffer;
+    const basis = parseFrogEigenbasis(buffer, mesh.positions.length / 3);
+    const model = new FrogShallowWaterPreviewModel(mesh, basis, 8);
+    model.step(0.071);
+    expect(model.continuityResidualRms()).toBeLessThan(2e-4);
   });
 });
