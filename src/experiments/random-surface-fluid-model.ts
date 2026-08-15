@@ -149,8 +149,8 @@ function assertParameters(parameters: RandomSurfaceFluidParameters): void {
   if (!Number.isInteger(parameters.maxBand) || parameters.maxBand < 1 || parameters.maxBand > 18) {
     throw new Error("maxBand must be an integer from 1 through 18");
   }
-  if (!Number.isInteger(parameters.particleCount) || parameters.particleCount < 8 || parameters.particleCount > 3000) {
-    throw new Error("particleCount must be an integer from 8 through 3000");
+  if (!Number.isInteger(parameters.particleCount) || parameters.particleCount < 8 || parameters.particleCount > 6000) {
+    throw new Error("particleCount must be an integer from 8 through 6000");
   }
   for (const [name, value] of Object.entries(parameters)) {
     if (name !== "surface" && name !== "projection" && !Number.isFinite(value)) {

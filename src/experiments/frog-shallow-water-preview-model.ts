@@ -2,6 +2,7 @@ import type { FrogEigenbasis, FrogTriangleMesh } from "./frog-surface-fluid-mode
 import type { Vec3 } from "./random-surface-fluid-model";
 
 interface WaveMode {
+  basisIndex: number;
   omega: number;
   amplitude: number;
   values: Float64Array;
@@ -59,24 +60,28 @@ export class FrogShallowWaterPreviewModel {
   private cachedTime = Number.NaN;
   private cachedState: FrogWaveState | undefined;
 
+  readonly waveModeIndices = [18, 31] as const;
+
   constructor(
     mesh: FrogTriangleMesh,
     eigenbasis: FrogEigenbasis,
-    particleCount = 110,
+    particleCount = 5000,
     gravity = 9.81,
     meanDepth = 1,
   ) {
     if (mesh.positions.length / 3 !== eigenbasis.vertexCount) {
       throw new Error("The frog mesh and shallow-water eigenbasis do not match.");
     }
-    if (eigenbasis.modeCount < 6) throw new Error("The frog wave preview needs at least six eigenmodes.");
+    if (eigenbasis.modeCount <= this.waveModeIndices[1]) {
+      throw new Error("The frog wave preview needs at least 32 eigenmodes.");
+    }
     this.mesh = mesh;
     this.eigenbasis = eigenbasis;
     this.gravity = gravity;
     this.meanDepth = meanDepth;
     this.modes = [
-      this.makeMode(1, 0.085),
-      this.makeMode(4, 0.045),
+      this.makeMode(this.waveModeIndices[0], 0.062),
+      this.makeMode(this.waveModeIndices[1], 0.034),
     ];
     this.particles = Array.from({ length: particleCount }, (_, index) => {
       const face = Math.floor(seeded(index, 17) * (mesh.faces.length / 3));
@@ -124,6 +129,7 @@ export class FrogShallowWaterPreviewModel {
     const faceGradients = this.faceGradients(values);
     const eigenvalue = this.eigenbasis.eigenvalues[basisIndex]!;
     return {
+      basisIndex,
       omega: Math.sqrt(this.gravity * this.meanDepth * eigenvalue),
       amplitude,
       values,

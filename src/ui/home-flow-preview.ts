@@ -1,4 +1,5 @@
-import { ClebschShallowWaterModel, type Vec2 } from "../experiments/clebsch-shallow-water-model";
+import type { Vec2 } from "../experiments/clebsch-shallow-water-model";
+import { FlatShallowWaterPreviewModel } from "../experiments/flat-shallow-water-preview-model";
 import { RandomSurfaceFluidModel } from "../experiments/random-surface-fluid-model";
 
 type FlowStoryMode = "random" | "water";
@@ -35,10 +36,10 @@ const FLOW_STORIES: Record<FlowStoryMode, {
     linkLabel: "Open the random-field playground →",
   },
   water: {
-    kicker: "EVOLVING DYNAMICS",
-    title: "A Clebsch shallow-water state",
-    copy: "Three ambient-coordinate labels and their weights travel with the water, φ responds to the Bernoulli equation, and depth h changes through mass flux.",
-    audit: "evolves: h, φ, λ₁…λ₃, B¹…B³ · audit: total mass",
+    kicker: "NON-DISSIPATIVE REFERENCE WAVE",
+    title: "A periodic shallow-water wave",
+    copy: "Two higher Fourier modes exchange height and potential velocity exactly in time. They do not fade numerically; the nonlinear Clebsch lab shows the harder transported-label problem.",
+    audit: "evolves: h and potential velocity · exact linear modes · mass fixed",
     link: "./clebsch-shallow-water.html",
     linkLabel: "Open the shallow-water lab →",
   },
@@ -56,8 +57,8 @@ const MESH_FLOW_STORIES: typeof FLOW_STORIES = {
   water: {
     kicker: "SURFACE-WAVE DYNAMICS",
     title: "A shallow-water wave on the frog",
-    copy: "Two Laplace–Beltrami eigenmodes exchange height and tangent velocity. In the ambient Clebsch chart B=(X,Y,Z), the three minimum-norm weights are the tangent velocity components.",
-    audit: "evolves: h and u · representation: Σ λₐ dXᵃ · audit: mass",
+    copy: "Higher Laplace–Beltrami modes 19 and 32 exchange height and tangent velocity. In the ambient Clebsch chart B=(X,Y,Z), the three minimum-norm weights are the tangent velocity components.",
+    audit: "evolves: h and u · LB modes 19 + 32 · representation: Σ λₐ dXᵃ",
     link: "./clebsch-shallow-water.html",
     linkLabel: "Open the shallow-water lab →",
   },
@@ -147,12 +148,7 @@ function initializeFlowStory(root: HTMLElement): void {
     timeStep: 0.018,
     particleCount: isHomeTeaser ? 68 : 130,
   });
-  const waterModel = new ClebschShallowWaterModel({
-    resolution: isHomeTeaser ? 24 : 32,
-    timeStep: 0.0015,
-    clebschStrength: 0.19,
-    preset: "crossing-labels",
-  });
+  const waterModel = new FlatShallowWaterPreviewModel(isHomeTeaser ? 24 : 32);
 
   const randomTrails: PreviewTrail[] = randomModel.particles.map((particle) => ({
     x: particle.u! / TAU,
@@ -215,7 +211,7 @@ function initializeFlowStory(root: HTMLElement): void {
         trail.points.length = 0;
       });
     } else {
-      waterModel.reset({ preset: "crossing-labels" });
+      waterModel.reset();
       waterTrails.forEach((trail, index) => {
         trail.x = seeded(index, 31);
         trail.y = seeded(index, 47);
@@ -411,12 +407,12 @@ function initializeFlowStory(root: HTMLElement): void {
       });
     } else {
       const velocity = waterModel.velocity();
-      const dt = Math.min(0.012, elapsed * 0.23);
+      const dt = Math.min(0.02, elapsed * 0.6);
       waterTrails.forEach((trail) => {
         const field = samplePeriodicVector(velocity, waterModel.parameters.resolution, trail.x, trail.y);
         pushTrail(trail, trail.x + dt * field.x, trail.y + dt * field.y, isHomeTeaser ? 18 : 34);
       });
-      waterModel.step(isHomeTeaser ? 1 : 2);
+      waterModel.step(dt);
     }
   };
 
@@ -426,7 +422,7 @@ function initializeFlowStory(root: HTMLElement): void {
     const time = root.querySelector<HTMLElement>("[data-flow-time]");
     if (time && frameNumber % 10 === 0) {
       if (mode === "random") time.textContent = `t ${randomModel.time.toFixed(2)} · projected periodic field`;
-      else time.textContent = `t ${waterModel.state.time.toFixed(3)} · mass drift ${waterModel.diagnostics().massDrift.toExponential(1)}`;
+      else time.textContent = `t ${waterModel.state.time.toFixed(2)} · exact Fourier wave · mass drift ${waterModel.massDrift().toExponential(1)}`;
     }
   };
 

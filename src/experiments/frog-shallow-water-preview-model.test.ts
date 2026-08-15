@@ -10,7 +10,7 @@ import { FrogShallowWaterPreviewModel } from "./frog-shallow-water-preview-model
 
 function makeTestEigenbasis(mesh: FrogTriangleMesh): FrogEigenbasis {
   const vertexCount = mesh.positions.length / 3;
-  const modeCount = 6;
+  const modeCount = 36;
   const eigenvalues = Float64Array.from({ length: modeCount }, (_, mode) => (mode + 1) * (mode + 2));
   const modes = new Float32Array(vertexCount * modeCount);
   for (let mode = 0; mode < modeCount; mode += 1) {
@@ -31,6 +31,7 @@ describe("frog shallow-water story preview", () => {
     const mesh = parseFrogTriangleMesh(frogSource);
     const basis = makeTestEigenbasis(mesh);
     const model = new FrogShallowWaterPreviewModel(mesh, basis, 12);
+    expect(model.waveModeIndices).toEqual([18, 31]);
     model.step(0.08);
     expect(Math.abs(model.massDrift())).toBeLessThan(1e-8);
     expect(model.ambientRechartDefect()).toBeLessThan(1e-12);

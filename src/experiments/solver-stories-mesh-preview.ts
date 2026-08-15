@@ -25,6 +25,10 @@ interface Trail {
   group: 0 | 1;
 }
 
+const FROG_PARTICLE_COUNT = 5000;
+const TRAIL_PARTICLE_LIMIT = 640;
+const TRAIL_POINT_LIMIT = 20;
+
 function vectorAt(values: ArrayLike<number>, index: number): Vec3 {
   return { x: values[3 * index]!, y: values[3 * index + 1]!, z: values[3 * index + 2]! };
 }
@@ -56,10 +60,10 @@ export async function initializeSolverStoriesMeshPreview(
       turnover: 0.34,
       speed: 0.56,
       timeStep: 0.018,
-      particleCount: 130,
+      particleCount: FROG_PARTICLE_COUNT,
     });
   let randomModel = makeRandomModel();
-  const waterModel = new FrogShallowWaterPreviewModel(mesh, basis, 110);
+  const waterModel = new FrogShallowWaterPreviewModel(mesh, basis, FROG_PARTICLE_COUNT);
 
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x071c21);
@@ -227,7 +231,7 @@ export async function initializeSolverStoriesMeshPreview(
     const colors = new Float32Array(count * 3);
     const warm = new THREE.Color(0xff8a4d);
     const cool = new THREE.Color(0x62edf1);
-    trails = Array.from({ length: count }, (_, index) => ({
+    trails = Array.from({ length: Math.min(count, TRAIL_PARTICLE_LIMIT) }, (_, index) => ({
       points: [particlePosition(index)],
       group: (index % 2) as 0 | 1,
     }));
@@ -239,7 +243,7 @@ export async function initializeSolverStoriesMeshPreview(
     particlePoints = new THREE.Points(
       pointGeometry,
       new THREE.PointsMaterial({
-        size: 0.025,
+        size: 0.018,
         sizeAttenuation: true,
         vertexColors: true,
         transparent: true,
@@ -271,9 +275,9 @@ export async function initializeSolverStoriesMeshPreview(
     for (let index = 0; index < particleCount(); index += 1) {
       const point = particlePosition(index);
       pointPositions.setXYZ(index, point.x, point.y, point.z);
-      if (append) {
+      if (append && index < trails.length) {
         trails[index]!.points.push(point);
-        if (trails[index]!.points.length > 24) trails[index]!.points.shift();
+        if (trails[index]!.points.length > TRAIL_POINT_LIMIT) trails[index]!.points.shift();
       }
     }
     pointPositions.needsUpdate = true;
@@ -324,18 +328,20 @@ export async function initializeSolverStoriesMeshPreview(
     const elapsed = Math.min(0.04, Math.max(0, (now - previous) / 1000));
     previous = now;
     if (visible && playing) {
-      if (mode === "random") randomModel.step(1);
-      else waterModel.step(Math.min(0.018, 0.65 * elapsed));
-      if (frameCount % 2 === 0) updateParticles(true);
-      if (frameCount % 3 === 0) {
+      if (frameCount % 2 === 0) {
+        if (mode === "random") randomModel.step(1);
+        else waterModel.step(Math.min(0.024, 1.1 * elapsed));
+        updateParticles(true);
+      }
+      if (frameCount % 4 === 0) {
         updateSurface();
         rebuildField();
       }
       if (frameCount % 12 === 0) {
         onStatus(mode === "random"
-          ? "t " + randomModel.time.toFixed(2) + " · frog LB field · tangent mesh velocity"
+          ? "t " + randomModel.time.toFixed(2) + " · 5,000 particles · frog LB field"
           : "t " + waterModel.time.toFixed(2) + " · mass drift " + waterModel.massDrift().toExponential(1)
-            + " · XYZ defect " + waterModel.ambientRechartDefect().toExponential(1));
+            + " · LB modes 19 + 32 · 5,000 particles");
       }
     }
     orbit.update();
