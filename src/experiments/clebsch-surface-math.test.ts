@@ -7,10 +7,11 @@ import shallowWaterPageSource from "../../clebsch-shallow-water.html?raw";
 import flatTorusPageSource from "../../flat-torus-cohomology.html?raw";
 import diskCirculationPageSource from "../../disk-circulation.html?raw";
 import randomFluidPageSource from "../../random-fluids.html?raw";
+import solverStoriesPageSource from "../../solver-stories.html?raw";
 
 describe("Clebsch surface lesson math", () => {
   it("renders every static LaTeX expression on both tutorial pages", () => {
-    const formulas = [introPageSource, actionPageSource, referencePageSource, diskCirculationPageSource]
+    const formulas = [introPageSource, actionPageSource, referencePageSource, diskCirculationPageSource, solverStoriesPageSource]
       .flatMap((source) => [...source.matchAll(/data-latex="([^"]*)"/g)])
       .map((match) => match[1]!);
 
@@ -121,5 +122,15 @@ describe("Clebsch surface lesson math", () => {
     expect(shallowWaterPageSource).toContain("Do not project shallow water to zero divergence");
     expect(shallowWaterPageSource).toContain("\\partial_t h+\\operatorname{div}(hu)=0");
     expect(shallowWaterPageSource).toContain("must store or evolve them");
+  });
+
+  it("separates transport, representation, physics, and constraints in the solver orientation", () => {
+    expect(solverStoriesPageSource).toContain("What is stored?");
+    expect(solverStoriesPageSource).toContain("How is it transported?");
+    expect(solverStoriesPageSource).toContain("Where do forces act?");
+    expect(solverStoriesPageSource).toContain("Which promise is enforced?");
+    expect(solverStoriesPageSource).toContain('data-flow-mode="random"');
+    expect(solverStoriesPageSource).toContain('data-flow-mode="water"');
+    expect(solverStoriesPageSource).toContain("A solver can combine these ideas");
   });
 });

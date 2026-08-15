@@ -79,7 +79,7 @@ body { margin: 0; background: radial-gradient(circle at 94% 2%, rgba(88,224,232,
 .course-unit.dark > aside { border:1px solid #506278; border-left:7px solid var(--gold); }
 .course-electives { padding:80px max(24px,calc((100vw - 1320px)/2)) 96px; }
 .course-electives > header > p:last-child { max-width:720px; margin:15px 0 0; color:var(--muted); font-size:11px; line-height:1.7; }
-.course-electives > div { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:7px; margin-top:35px; }
+.course-electives > div { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px; margin-top:35px; }
 .course-electives a { padding:24px; color:var(--ink); border:1px solid var(--line); border-top:6px solid var(--cyan); border-radius:5px; background:var(--paper); text-decoration:none; }
 .course-electives a:nth-child(even) { border-top-color:var(--orange); }
 .course-electives span { color:var(--indigo); font:850 8px var(--mono); letter-spacing:.08em; }

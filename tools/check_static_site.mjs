@@ -1,7 +1,7 @@
 import { readFileSync, statSync } from "node:fs";
 import { dirname, normalize, resolve } from "node:path";
 
-const pages = ["index.html", "vertex-curl.html", "energy-playground.html", "dec-playground.html", "getting-started.html", "course.html", "shallow-water.html", "clebsch-surfaces.html", "clebsch-surfaces-action.html", "clebsch-surfaces-reference.html", "clebsch-shallow-water.html", "flat-torus-cohomology.html", "disk-circulation.html", "random-fluids.html", "representations.html", "references.html"];
+const pages = ["index.html", "vertex-curl.html", "energy-playground.html", "dec-playground.html", "getting-started.html", "course.html", "solver-stories.html", "shallow-water.html", "clebsch-surfaces.html", "clebsch-surfaces-action.html", "clebsch-surfaces-reference.html", "clebsch-shallow-water.html", "flat-torus-cohomology.html", "disk-circulation.html", "random-fluids.html", "representations.html", "references.html"];
 const assets = ["wasm/gp_lab_kernels.js", "wasm/gp_lab_kernels.wasm", "og.png", "random-fluids-og-v2.png"];
 const failures = [];
 

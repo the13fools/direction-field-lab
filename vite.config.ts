@@ -13,6 +13,7 @@ export default defineConfig({
         "dec-playground.html",
         "getting-started.html",
         "course.html",
+        "solver-stories.html",
         "shallow-water.html",
         "clebsch-surfaces.html",
         "clebsch-surfaces-action.html",

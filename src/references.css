@@ -48,7 +48,7 @@ a { color:inherit; }
 .reference-subsection > p { margin:0; color:var(--muted); font-size:12px; line-height:1.72; }
 .reference-subsection > p a { color:#673c94; font-weight:800; }
 .reference-subsection.paired { margin-bottom:54px; padding:24px; border:1px solid #bca9cf; border-left:7px solid var(--cyan); border-radius:8px; background:rgba(255,255,255,.76); }
-.flow-roadmap { display:grid; grid-template-columns:repeat(4,1fr); gap:1px; margin:0 0 28px; overflow:hidden; border:1px solid #5c477a; border-top:7px solid var(--orange); border-radius:8px; background:#5c477a; box-shadow:9px 9px 0 rgba(82,223,234,.12); }
+.flow-roadmap { display:grid; grid-template-columns:repeat(5,1fr); gap:1px; margin:0 0 28px; overflow:hidden; border:1px solid #5c477a; border-top:7px solid var(--orange); border-radius:8px; background:#5c477a; box-shadow:9px 9px 0 rgba(82,223,234,.12); }
 .flow-roadmap a { display:grid; grid-template-columns:28px 1fr; gap:10px; align-items:start; min-height:112px; padding:17px 15px; color:white; background:linear-gradient(145deg,#211442,#34205b); text-decoration:none; }
 .flow-roadmap a:hover,.flow-roadmap a:focus-visible { background:linear-gradient(145deg,#34205b,#205268); }
 .flow-roadmap b { display:grid; place-items:center; width:26px; height:26px; color:var(--plum); border-radius:50%; background:var(--gold); font:850 10px var(--mono); }

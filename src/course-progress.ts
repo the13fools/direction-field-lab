@@ -24,14 +24,19 @@ const LESSONS: readonly CourseLesson[] = [
 ];
 
 const SUPPLEMENTS: Record<string, CourseSupplement> = {
+  "solver-stories.html": {
+    kind: "ORIENTATION",
+    title: "How should a fluid remember?",
+    description: "Backtracing, APIC, Clebsch transport, and conservative updates.",
+  },
   "clebsch-surfaces-reference.html": {
-    kind: "REFERENCE",
-    title: "Exterior calculus + DEC lookup",
-    description: "Types, storage locations, signs, and gauges.",
+    kind: "BACKGROUND NOTEBOOK",
+    title: "Clebsch, exterior calculus, and nearby work",
+    description: "Types, storage locations, gauges, and research connections.",
   },
 };
 
-const DRAWER_SUPPLEMENTS = ["clebsch-surfaces-reference.html"] as const;
+const DRAWER_SUPPLEMENTS = ["solver-stories.html", "clebsch-surfaces-reference.html"] as const;
 
 const currentPath = window.location.pathname.split("/").pop() || "index.html";
 const lessonIndex = LESSONS.findIndex((lesson) => lesson.path === currentPath);
@@ -134,7 +139,7 @@ function createDrawer(): {
   const branches = document.createElement("section");
   branches.className = "course-drawer-branches";
   const branchTitle = document.createElement("h2");
-  branchTitle.textContent = "COURSE REFERENCE";
+  branchTitle.textContent = "COURSE NOTEBOOKS";
   const branchList = document.createElement("ul");
   DRAWER_SUPPLEMENTS.forEach((path) => {
     const item = SUPPLEMENTS[path]!;

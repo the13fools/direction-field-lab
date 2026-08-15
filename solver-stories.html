@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#102b2a" />
+    <meta name="description" content="A narrative guide to backtracing, Stable Fluids, APIC, Clebsch transport, projection, and shallow water on surfaces." />
+    <title>How should a fluid remember? · Direction Field Lab</title>
+  </head>
+  <body>
+    <header class="story-header">
+      <a href="./index.html">← Direction Field Lab</a>
+      <div><span>SOLVER STORIES · ORIENTATION</span><strong>Alternative ways to carry a fluid</strong></div>
+      <nav><a href="#story-teaser">Two live states</a><a href="#story-methods">Method notebook</a><a href="./references.html#flow-transport">Papers</a></nav>
+    </header>
+
+    <main>
+      <section class="story-hero">
+        <div>
+          <p class="story-eyebrow">Before choosing an algorithm</p>
+          <h1>How should a fluid<br /><em>remember where it came from?</em></h1>
+          <p>A crest passes under a buoy. A dye filament stretches. A vortex crosses a mesh edge. Every solver has to decide what information survives that journey—and where forces and constraints are computed afterward.</p>
+          <a href="#story-teaser">Begin with two fields that look deceptively similar ↓</a>
+        </div>
+        <aside>
+          <span>ONE STEP, FOUR SEPARATE CHOICES</span>
+          <ol><li><b>state</b><small>what is remembered?</small></li><li><b>transport</b><small>how does it move?</small></li><li><b>physics</b><small>which forces act?</small></li><li><b>constraint</b><small>what must remain true?</small></li></ol>
+          <p>Stable Fluids, APIC, and Clebsch variables do not answer the same one of these questions. A practical solver can borrow from all three.</p>
+        </aside>
+      </section>
+
+      <section id="story-teaser" class="story-teaser" data-flow-story="random" aria-labelledby="story-teaser-title">
+        <header>
+          <div><p class="story-eyebrow">One periodic surface · two different promises</p><h2 id="story-teaser-title">The arrows are not the state.</h2></div>
+          <p>Both modes draw tangent velocity and advected particles on the same flat torus. In the first, time noise prescribes a succession of projected fields. In the second, velocity is reconstructed from an evolving water state.</p>
+        </header>
+
+        <div class="story-live-grid">
+          <section class="story-canvas-panel">
+            <header><span data-flow-time>t 0.00 · projected periodic field</span><strong>opposite edges are identified</strong></header>
+            <canvas data-flow-canvas role="img" aria-label="Switchable periodic-surface animation of a random projected Clebsch field and Clebsch shallow water"></canvas>
+            <div class="story-live-actions">
+              <div role="group" aria-label="Field story">
+                <button class="active" data-flow-mode="random" aria-pressed="true">Perlin + projected Clebsch</button>
+                <button data-flow-mode="water" aria-pressed="false">Clebsch shallow water</button>
+              </div>
+              <button data-flow-reset>Reset this state</button><button data-flow-play aria-pressed="true">Pause</button>
+            </div>
+          </section>
+
+          <aside class="story-live-reading" aria-live="polite">
+            <span data-flow-kicker>PRESCRIBED KINEMATICS</span>
+            <h3 data-flow-title>A random projected Clebsch field</h3>
+            <p data-flow-copy>Temporal Perlin coefficients move multiscale scalar labels. A periodic Hodge solve removes the divergent part before the particles are advected.</p>
+            <div><small>WHAT THE MOVIE PROMISES</small><strong data-flow-audit>evolves: noise coordinates · constraint: div u ≈ 0</strong></div>
+            <dl>
+              <div><dt>color</dt><dd>orange/cyan signed field structure; in water mode, height also changes the background</dd></div>
+              <div><dt>arrows</dt><dd>the current reconstructed velocity vector</dd></div>
+              <div><dt>trails</dt><dd>passive probes; they reveal motion but do not define the field</dd></div>
+            </dl>
+            <a data-flow-link href="./random-fluids.html">Open the random-field playground →</a>
+          </aside>
+        </div>
+
+        <p class="story-teaser-caveat"><b>Why start on a flat torus?</b> It is already a surface with topology, but it postpones tangent-frame transport and mesh singularities. The student project can preserve this comparison while replacing the periodic grid by a triangle surface.</p>
+      </section>
+
+      <section class="story-questions" aria-labelledby="story-questions-title">
+        <header><p class="story-eyebrow">A vocabulary before the names</p><h2 id="story-questions-title">Ask four questions of every fluid method.</h2><p>A method becomes much easier to compare when each design decision is placed on the right axis.</p></header>
+        <ol>
+          <li><span>01</span><div><strong>What is stored?</strong><p>A grid velocity? Particles with velocity moments? Vorticity? A velocity one-form? Clebsch labels and depth?</p></div></li>
+          <li><span>02</span><div><strong>How is it transported?</strong><p>Backtrace from grid samples, move particles forward, transport labels, or update conservative cell fluxes.</p></div></li>
+          <li><span>03</span><div><strong>Where do forces act?</strong><p>On an Eulerian grid, on particles, through an energy, or through a surface differential operator.</p></div></li>
+          <li><span>04</span><div><strong>Which promise is enforced?</strong><p>Zero divergence, mass conservation, circulation, energy behavior, positivity of depth, or some deliberate compromise.</p></div></li>
+        </ol>
+      </section>
+
+      <section id="story-methods" class="story-methods" aria-labelledby="story-methods-title">
+        <header><div><p class="story-eyebrow">Three influential stories</p><h2 id="story-methods-title">They solve different parts of the problem.</h2></div><p>Read left to right as a set of possible ingredients, not a tournament with one winner.</p></header>
+
+        <article class="story-method stable">
+          <div class="story-method-number">A</div>
+          <div class="story-method-copy"><span>GRID TRANSPORT · STAM 1999</span><h3>Backtrace the answer: Stable Fluids.</h3><p>Stand at each grid sample at the new time, follow its characteristic backward, and interpolate the old field at the departure point. The same semi-Lagrangian idea can carry smoke density, velocity components, or Clebsch labels.</p><div class="story-math" data-latex="q^{n+1}(x)\approx q^n\!\left(X(-\Delta t;x)\right)">new value samples the old field at the backtraced point</div></div>
+          <div class="story-method-tradeoff"><strong>WHY PEOPLE LOVE IT</strong><p>Large steps remain visually stable and the grid makes forces and a pressure Poisson solve convenient.</p><strong>WHAT IT SPENDS</strong><p>Repeated interpolation smooths fine structure. “Stable” does not mean exact conservation, no numerical diffusion, or correct behavior at arbitrarily large steps.</p><a href="https://www.josstam.com/publications" target="_blank" rel="noreferrer">Stam’s publication page ↗</a></div>
+        </article>
+
+        <article class="story-method apic">
+          <div class="story-method-number">B</div>
+          <div class="story-method-copy"><span>PARTICLE–GRID TRANSFER · JIANG ET AL. 2015</span><h3>Carry more local motion: APIC.</h3><p>Particles move material through the domain while a background grid handles forces and constraints. APIC augments each particle’s translational velocity with a local affine velocity model, retaining information that ordinary PIC loses during particle–grid transfers.</p><div class="story-math" data-latex="u_p(x)\approx v_p+C_p(x-x_p)">each particle carries a locally affine velocity</div></div>
+          <div class="story-method-tradeoff"><strong>WHY PEOPLE LOVE IT</strong><p>It keeps PIC’s filtering while greatly reducing transfer dissipation, and preserves angular momentum across the transfer described in the method.</p><strong>WHAT A SURFACE VERSION NEEDS</strong><p>Tangent particle states, parallel transport between frames, particle–mesh kernels, boundary handling, and a decision about whether the physics is a thin layer or a free surface in ambient space.</p><a href="https://alexey.stomakhin.com/research/apic.html" target="_blank" rel="noreferrer">APIC project + paper ↗</a></div>
+        </article>
+
+        <article class="story-method clebsch">
+          <div class="story-method-number">C</div>
+          <div class="story-method-copy"><span>STATE REPRESENTATION · CLEBSCH + COVECTORS</span><h3>Carry labels whose crossing remembers spin.</h3><p>Clebsch variables factor the velocity one-form into scalar data. The labels can be transported semi-Lagrangianly, with particles, or by another characteristic method; afterward the one-form is reconstructed and coupled to the intended constraint or height equation.</p><div class="story-math" data-latex="u^\flat=d\phi+\alpha\,d\beta+h_H">exact, label, and harmonic pieces of the velocity one-form</div></div>
+          <div class="story-method-tradeoff"><strong>WHY STUDY IT HERE</strong><p>The representation makes material labels, vorticity, circulation, metric conversion, and topology visible in one pipeline.</p><strong>WHAT IT DOES NOT CHOOSE FOR YOU</strong><p>Transport accuracy, gauge, global charts, harmonic periods, pressure or height evolution, boundaries, and the final discretization all remain modeling decisions.</p><a href="./clebsch-surfaces.html">Begin the Clebsch tutorial →</a></div>
+        </article>
+      </section>
+
+      <section class="story-compose" aria-labelledby="story-compose-title">
+        <header><p class="story-eyebrow">The useful synthesis</p><h2 id="story-compose-title">A solver can combine these ideas.</h2><p>The course’s Clebsch shallow-water experiment already uses semi-Lagrangian backtracing for material labels and a grid flux for height. APIC could become a different transport-and-transfer layer without replacing the Clebsch representation or the surface equations.</p></header>
+        <div class="story-pipeline" aria-label="Composable fluid solver pipeline">
+          <article><span>1 · REPRESENT</span><strong>h, φ, α, β, harmonic periods</strong><p>Choose the state that exposes the invariants and topology you care about.</p></article><i>→</i>
+          <article><span>2 · TRANSPORT</span><strong>backtrace, particles, or conservative flux</strong><p>Choose how each component moves and where interpolation error enters.</p></article><i>→</i>
+          <article><span>3 · RECONSTRUCT</span><strong>one-form → metric-dual velocity</strong><p>Use surface operators and restore the harmonic data.</p></article><i>→</i>
+          <article><span>4 · EVOLVE + AUDIT</span><strong>forces, depth, circulation, mass</strong><p>Apply the governing equations and report what the discrete step preserved.</p></article>
+        </div>
+        <aside><strong>A particularly interesting student experiment</strong><p>Keep the same Clebsch state and surface operators. Compare semi-Lagrangian label backtracing against particles carrying label values—or eventually affine tangent data. Use the same initial field, then plot label error, mass drift, vorticity identity error, and harmonic-period drift.</p></aside>
+      </section>
+
+      <section class="story-shelf" aria-labelledby="story-shelf-title">
+        <div><p class="story-eyebrow">Other doors worth opening</p><h2 id="story-shelf-title">The landscape is wider than these three.</h2><p>These methods become relevant when the physical goal changes.</p></div>
+        <div>
+          <article><span>CONSERVATIVE FINITE VOLUME</span><strong>When waves, shocks, and wet/dry fronts matter.</strong><p>Numerical fluxes make mass conservation and discontinuous solutions central. This is often the more natural baseline for production shallow-water systems.</p></article>
+          <article><span>VORTICITY–STREAMFUNCTION</span><strong>When two-dimensional incompressible rotation is the protagonist.</strong><p>Transport vorticity and solve a Poisson problem for velocity, while remembering that topology contributes harmonic periods.</p></article>
+          <article><span>VARIATIONAL / GEOMETRIC</span><strong>When discrete symmetry and long-time structure drive the design.</strong><p>Derive the step from a discrete action or bracket so Kelvin circulation, momentum maps, or energy behavior shape the method from the start.</p></article>
+        </div>
+      </section>
+
+      <section class="story-handoff">
+        <div><p class="story-eyebrow">Choose your next question</p><h2>Now return to the water with a sharper comparison.</h2><p>The random-field lab isolates representation and projection. The shallow-water labs add a governing evolution. The background notebook and reading map hold the research lineage.</p></div>
+        <nav><a href="./random-fluids.html">Prescribe a random field</a><a href="./shallow-water.html">Evolve a pressure wave</a><a href="./clebsch-shallow-water.html">Transport a Clebsch water state</a><a href="./references.html#flow-transport">Read the original methods</a></nav>
+      </section>
+    </main>
+
+    <script type="module" src="/src/course-progress.ts"></script>
+    <script type="module" src="/src/experiments/solver-stories.ts"></script>
+  </body>
+</html>

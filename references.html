@@ -90,14 +90,25 @@
         <header><span>06 · PHYSICAL DESTINATION</span><h2>Fluids on surfaces: a deliberate reading order</h2><p>These papers do not describe one interchangeable method. They progressively change the stored state, the preserved structure, the topology, and finally the governing equations.</p></header>
 
         <nav class="flow-roadmap" aria-label="Surface fluid reading order">
-          <a href="#flow-language"><b>1</b><span><strong>Choose the state</strong><small>Velocity, covector, vorticity, or Clebsch variables</small></span></a>
-          <a href="#flow-structure"><b>2</b><span><strong>Preserve structure</strong><small>Relabeling, Kelvin circulation, energy, Casimirs</small></span></a>
-          <a href="#flow-topology"><b>3</b><span><strong>Restore topology</strong><small>Harmonic periods that vorticity does not determine</small></span></a>
-          <a href="#flow-surface"><b>4</b><span><strong>Add surface physics</strong><small>Depth, curvature, boundaries, and viscosity</small></span></a>
+          <a href="#flow-transport"><b>1</b><span><strong>Move information</strong><small>Backtracing, grids, particles, and transfers</small></span></a>
+          <a href="#flow-language"><b>2</b><span><strong>Choose the state</strong><small>Velocity, covector, vorticity, or Clebsch variables</small></span></a>
+          <a href="#flow-structure"><b>3</b><span><strong>Preserve structure</strong><small>Relabeling, Kelvin circulation, energy, Casimirs</small></span></a>
+          <a href="#flow-topology"><b>4</b><span><strong>Restore topology</strong><small>Harmonic periods that vorticity does not determine</small></span></a>
+          <a href="#flow-surface"><b>5</b><span><strong>Add surface physics</strong><small>Depth, curvature, boundaries, and viscosity</small></span></a>
         </nav>
 
+        <div id="flow-transport" class="reference-subsection">
+          <div><span>1 · TRANSPORT + TRANSFER</span><h3>How does information cross a time step?</h3></div>
+          <p>These works answer a different question from Clebsch representation. Semi-Lagrangian methods backtrace from grid samples; APIC moves particles and enriches their transfers to a force-solving grid. Either idea can be combined with a separately chosen fluid state.</p>
+        </div>
+        <div class="reference-grid three">
+          <article data-kind="paper"><div><span>SIGGRAPH · 1999</span><b>Jos Stam</b></div><h3>Stable Fluids</h3><p>Uses semi-Lagrangian advection and implicit solves to permit large, visually stable timesteps, followed by pressure projection for incompressibility. Its interpolation is robust but can smooth fine vortical structure.</p><nav><a href="https://www.josstam.com/publications" target="_blank" rel="noreferrer">Author page + paper ↗</a><a href="./solver-stories.html#story-methods">Backtracing story →</a></nav></article>
+          <article data-kind="paper"><div><span>ACM TOG · 2015</span><b>Jiang, Schroeder, Selle, Teran & Stomakhin</b></div><h3>The Affine Particle-In-Cell Method</h3><p>Augments particles with a locally affine velocity description, reducing the information loss of PIC transfers while retaining a filtering property and conserving angular momentum across the method’s transfers.</p><nav><a href="https://alexey.stomakhin.com/research/apic.html" target="_blank" rel="noreferrer">Project + paper ↗</a><a href="./solver-stories.html#story-methods">APIC story →</a></nav></article>
+          <article data-kind="course"><div><span>ORIENTATION NOTEBOOK</span><b>Direction Field Lab</b></div><h3>How Should a Fluid Remember?</h3><p>Places representation, transport, forces, and constraints on separate axes, then switches one live periodic surface between prescribed random kinematics and Clebsch shallow-water dynamics.</p><nav><a href="./solver-stories.html">Open the narrative page →</a></nav></article>
+        </div>
+
         <div id="flow-language" class="reference-subsection">
-          <div><span>1 · REPRESENTATION</span><h3>What should the solver carry?</h3></div>
+          <div><span>2 · REPRESENTATION</span><h3>What should the solver carry?</h3></div>
           <p>Read these after the gentle Clebsch introduction. They explain why circulation is naturally a one-form measurement, and why Clebsch variables are a factorization of that one-form rather than a new physical fluid.</p>
         </div>
         <div class="reference-grid three">
@@ -107,7 +118,7 @@
         </div>
 
         <div id="flow-structure" class="reference-subsection">
-          <div><span>2 · VARIATIONAL STRUCTURE</span><h3>Which invariants survive discretization?</h3></div>
+          <div><span>3 · VARIATIONAL STRUCTURE</span><h3>Which invariants survive discretization?</h3></div>
           <p>The older work establishes the discrete-diffeomorphism and Lagrange–d’Alembert lineage. The new vakonomic formulation makes a different choice for nonholonomic constraints and supplies the clearest research destination for low-rank Clebsch state.</p>
         </div>
         <div class="reference-grid three">
@@ -117,12 +128,12 @@
         </div>
 
         <div id="flow-topology" class="reference-subsection paired">
-          <div><span>3 · TOPOLOGY</span><h3>Vorticity is local; periods are global.</h3></div>
+          <div><span>4 · TOPOLOGY</span><h3>Vorticity is local; periods are global.</h3></div>
           <p><a href="./disk-circulation.html">The annulus lab</a> introduces one missing circulation. <a href="./flat-torus-cohomology.html">The flat-torus lab</a> exposes two. Return to <em>Fluid Cohomology</em> above for the equations that evolve those harmonic coefficients rather than freezing them.</p>
         </div>
 
         <div id="flow-surface" class="reference-subsection">
-          <div><span>4 · SURFACE PHYSICS</span><h3>What changes when the domain bends—or the depth evolves?</h3></div>
+          <div><span>5 · SURFACE PHYSICS</span><h3>What changes when the domain bends—or the depth evolves?</h3></div>
           <p>Shallow water replaces the incompressible horizontal constraint by depth-weighted continuity. Viscous surface flow adds a separate geometric burden: curvature, boundary conditions, and harmonic-mode dynamics enter the dissipation.</p>
         </div>
         <div class="reference-grid three">

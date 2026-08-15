@@ -39,12 +39,17 @@
           <span>WELCOME TO THE WORKBENCH</span>
           <h2 id="home-route-title">Follow a curiosity, or settle in for the course.</h2>
           <p>Nothing here has to be read in order. Each experiment begins with one geometric question, gives you something to change, and leaves an audit visible when the picture becomes surprising.</p>
-          <a class="home-route-card fluid" href="./random-fluids.html">
-            <canvas id="home-flow-preview" aria-hidden="true"></canvas>
-            <span>A GOOD FIRST WANDER</span><strong>Random fluids on surfaces</strong><small>Choose a surface, stir several spatial scales together, and compare a raw Clebsch field with its pressure projection.</small>
-          </a>
+          <article class="home-route-card fluid home-flow-teaser" data-flow-story="random">
+            <canvas id="home-flow-preview" data-flow-canvas role="img" aria-label="Particles moving through either a projected random Clebsch field or a Clebsch shallow-water state"></canvas>
+            <div class="home-teaser-copy"><span data-flow-kicker>PRESCRIBED KINEMATICS</span><strong data-flow-title>A random projected Clebsch field</strong><small data-flow-copy>Temporal Perlin coefficients move multiscale scalar labels. A periodic Hodge solve removes the divergent part before particles are advected.</small></div>
+            <div class="home-teaser-switch" role="group" aria-label="Teaser field model">
+              <button class="active" data-flow-mode="random" aria-pressed="true">Random + projected</button><button data-flow-mode="water" aria-pressed="false">Shallow water</button>
+            </div>
+            <div class="home-teaser-foot"><span data-flow-audit>evolves: noise coordinates · constraint: div u ≈ 0</span><a data-flow-link href="./random-fluids.html">Open the random-field playground →</a></div>
+          </article>
+          <a class="home-route-card methods" href="./solver-stories.html"><span>BEFORE CHOOSING A SOLVER</span><strong>How should the water remember?</strong><small>Compare backtracing, Stable Fluids, APIC, Clebsch transport, and conservative shallow-water updates.</small></a>
           <a class="home-route-card course" href="./course.html"><span>A LONGER PATH · 8 LESSONS</span><strong>Build toward water on a surface</strong><small>Begin with what a loop measures; end with a small shallow-water solver.</small></a>
-          <aside class="home-play-note"><b>Try this first</b><span>Open the random-fluid lab, freeze time, and toggle raw/projected. Ask what changed before reading the explanation.</span></aside>
+          <aside class="home-play-note"><b>Try this first</b><span>Switch the teaser from random kinematics to shallow-water dynamics. The arrows may look similar; ask which quantities are actually evolving.</span></aside>
         </section>
         <p class="section-label">Direction-field experiments</p>
         <p class="sidebar-intro">The rest of the gallery is a shelf of small numerical toys: fields, operators, energies, and the occasional failure mode. Open the one that sounds useful today.</p>
